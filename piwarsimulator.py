@@ -16,8 +16,10 @@ renderer = WorldRenderer(TheWorld)
 
 running = True
 while running:
-    TheWorld[0].x += 0.01
     renderer.update()
+    running = renderer.running
+
+    TheWorld[0].x += 0.01
     if TheWorld[0].x >= 1:
         running = False
 

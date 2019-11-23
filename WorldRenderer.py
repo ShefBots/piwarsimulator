@@ -6,6 +6,9 @@ class WorldRenderer:
 
     def __init__(self, TheWorld):
         self.TheWorld = TheWorld
+        self.running = True
+
+        print("Initialising renderer...")
 
         pygame.init()
         pygame.display.set_caption("piwarsimulator")
@@ -13,7 +16,13 @@ class WorldRenderer:
         self.screen = pygame.display.set_mode((800,600))
 
     def update(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                print("Quit requested!")
+                self.running = False
+
         pygame.display.flip()
+
 
 #    def __del__(self):
         
