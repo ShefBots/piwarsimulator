@@ -2,6 +2,7 @@
 from enum import Enum
 
 class ObjectType(Enum):
+    UNKNOWN = 0
     ROBOT = 1
     ZONE = 2
     OBSTACLE = 3
