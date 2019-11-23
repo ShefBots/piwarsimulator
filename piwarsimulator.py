@@ -1,2 +1,6 @@
 #!/usr/bin/env python3
-print("hello world!")
+from WorldObject import *
+
+robot = WorldObject(radius=1,objecttype=ObjectType.ROBOT)
+print(robot)
+print(repr(robot))

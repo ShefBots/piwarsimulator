@@ -14,6 +14,7 @@ class WorldObject:
         self.y = kwargs.get('y', 0)
         self.angle = kwargs.get('angle', 0)
         self.radius = kwargs.get('radius', 0)
+        self.objecttype = kwargs.get('objecttype', 0)
 
     def __str__(self):
         return "Located at %0.3f, %0.3f with a heading of %0.3f" % (self.x, self.y, self.angle)
