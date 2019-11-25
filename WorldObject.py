@@ -14,7 +14,7 @@ class WorldObject:
         self.color = Color(kwargs.get('color', 'white'))
 
     def __str__(self):
-        return "Located at %0.3f, %0.3f with a heading of %0.3f" % (self.x, self.y, self.angle)
+        return "Located at %0.3f, %0.3f with rotated %0.3f degrees" % (self.x, self.y, self.angle)
 
     def __repr__(self):
         return "\nI am a %s with radius %0.3f - %s" % (self.objecttype, self.radius, self.__str__())
