@@ -8,8 +8,8 @@ TheWorld = []
 robot = WorldObject(objecttype=ObjectType.ROBOT, radius=0.1)
 
 TheWorld.append(robot)
-TheWorld.append(WorldObject(objecttype=ObjectType.TARGET, x=1, y=0))
-TheWorld.append(WorldObject(objecttype=ObjectType.ZONE, x=2, y=0, radius=0.1))
+TheWorld.append(WorldObject(objecttype=ObjectType.TARGET, x=1, y=0, color='blue'))
+TheWorld.append(WorldObject(objecttype=ObjectType.ZONE, x=2, y=0, radius=0.1, color='blue'))
 
 #print(TheWorld)
 

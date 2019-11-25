@@ -38,7 +38,7 @@ class WorldRenderer:
         self.screen.fill(Color('black'))
 
         for x in self.TheWorld:
-            pygame.draw.circle(self.screen, Color('white'), (self.tW(x.x), self.tV(x.y)), self.transformCoordinate(x.radius))
+            pygame.draw.circle(self.screen, x.color, (self.tW(x.x), self.tV(x.y)), self.transformCoordinate(x.radius))
 
         pygame.display.flip()
 
