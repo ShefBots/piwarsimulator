@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-from WorldObject import *
 import copy
+import math
+from WorldObject import *
 
 class ScanObject(WorldObject):
     """Something the robot sees"""
@@ -25,5 +26,7 @@ class ScanObject(WorldObject):
         assert isinstance(so, ScanObject)
 
         # calculate distance and angle
+        so.distance = math.sqrt(math.pow(so.x - robot.x, 2) + math.pow(so.y - robot.y, 2))
+        so.angle = math.degrees(math.atan2(so.y - robot.y, so.x - robot.x))
 
         return so
