@@ -4,12 +4,6 @@ from pygame import Color
 
 class WorldObject:
     """Anything that exists in the world"""
-    x = 0
-    y = 0
-    angle = 0
-    radius = 0.01
-    objecttype = ObjectType.UNKNOWN
-    color = Color('white')
 
     def __init__(self, *args, **kwargs):
         self.x = kwargs.get('x', 0)
