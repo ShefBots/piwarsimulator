@@ -4,7 +4,7 @@ from pygame import Color
 
 class WorldRenderer:
     """Render the world so we can see what the robot is doing!"""
-    WorldScale = 100
+    WorldScale = 150
 
     def __init__(self, TheWorld):
         self.TheWorld = TheWorld
