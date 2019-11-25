@@ -1,10 +1,29 @@
 #!/usr/bin/env python3
 from WorldObject import *
+import copy
 
 class ScanObject(WorldObject):
     """Something the robot sees"""
 
     def __init__(self, *args, **kwargs):
-        WorldObject.__init__(self, args, kwargs)
+        super().__init__(self, args, kwargs)
         self.distance = kwargs.get('distance', 0)
-        pass
+
+    def __str__(self):
+        return "Located at %0.3f away with a heading of %0.3f degrees" % (self.distance, self.angle)
+
+    # https://stackoverflow.com/questions/15404256/changing-the-class-of-a-python-object-casting
+    # https://stackoverflow.com/questions/18020074/convert-a-baseclass-object-into-a-subclass-object-idiomatically/18020180
+    # probably super un-pythonic, but that's my java/cpp background for you
+    @classmethod
+    def DoScan(cls, wo: WorldObject, robot):
+        """Copy an WorldObject into a ScanObject,
+           then work out where it is in relation to the robot (i.e. scan)"""
+        assert isinstance(wo, WorldObject)
+        so = copy.deepcopy(wo)
+        so.__class__ = cls
+        assert isinstance(so, ScanObject)
+
+        # calculate distance and angle
+
+        return so
