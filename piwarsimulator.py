@@ -4,10 +4,12 @@ from WorldObject import *
 from WorldRenderer import *
 from ScanObject import *
 from Scan import *
+from RobotBrain import *
 
 TheWorld = []
 
 robot = WorldObject(objecttype=ObjectType.ROBOT, radius=0.1)
+robotbrain = RobotBrain(robot=robot)
 
 TheWorld.append(robot) # this should always be index 0!
 TheWorld.append(WorldObject(objecttype=ObjectType.TARGET, x=1, y=0.2, radius=0.056, color='blue'))
