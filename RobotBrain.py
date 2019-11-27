@@ -10,4 +10,10 @@ class RobotBrain():
         assert isinstance(self.robot, WorldObject)
         assert self.robot.objecttype == ObjectType.ROBOT
 
+        # need to set default goal
+        self.goal = None
+        # need to initalise movement history
 
+    def move(self, sensorinformation):
+        self.robot.x += 0.1
+        pass
