@@ -21,5 +21,15 @@ class RobotBrain():
         self.holding = []
 
     def move(self, sensorinformation):
+        if self.goal == None:
+            self.goal = self.findGoal(sensorinformation)
+        if self.goal == None:
+            return
+
         self.robot.x += 0.1
+        pass
+
+    def findGoal(self, sensorinformation):
+        print("Finding goal")
+
         pass
