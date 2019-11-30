@@ -27,7 +27,10 @@ class ScanObject(WorldObject):
 
         # calculate distance and angle
         so.distance = math.sqrt(math.pow(so.x - robot.x, 2) + math.pow(so.y - robot.y, 2))
-        so.heading = math.degrees(math.atan2(so.x - robot.x, so.y - robot.y))
+        if abs(so.x - robot.x) < 1e-1and so.y < robot.y: # special case for tan
+            so.heading = -180
+        else:
+            so.heading = math.degrees(math.atan2(so.x - robot.x, so.y - robot.y))
         so.parent = wo
 
         return so
