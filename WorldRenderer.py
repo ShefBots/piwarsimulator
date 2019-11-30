@@ -5,7 +5,7 @@ from pygame import gfxdraw
 
 class WorldRenderer:
     """Render the world so we can see what the robot is doing!"""
-    WorldScale = 150
+    WorldScale = 200
 
     def __init__(self, TheWorld):
         self.TheWorld = TheWorld

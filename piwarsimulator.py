@@ -9,11 +9,11 @@ from RobotBrain import *
 TheWorld = []
 
 robot = WorldObject(objecttype=ObjectType.ROBOT, radius=0.1)
-robotbrain = RobotBrain(robot=robot, speed=0.01)
+robotbrain = RobotBrain(robot=robot, speed=0.01, turningspeed=3)
 
 TheWorld.append(robot) # this should always be index 0!
 TheWorld.append(WorldObject(objecttype=ObjectType.TARGET, x=1, y=0.2, radius=0.056, color='blue'))
-TheWorld.append(WorldObject(objecttype=ObjectType.ZONE, x=2, y=0, radius=0.1, color='blue'))
+TheWorld.append(WorldObject(objecttype=ObjectType.ZONE, x=-1, y=0.5, radius=0.1, color='blue'))
 
 renderer = WorldRenderer(TheWorld)
 
