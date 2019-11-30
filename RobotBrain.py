@@ -38,8 +38,8 @@ class RobotBrain():
             return
 
         # for now operate off the short term goal only
-        self.robot.x += self.speed * math.cos(math.radians(goal.heading))
-        self.robot.y += self.speed * math.sin(math.radians(goal.heading))
+        self.robot.x += self.speed * math.sin(math.radians(goal.heading))
+        self.robot.y += self.speed * math.cos(math.radians(goal.heading))
 
     def findGoal(self, sensorinformation):
         """find the closest TARET or ZONE"""
