@@ -44,12 +44,18 @@ class RobotBrain():
         headingoffset = goal.heading - self.robot.angle
         if abs(headingoffset) > 15 :
             if headingoffset > 0:
-                self.robot.angle += self.turningspeed
+                self.executeRotate(self.turningspeed)
             else:
-                self.robot.angle -= self.turningspeed
+                self.executeRotate(-self.turningspeed)
         else: # we're already facing so move
-            self.robot.x += self.speed * math.sin(math.radians(goal.heading))
-            self.robot.y += self.speed * math.cos(math.radians(goal.heading))
+            self.executeMove(self.speed, goal.heading)
+
+    def executeRotate(self, amount):
+        self.robot.angle += amount
+
+    def executeMove(self, dist, heading):
+        self.robot.x += dist * math.sin(math.radians(heading))
+        self.robot.y += dist * math.cos(math.radians(heading))
 
     def findGoal(self, sensorinformation):
         """find the closest TARET or ZONE"""
