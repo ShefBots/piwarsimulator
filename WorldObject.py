@@ -12,6 +12,7 @@ class WorldObject:
         self.radius = kwargs.get('radius', 0.01)
         self.objecttype = kwargs.get('objecttype', 0)
         self.color = Color(kwargs.get('color', 'white'))
+        self.ignore = kwargs.get('ignore', 0)
 
     def __str__(self):
         return "Located at %0.3f, %0.3f with rotated %0.3f degrees" % (self.x, self.y, self.angle)
