@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import pygame
 from pygame import Color
+from pygame import gfxdraw
 
 class WorldRenderer:
     """Render the world so we can see what the robot is doing!"""
@@ -42,11 +43,13 @@ class WorldRenderer:
         for x in self.TheWorld:
             i = self.tW(x.x)
             j = self.tV(x.y)
-            pygame.draw.circle(self.screen, x.color, (i, j), self.transformCoordinate(x.radius))
+            r = self.transformCoordinate(x.radius)
+            pygame.gfxdraw.filled_circle(self.screen, i, j, r, x.color)
+            pygame.gfxdraw.aacircle(self.screen, i, j, r, x.color)
 
             # render a label on each item in the world
             text = self.font.render(str(x.objecttype), True, Color('orange'))
-            self.screen.blit(text, (i - text.get_width() // 2, j - text.get_height() // 2 + 1)) 
+            self.screen.blit(text, (i - text.get_width() // 2 + 0.5, j - text.get_height() // 2 + 2)) 
 
         pygame.display.flip()
 
