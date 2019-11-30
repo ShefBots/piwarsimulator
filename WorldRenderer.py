@@ -25,11 +25,11 @@ class WorldRenderer:
 
     # transform horizontal coordiante
     def tW(self, c):
-        return self.transformCoordinate(c, self.screen.get_width()/2)
+        return self.transformCoordinate(c, self.screen.get_width() / 2)
 
     # transform vertical coordiante
     def tV(self, c):
-        return self.transformCoordinate(-c, self.screen.get_height()/2)
+        return self.transformCoordinate(-c, self.screen.get_height() / 2)
 
     def update(self):
         for event in pygame.event.get():
