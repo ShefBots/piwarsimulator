@@ -49,6 +49,7 @@ class RobotBrain():
                 self.holding.pop(0)
             return
 
+
         # for now operate off the short term goal only
 
         # rotate so we are facing the target
