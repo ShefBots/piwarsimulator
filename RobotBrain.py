@@ -38,6 +38,12 @@ class RobotBrain():
             print("no goals, doing nothing")
             return
 
+        # are we within grabbing distance of the goal?
+        if goal.distance < self.robot.radius + goal.radius:
+            print("grabbing goal!")
+            self.holding.append(goal.parent)
+            return
+
         # for now operate off the short term goal only
 
         # rotate so we are facing the target
@@ -54,8 +60,14 @@ class RobotBrain():
         self.robot.angle += amount
 
     def executeMove(self, dist, heading):
-        self.robot.x += dist * math.sin(math.radians(heading))
-        self.robot.y += dist * math.cos(math.radians(heading))
+        x = dist * math.sin(math.radians(heading))
+        y = dist * math.cos(math.radians(heading))
+        self.robot.x += x
+        self.robot.y += y
+
+        for obj in self.holding:
+            obj.x += x
+            obj.y += y
 
     def findGoal(self, sensorinformation):
         """find the closest TARET or ZONE"""
@@ -68,5 +80,7 @@ class RobotBrain():
                     closest = obj
                     closestdistance = obj.distance
             # otherwise find the zone that matches the target colour
+            elif len(self.holding) > 0 and obj.objecttype == ObjectType.ZONE and obj.color == self.holding[0].color:
+                return obj
 
         return closest
