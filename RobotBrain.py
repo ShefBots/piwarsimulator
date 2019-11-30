@@ -13,6 +13,7 @@ class RobotBrain():
 #        print("Building brain")
         self.robot = kwargs.get('robot', None)
         self.speed = kwargs.get('speed', 0.001) # 1 mm/s
+        self.turningspeed = kwargs.get('turningspeed', 1) # 1 degrees/s
         assert isinstance(self.robot, WorldObject)
         assert self.robot.objecttype == ObjectType.ROBOT
 
@@ -38,8 +39,17 @@ class RobotBrain():
             return
 
         # for now operate off the short term goal only
-        self.robot.x += self.speed * math.sin(math.radians(goal.heading))
-        self.robot.y += self.speed * math.cos(math.radians(goal.heading))
+
+        # rotate so we are facing the target
+        headingoffset = goal.heading - self.robot.angle
+        if abs(headingoffset) > 15 :
+            if headingoffset > 0:
+                self.robot.angle += self.turningspeed
+            else:
+                self.robot.angle -= self.turningspeed
+        else: # we're already facing so move
+            self.robot.x += self.speed * math.sin(math.radians(goal.heading))
+            self.robot.y += self.speed * math.cos(math.radians(goal.heading))
 
     def findGoal(self, sensorinformation):
         """find the closest TARET or ZONE"""

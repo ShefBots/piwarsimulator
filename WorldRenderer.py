@@ -49,7 +49,8 @@ class WorldRenderer:
 
             # render a label on each item in the world
             text = self.font.render(str(x.objecttype), True, Color('orange'))
-            self.screen.blit(text, (i - text.get_width() // 2 + 0.5, j - text.get_height() // 2 + 2)) 
+            text2 = pygame.transform.rotate(text, -x.angle)
+            self.screen.blit(text2, (i - text2.get_width() // 2 + 0.5, j - text2.get_height() // 2 + 2)) 
 
         pygame.display.flip()
 
