@@ -4,8 +4,8 @@ from ScanObject import *
 def Scan(TheWorld):
     result = []
     robot = TheWorld[0]
-    for x in TheWorld[1:len(TheWorld)]:
-        y = ScanObject.DoScan(x, robot)
+    for obj in TheWorld[1:len(TheWorld)]:
+        y = ScanObject.DoScan(obj, robot)
         result.append(y)
 
     return result

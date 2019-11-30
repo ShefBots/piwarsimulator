@@ -40,16 +40,16 @@ class WorldRenderer:
         # reset the canvas
         self.screen.fill(Color('black'))
 
-        for x in self.TheWorld:
-            i = self.tW(x.x)
-            j = self.tV(x.y)
-            r = self.transformCoordinate(x.radius)
-            pygame.gfxdraw.filled_circle(self.screen, i, j, r, x.color)
-            pygame.gfxdraw.aacircle(self.screen, i, j, r, x.color)
+        for obj in self.TheWorld:
+            i = self.tW(obj.x)
+            j = self.tV(obj.y)
+            r = self.transformCoordinate(obj.radius)
+            pygame.gfxdraw.filled_circle(self.screen, i, j, r, obj.color)
+            pygame.gfxdraw.aacircle(self.screen, i, j, r, obj.color)
 
             # render a label on each item in the world
-            text = self.font.render(str(x.objecttype), True, Color('orange'))
-            text2 = pygame.transform.rotate(text, -x.angle)
+            text = self.font.render(str(obj.objecttype), True, Color('orange'))
+            text2 = pygame.transform.rotate(text, -obj.angle)
             self.screen.blit(text2, (i - text2.get_width() // 2 + 0.5, j - text2.get_height() // 2 + 2)) 
 
         pygame.display.flip()

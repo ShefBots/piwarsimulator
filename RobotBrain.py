@@ -61,12 +61,12 @@ class RobotBrain():
         """find the closest TARET or ZONE"""
         closest = None
         closestdistance = 9e99
-        for x in sensorinformation:
+        for obj in sensorinformation:
             # only look for a target if we're holding nothing
-            if x.objecttype == ObjectType.TARGET and len(self.holding) == 0:
-                if x.distance < closestdistance:
-                    closest = x
-                    closestdistance = x.distance
+            if obj.objecttype == ObjectType.TARGET and len(self.holding) == 0:
+                if obj.distance < closestdistance:
+                    closest = obj
+                    closestdistance = obj.distance
             # otherwise find the zone that matches the target colour
 
         return closest
