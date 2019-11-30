@@ -17,6 +17,9 @@ class RobotBrain():
         self.goal = None
         # need to initalise movement history
 
+        # anything we're transporting
+        self.holding = []
+
     def move(self, sensorinformation):
         self.robot.x += 0.1
         pass
