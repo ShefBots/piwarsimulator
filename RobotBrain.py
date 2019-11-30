@@ -47,6 +47,8 @@ class RobotBrain():
                 self.holding[0].ignore = 1
                 print("dropping off target!")
                 self.holding.pop(0)
+                # move backwards a little after dropping off target
+                self.executeMove(-self.speed, goal.heading)
             return
 
 
