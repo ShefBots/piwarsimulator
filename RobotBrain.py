@@ -40,8 +40,13 @@ class RobotBrain():
 
         # are we within grabbing distance of the goal?
         if goal.distance < self.robot.radius + goal.radius:
-            print("grabbing goal!")
-            self.holding.append(goal.parent)
+            if goal.objecttype == ObjectType.TARGET:
+                print("grabbing goal!")
+                self.holding.append(goal.parent)
+            if goal.objecttype == ObjectType.ZONE and len(self.holding) > 0:
+                self.holding[0].ignore = 1
+                print("dropping off target!")
+                self.holding.pop(0)
             return
 
         # for now operate off the short term goal only
