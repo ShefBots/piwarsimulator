@@ -39,7 +39,7 @@ class RobotBrain():
             return
 
         # are we within grabbing distance of the goal?
-        if goal.distance < self.robot.radius + goal.radius:
+        if goal.distance < self.robot.radius + goal.radius + self.heldRadius():
             if goal.objecttype == ObjectType.TARGET:
                 print("grabbing goal!")
                 self.holding.append(goal.parent)
@@ -100,3 +100,14 @@ class RobotBrain():
                 return obj
 
         return closest
+
+    def heldRadius(self):
+        """Roughly increase in radius due to items being held"""
+        r = 0
+        for obj in self.holding:
+            dist = math.sqrt(math.pow(obj.x - self.robot.x, 2) + math.pow(obj.y - self.robot.y, 2))
+            tr = dist - self.robot.radius + obj.radius
+            if tr > r:
+                r = tr
+
+        return r
