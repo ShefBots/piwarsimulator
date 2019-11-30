@@ -11,7 +11,7 @@ class ScanObject(WorldObject):
         self.distance = kwargs.get('distance', 0)
 
     def __str__(self):
-        return "Located at %0.3f away with a heading of %0.3f degrees" % (self.distance, self.angle)
+        return "Located at %0.3f away with a heading of %0.3f degrees" % (self.distance, self.heading)
 
     # https://stackoverflow.com/questions/15404256/changing-the-class-of-a-python-object-casting
     # https://stackoverflow.com/questions/18020074/convert-a-baseclass-object-into-a-subclass-object-idiomatically/18020180
@@ -27,6 +27,7 @@ class ScanObject(WorldObject):
 
         # calculate distance and angle
         so.distance = math.sqrt(math.pow(so.x - robot.x, 2) + math.pow(so.y - robot.y, 2))
-        so.angle = math.degrees(math.atan2(so.y - robot.y, so.x - robot.x))
+        so.heading = math.degrees(math.atan2(so.y - robot.y, so.x - robot.x))
+        so.parent = wo
 
         return so
