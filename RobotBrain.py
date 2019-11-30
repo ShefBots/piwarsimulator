@@ -61,7 +61,9 @@ class RobotBrain():
 
         # rotate so we are facing the target
         headingoffset = goal.heading - self.robot.angle
-        if abs(headingoffset) > 15 :
+        # NOTE: sometimes we rotate in the wrong direction
+        # this is probably an x - 360 type issue?
+        if abs(headingoffset) > self.turningspeed/2:
             if headingoffset > 0:
                 self.executeRotate(self.turningspeed)
             else:
