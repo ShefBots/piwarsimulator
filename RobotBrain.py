@@ -30,6 +30,13 @@ class RobotBrain():
         pass
 
     def findGoal(self, sensorinformation):
-        print("Finding goal")
+        """find the closest TARET"""
+        closest = None
+        closestdistance = 9e99
+        for x in sensorinformation:
+            if x.objecttype == ObjectType.TARGET:
+                if x.distance < closestdistance:
+                    closest = x
+                    closestdistance = x.distance
 
-        pass
+        return closest
