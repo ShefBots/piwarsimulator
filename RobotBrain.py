@@ -2,6 +2,9 @@
 from WorldObject import *
 from ObjectType import *
 
+# note: at some point we can probably use child classes to define
+# what type of AI challenge we're dealing with
+
 class RobotBrain():
 
     def __init__(self, *args, **kwargs):

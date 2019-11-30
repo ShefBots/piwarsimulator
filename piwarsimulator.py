@@ -29,5 +29,7 @@ while running:
     robotbrain.move(sensorinformation)
 #    print(TheWorld)
 
+# need a routine to clean up the world and remove targets that are in goals
+
     time.sleep(0.1)
 
