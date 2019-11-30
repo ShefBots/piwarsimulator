@@ -10,6 +10,7 @@ class RobotBrain():
     def __init__(self, *args, **kwargs):
 #        print("Building brain")
         self.robot = kwargs.get('robot', None)
+        self.speed = kwargs.get('speed', 0.001) # 1 mm/s
         assert isinstance(self.robot, WorldObject)
         assert self.robot.objecttype == ObjectType.ROBOT
 
