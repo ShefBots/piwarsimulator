@@ -59,6 +59,16 @@ class RobotBrain():
     def executeRotate(self, amount):
         self.robot.angle += amount
 
+        # rotate objects we're holding about us
+        for obj in self.holding:
+            obj.angle += amount
+
+            dx = math.cos(math.radians(-amount)) * (obj.x - self.robot.x) - math.sin(math.radians(-amount)) * (obj.y - self.robot.y)
+            dy = math.sin(math.radians(-amount)) * (obj.x - self.robot.x) + math.cos(math.radians(-amount)) * (obj.y - self.robot.y)
+
+            obj.x = self.robot.x + dx
+            obj.y = self.robot.y + dy
+
     def executeMove(self, dist, heading):
         x = dist * math.sin(math.radians(heading))
         y = dist * math.cos(math.radians(heading))
