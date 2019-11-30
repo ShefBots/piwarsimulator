@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from WorldObject import *
 from ObjectType import *
+import math
+import copy
 
 # note: at some point we can probably use child classes to define
 # what type of AI challenge we're dealing with
@@ -14,7 +16,9 @@ class RobotBrain():
         assert isinstance(self.robot, WorldObject)
         assert self.robot.objecttype == ObjectType.ROBOT
 
-        # need to set default goal
+        # need to set long term goal
+        # this should be a copy of a scan result so that we can
+        # use inertial tracking in case it doesn't show up in the next scan
         self.goal = None
         # need to initalise movement history
 
@@ -22,13 +26,20 @@ class RobotBrain():
         self.holding = []
 
     def move(self, sensorinformation):
-        if self.goal == None:
-            self.goal = self.findGoal(sensorinformation)
-        if self.goal == None:
+        # find something to move towards
+        goal = self.findGoal(sensorinformation)
+
+        # if we didn't find anything, were we already moving towards something?
+        if goal != None and self.goal == None:
+            print("setting new long term goal")
+            self.goal = copy.copy(goal)
+        if goal == None and self.goal == None:
+            print("no goals, doing nothing")
             return
 
-        self.robot.x += 0.1
-        pass
+        # for now operate off the short term goal only
+        self.robot.x += self.speed * math.cos(math.radians(goal.heading))
+        self.robot.y += self.speed * math.sin(math.radians(goal.heading))
 
     def findGoal(self, sensorinformation):
         """find the closest TARET or ZONE"""
