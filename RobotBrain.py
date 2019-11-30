@@ -31,9 +31,9 @@ class RobotBrain():
         goal = self.findGoal(sensorinformation)
 
         # if we didn't find anything, were we already moving towards something?
-        if goal != None and self.goal == None:
-            print("setting new long term goal")
-            self.goal = copy.copy(goal)
+#        if goal != None and self.goal == None:
+#            print("setting new long term goal")
+#            self.goal = copy.copy(goal)
         if goal == None and self.goal == None:
             print("no goals, doing nothing")
             return
