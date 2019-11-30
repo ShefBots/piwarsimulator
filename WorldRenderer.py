@@ -18,7 +18,7 @@ class WorldRenderer:
 
         self.screen = pygame.display.set_mode((800,600))
 
-        self.font = pygame.font.Font(None, 22) # default font
+        self.font = pygame.font.Font(None, self.WorldScale // 7) # default font
 
     def transformCoordinate(self, c, offset=0):
         return round(c*self.WorldScale+offset)
