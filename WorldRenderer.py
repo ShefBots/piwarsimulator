@@ -17,6 +17,8 @@ class WorldRenderer:
 
         self.screen = pygame.display.set_mode((800,600))
 
+        self.font = pygame.font.Font(None, 22) # default font
+
     def transformCoordinate(self, c, offset=0):
         return round(c*self.WorldScale+offset)
 
@@ -38,7 +40,13 @@ class WorldRenderer:
         self.screen.fill(Color('black'))
 
         for x in self.TheWorld:
-            pygame.draw.circle(self.screen, x.color, (self.tW(x.x), self.tV(x.y)), self.transformCoordinate(x.radius))
+            i = self.tW(x.x)
+            j = self.tV(x.y)
+            pygame.draw.circle(self.screen, x.color, (i, j), self.transformCoordinate(x.radius))
+
+            # render a label on each item in the world
+            text = self.font.render(str(x.objecttype), True, Color('orange'))
+            self.screen.blit(text, (i - text.get_width() // 2, j - text.get_height() // 2 + 1)) 
 
         pygame.display.flip()
 
