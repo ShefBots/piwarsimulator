@@ -39,7 +39,12 @@ class RobotBrain():
             return
 
         # are we within grabbing distance of the goal?
-        if goal.distance < self.robot.radius + goal.radius + self.heldRadius():
+        tr = self.robot.radius + self.heldRadius()
+        if goal.objecttype == ObjectType.ZONE:
+            pass
+        else:
+            tr += goal.radius
+        if goal.distance < tr:
             if goal.objecttype == ObjectType.TARGET:
                 print("grabbing goal!")
                 self.holding.append(goal.parent)
