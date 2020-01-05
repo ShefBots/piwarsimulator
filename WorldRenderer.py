@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import pygame
+import math
+from ObjectType import *
 from pygame import Color
 from pygame import gfxdraw
 
@@ -31,7 +33,7 @@ class WorldRenderer:
 
     # transform vertical coordiante
     def tV(self, c):
-        return self.transform_coordinate(-c, 10 + self.screen.get_height())
+        return self.transform_coordinate(-c, -10 + self.screen.get_height())
 
     def update(self):
         for event in pygame.event.get():
@@ -46,8 +48,15 @@ class WorldRenderer:
             i = self.tW(obj.x)
             j = self.tV(obj.y)
             r = self.transform_coordinate(obj.radius)
-            pygame.gfxdraw.filled_circle(self.screen, i, j, r, obj.color)
-            pygame.gfxdraw.aacircle(self.screen, i, j, r, obj.color)
+            if obj.object_type == ObjectType.WALL:
+                pygame.gfxdraw.line(self.screen, 
+                    i - round(r*math.cos(math.radians(obj.angle))), 
+                    j - round(r*math.sin(math.radians(obj.angle))), 
+                    i + round(r*math.cos(math.radians(obj.angle))), 
+                    j + round(r*math.sin(math.radians(obj.angle))), obj.color)
+            else:
+                pygame.gfxdraw.filled_circle(self.screen, i, j, r, obj.color)
+                pygame.gfxdraw.aacircle(self.screen, i, j, r, obj.color)
 
             # render a label on each item in the world
             text = self.font.render(str(obj.object_type), True, Color('orange'))

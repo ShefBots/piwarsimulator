@@ -21,6 +21,14 @@ TheWorld.append(WorldObject(object_type=ObjectType.ZONE, x=1.3, y=2.1, radius=0.
 TheWorld.append(WorldObject(object_type=ObjectType.ZONE, x=1.5, y=2.1, radius=0.1, color='darkgreen'))
 TheWorld.append(WorldObject(object_type=ObjectType.ZONE, x=1.7, y=2.1, radius=0.1, color='darkgreen'))
 
+# The walls around the arena, see https://i0.wp.com/piwars.org/wp-content/uploads/2019/07/EcoDisasterPlanLabelled.png
+# for walls, the radius is half the length
+TheWorld.append(WorldObject(object_type=ObjectType.WALL, x=1.1, y=0, angle = 0, radius=1.1, color='gray', ignore=True))
+TheWorld.append(WorldObject(object_type=ObjectType.WALL, x=1.1, y=2.2, angle = 0, radius=1.1, color='gray', ignore=True))
+TheWorld.append(WorldObject(object_type=ObjectType.WALL, x=0, y=1.1, angle = 90, radius=1.1, color='gray', ignore=True))
+TheWorld.append(WorldObject(object_type=ObjectType.WALL, x=2.2, y=1.1, angle = 90, radius=1.1, color='gray', ignore=True))
+
+
 # check zone dimensions in rules, then maximum possible number of barrels that would fit
 
 #TheWorld.append(WorldObject(object_type=ObjectType.TARGET, x=1.25, y=0.2, radius=0.056, color='blue'))
