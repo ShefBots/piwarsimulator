@@ -20,6 +20,8 @@ class WorldRenderer:
 
         self.font = pygame.font.Font(None, self.WorldScale // 7) # default font
 
+        self.frame = 0
+
     def transform_coordinate(self, c, offset=0):
         return round(c * self.WorldScale + offset)
 
@@ -52,7 +54,11 @@ class WorldRenderer:
             text2 = pygame.transform.rotate(text, -obj.angle)
             self.screen.blit(text2, (i - text2.get_width() // 2 + 0.5, j - text2.get_height() // 2 + 2))
 
+        # uncomment to save each frame to make a video
+#        pygame.image.save(self.screen, "frames/image%08d.png" % self.frame)
+
         pygame.display.flip()
+        self.frame += 1
 
 
 #    def __del__(self):
