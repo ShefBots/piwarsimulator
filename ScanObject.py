@@ -17,7 +17,7 @@ class ScanObject(WorldObject):
     # https://stackoverflow.com/questions/18020074/convert-a-baseclass-object-into-a-subclass-object-idiomatically/18020180
     # probably super un-pythonic, but that's my java/cpp background for you
     @classmethod
-    def DoScan(cls, wo: WorldObject, robot):
+    def do_scan(cls, wo: WorldObject, robot):
         """Copy an WorldObject into a ScanObject,
            then work out where it is in relation to the robot (i.e. scan)"""
         assert isinstance(wo, WorldObject)
@@ -27,7 +27,7 @@ class ScanObject(WorldObject):
 
         # calculate distance and angle
         so.distance = math.sqrt(math.pow(so.x - robot.x, 2) + math.pow(so.y - robot.y, 2))
-        if abs(so.x - robot.x) < 1e-1and so.y < robot.y: # special case for tan
+        if abs(so.x - robot.x) < 1e-1 and so.y < robot.y: # special case for tan
             so.heading = -180
         else:
             so.heading = math.degrees(math.atan2(so.x - robot.x, so.y - robot.y))

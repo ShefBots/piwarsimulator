@@ -13,9 +13,9 @@ class RobotBrain():
 #        print("Building brain")
         self.robot = kwargs.get('robot', None)
         self.speed = kwargs.get('speed', 0.001) # 1 mm/s
-        self.turningspeed = kwargs.get('turningspeed', 1) # 1 degrees/s
+        self.turning_speed = kwargs.get('turning_speed', 1) # 1 degrees/s
         assert isinstance(self.robot, WorldObject)
-        assert self.robot.objecttype == ObjectType.ROBOT
+        assert self.robot.object_type == ObjectType.ROBOT
 
         # need to set long term goal
         # this should be a copy of a scan result so that we can
@@ -26,9 +26,9 @@ class RobotBrain():
         # anything we're transporting
         self.holding = []
 
-    def move(self, sensorinformation):
+    def move(self, sensor_information):
         # find something to move towards
-        goal = self.findGoal(sensorinformation)
+        goal = self.find_goal(sensor_information)
 
         # if we didn't find anything, were we already moving towards something?
 #        if goal != None and self.goal == None:
@@ -39,39 +39,39 @@ class RobotBrain():
             return
 
         # are we within grabbing distance of the goal?
-        tr = self.robot.radius + self.heldRadius()
-        if goal.objecttype == ObjectType.ZONE:
+        tr = self.robot.radius + self.held_radius()
+        if goal.object_type == ObjectType.ZONE:
             pass
         else:
             tr += goal.radius
         if goal.distance < tr:
-            if goal.objecttype == ObjectType.TARGET:
+            if goal.object_type == ObjectType.TARGET:
                 print("grabbing goal!")
                 self.holding.append(goal.parent)
-            if goal.objecttype == ObjectType.ZONE and len(self.holding) > 0:
-                self.holding[0].ignore = 1
+            if goal.object_type == ObjectType.ZONE and len(self.holding) > 0:
+                self.holding[0].ignore = True
                 print("dropping off target!")
                 self.holding.pop(0)
                 # move backwards a little after dropping off target
-                self.executeMove(-self.speed, goal.heading)
+                self.execute_move(-self.speed, goal.heading)
             return
 
 
         # for now operate off the short term goal only
 
         # rotate so we are facing the target
-        headingoffset = goal.heading - self.robot.angle
+        heading_offset = goal.heading - self.robot.angle
         # NOTE: sometimes we rotate in the wrong direction
         # this is probably an x - 360 type issue?
-        if abs(headingoffset) > self.turningspeed/2:
-            if headingoffset > 0:
-                self.executeRotate(self.turningspeed)
+        if abs(heading_offset) > self.turning_speed / 2:
+            if heading_offset > 0:
+                self.execute_rotate(self.turning_speed)
             else:
-                self.executeRotate(-self.turningspeed)
+                self.execute_rotate(-self.turning_speed)
         else: # we're already facing so move
-            self.executeMove(self.speed, goal.heading)
+            self.execute_move(self.speed, goal.heading)
 
-    def executeRotate(self, amount):
+    def execute_rotate(self, amount):
         self.robot.angle += amount
 
         # rotate objects we're holding about us
@@ -84,7 +84,7 @@ class RobotBrain():
             obj.x = self.robot.x + dx
             obj.y = self.robot.y + dy
 
-    def executeMove(self, dist, heading):
+    def execute_move(self, dist, heading):
         x = dist * math.sin(math.radians(heading))
         y = dist * math.cos(math.radians(heading))
         self.robot.x += x
@@ -94,23 +94,23 @@ class RobotBrain():
             obj.x += x
             obj.y += y
 
-    def findGoal(self, sensorinformation):
+    def find_goal(self, sensor_information):
         """find the closest TARET or ZONE"""
         closest = None
-        closestdistance = 9e99
-        for obj in sensorinformation:
+        closest_distance = 9e99
+        for obj in sensor_information:
             # only look for a target if we're holding nothing
-            if obj.objecttype == ObjectType.TARGET and len(self.holding) == 0:
-                if obj.distance < closestdistance:
+            if obj.object_type == ObjectType.TARGET and len(self.holding) == 0:
+                if obj.distance < closest_distance:
                     closest = obj
-                    closestdistance = obj.distance
+                    closest_distance = obj.distance
             # otherwise find the zone that matches the target colour
-            elif len(self.holding) > 0 and obj.objecttype == ObjectType.ZONE and obj.color == self.holding[0].color:
+            elif len(self.holding) > 0 and obj.object_type == ObjectType.ZONE and obj.color == self.holding[0].color:
                 return obj
 
         return closest
 
-    def heldRadius(self):
+    def held_radius(self):
         """Roughly increase in radius due to items being held"""
         r = 0
         for obj in self.holding:
