@@ -5,7 +5,7 @@ def Scan(TheWorld):
     result = []
     robot = TheWorld[0]
     for obj in TheWorld[1:len(TheWorld)]:
-        if obj.ignore == 0:
+        if not obj.ignore:
             y = ScanObject.DoScan(obj, robot)
             result.append(y)
 
