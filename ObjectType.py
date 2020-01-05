@@ -8,6 +8,7 @@ class ObjectType(Enum):
     OBSTACLE = 3
     TARGET = 4
     LINE = 5
+    WALL = 6
 
     def __str__(self):
         """Return a string representation of the ObjectType"""
@@ -17,5 +18,6 @@ class ObjectType(Enum):
             self.ZONE: 'Z',
             self.OBSTACLE: 'O',
             self.TARGET: 'T',
-            self.LINE: 'L'
+            self.LINE: 'L',
+            self.WALL: 'W'
         }[self]
