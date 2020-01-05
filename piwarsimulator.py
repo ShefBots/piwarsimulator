@@ -10,7 +10,7 @@ from RobotBrain import *
 TheWorld = []
 
 robot = WorldObject(object_type=ObjectType.ROBOT, x=1, radius=0.1)
-robotbrain = RobotBrain(robot=robot, speed=0.02, turningspeed=3)
+robot_brain = RobotBrain(robot=robot, speed=0.02, turning_speed=3)
 
 # the order this is constructed in is the rendering order...
 TheWorld.append(robot) # this should always be index 0!
@@ -27,8 +27,15 @@ for i in range(0, random.randint(15, 40)):
         c = 'blue'
     else:
         c = 'darkgreen'
-    TheWorld.append(WorldObject(object_type=ObjectType.TARGET, \
-        x=random.random()*2-1, y=random.random()*2-1, radius=0.056, color=c))
+    TheWorld.append(
+        WorldObject(
+            object_type=ObjectType.TARGET,
+            x=random.random()*2-1,
+            y=random.random()*2-1,
+            radius=0.056,
+            color=c
+        )
+    )
 
 renderer = WorldRenderer(TheWorld)
 
@@ -37,9 +44,9 @@ while running:
     renderer.update()
     running = renderer.running
 
-    sensorinformation = Scan(TheWorld)
+    sensor_information = Scan(TheWorld)
 #    print(sensorinformation)
-    robotbrain.move(sensorinformation)
+    robot_brain.move(sensor_information)
 #    print(TheWorld)
 
 # need a routine to clean up the world and remove targets that are in goals
