@@ -26,6 +26,9 @@ class RobotBrain():
         # anything we're transporting
         self.holding = []
 
+        # the set of directions we're currently following
+        self.movement_queue = []
+
     def move(self, sensor_information):
         # find something to move towards
         goal = self.find_goal(sensor_information)
