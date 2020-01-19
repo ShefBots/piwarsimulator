@@ -39,11 +39,19 @@ for i in range(0, random.randint(6, 12)):
         c = 'blue'
     else:
         c = 'darkgreen'
+
+    # need to check if we have a valid barrel position
+    x=0.3+random.random()*1.6
+    y=0.3+random.random()*1.6
+    while x > 0.95 and x < 1.0 and y > 0.2 and y < 1.6:
+        x=0.3+random.random()*1.6
+        y=0.3+random.random()*1.6
+
     TheWorld.append(
         WorldObject(
             object_type=ObjectType.TARGET,
-            x=0.3+random.random()*1.6,
-            y=0.3+random.random()*1.6,
+            x=x,
+            y=y,
             radius=0.056,
             color=c
         )
