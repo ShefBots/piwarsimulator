@@ -11,6 +11,8 @@ class EcoDisasterBrain(RobotBrain):
         # find something to move towards
         goal = self.find_goal(sensor_information)
 
+        self.check_for_collision(sensor_information, ignore=[goal.parent])
+
         # if we didn't find anything, were we already moving towards something?
 #        if goal != None and self.goal == None:
 #            print("setting new long term goal")

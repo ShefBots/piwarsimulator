@@ -33,10 +33,17 @@ class RobotBrain():
         self.movement_queue = [[1, 0.1]]
 
     def process(self, sensor_information):
-        pass
+        self.check_for_collision(sensor_information)
 
     def find_goal(self, sensor_information):
         pass
+
+    def check_for_collision(self, sensor_information, ignore=None):
+        tr = self.robot.radius + self.held_radius()
+        for obj in sensor_information:
+            if obj.distance - tr - obj.radius < 0.05 and not obj.parent in ignore and not obj.parent in self.holding:
+#                print("yikes! that's a bit close in'it?")
+                self.movement_queue = []
 
     def execute_rotate(self, amount):
         self.robot.angle += amount
