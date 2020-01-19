@@ -43,7 +43,7 @@ for i in range(0, random.randint(6, 12)):
     # need to check if we have a valid barrel position
     x=0.3+random.random()*1.6
     y=0.3+random.random()*1.6
-    while x > 0.95 and x < 1.0 and y > 0.2 and y < 1.6:
+    while x > 0.98 and x < 1.23 and y > 0.2 and y < 0.6:
         x=0.3+random.random()*1.6
         y=0.3+random.random()*1.6
 
