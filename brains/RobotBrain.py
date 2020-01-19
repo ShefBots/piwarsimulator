@@ -64,6 +64,10 @@ class RobotBrain():
             obj.x += x
             obj.y += y
 
+    def simulate(self, dt):
+        """When simulating the robot wouldn't otherwise move itself..."""
+        pass
+
     def held_radius(self):
         """Roughly increase in radius due to items being held"""
         r = 0

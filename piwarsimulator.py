@@ -52,16 +52,16 @@ for i in range(0, random.randint(6, 12)):
 renderer = WorldRenderer(TheWorld)
 
 running = True
+dt = 1/60 # aim for 60 fps simulation
 while running:
+    now = time.time();
     renderer.update()
     running = renderer.running
 
     sensor_information = Scan(TheWorld)
-#    print(sensorinformation)
     robot_brain.process(sensor_information)
+    robot_brain.simulate(dt)
 
-#    print(TheWorld)
+    time.sleep(dt - (time.time() - now))
 
-# need a routine to clean up the world and remove targets that are in goals
-
-    time.sleep(0.1)
+    # need a routine to clean up the world and remove targets that are in goals
