@@ -67,18 +67,21 @@ class RobotBrain():
         if len(self.movement_queue) != 0:
             movement_type = self.movement_queue[0][0]
             movement_left = self.movement_queue[0][1]
+
             if movement_type == 1:
                 movement_amount = self.speed * dt
-                movement_left -= movement_amount
-                if movement_left > 0:
-                    self.execute_move(movement_amount, self.robot.angle)
-                    self.movement_queue[0][1] -= movement_amount
-                else:
-                    self.execute_move(self.movement_queue[0][1], self.robot.angle)
-                    self.movement_queue.pop(0)
+                movement_function = lambda x: self.execute_move(x, self.robot.angle)
             elif movement_type == 2:
-#                self.execute_rotate
-                pass
+                movement_amount = self.turning_speed * dt
+                movement_function = lambda x: self.execute_rotate(x)
+
+            movement_left -= movement_amount
+            if movement_left > 0:
+                movement_function(movement_amount)
+                self.movement_queue[0][1] -= movement_amount
+            else:
+                movement_function(self.movement_queue[0][1])
+                self.movement_queue.pop(0)
 
     def held_radius(self):
         """Roughly increase in radius due to items being held"""
