@@ -7,7 +7,7 @@ from brains.RobotBrain import RobotBrain
 
 
 class EcoDisasterBrain(RobotBrain):
-    def move(self, sensor_information):
+    def process(self, sensor_information):
         # find something to move towards
         goal = self.find_goal(sensor_information)
 

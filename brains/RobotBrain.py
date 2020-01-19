@@ -29,7 +29,7 @@ class RobotBrain():
         # the set of directions we're currently following
         self.movement_queue = []
 
-    def move(self, sensor_information):
+    def process(self, sensor_information):
         pass
 
     def find_goal(self, sensor_information):

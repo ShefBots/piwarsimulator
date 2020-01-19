@@ -58,7 +58,8 @@ while running:
 
     sensor_information = Scan(TheWorld)
 #    print(sensorinformation)
-    robot_brain.move(sensor_information)
+    robot_brain.process(sensor_information)
+
 #    print(TheWorld)
 
 # need a routine to clean up the world and remove targets that are in goals
