@@ -10,7 +10,7 @@ from brains.EcoDisasterBrain import EcoDisasterBrain
 TheWorld = []
 
 robot = WorldObject(object_type=ObjectType.ROBOT, x=1.1, y=0.4, radius=0.1125)
-robot_brain = EcoDisasterBrain(robot=robot, speed=0.02, turning_speed=3)
+robot_brain = EcoDisasterBrain(robot=robot, speed=0.1, turning_speed=3)
 
 # the order this is constructed in is the rendering order...
 TheWorld.append(robot) # this should always be index 0!
@@ -52,7 +52,7 @@ for i in range(0, random.randint(6, 12)):
 renderer = WorldRenderer(TheWorld)
 
 running = True
-dt = 1/60 # aim for 60 fps simulation
+dt = 1/60.0 # aim for 60 fps simulation
 while running:
     now = time.time();
     renderer.update()

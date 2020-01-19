@@ -27,7 +27,10 @@ class RobotBrain():
         self.holding = []
 
         # the set of directions we're currently following
-        self.movement_queue = []
+        # in the format of [x, y] where
+        #   x is 1 or 2 to indicate move, turn
+        #   y is the distance to go/amount to turn
+        self.movement_queue = [[1, 0.1]]
 
     def process(self, sensor_information):
         pass
@@ -52,11 +55,6 @@ class RobotBrain():
         x = dist * math.sin(math.radians(heading))
         y = dist * math.cos(math.radians(heading))
 
-        potential_x = self.robot.x + x
-        potential_y = self.robot.y + y
-
-        
-
         self.robot.x += x
         self.robot.y += y
 
@@ -66,7 +64,21 @@ class RobotBrain():
 
     def simulate(self, dt):
         """When simulating the robot wouldn't otherwise move itself..."""
-        pass
+        if len(self.movement_queue) != 0:
+            movement_type = self.movement_queue[0][0]
+            movement_left = self.movement_queue[0][1]
+            if movement_type == 1:
+                movement_amount = self.speed * dt
+                movement_left -= movement_amount
+                if movement_left > 0:
+                    self.execute_move(movement_amount, self.robot.angle)
+                    self.movement_queue[0][1] -= movement_amount
+                else:
+                    self.execute_move(self.movement_queue[0][1], self.robot.angle)
+                    self.movement_queue.pop(0)
+            elif movement_type == 2:
+#                self.execute_rotate
+                pass
 
     def held_radius(self):
         """Roughly increase in radius due to items being held"""
