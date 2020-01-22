@@ -30,6 +30,7 @@ class RobotBrain():
         # in the format of [x, y] where
         #   x is 1 or 2 to indicate move, turn
         #   y is the distance to go/amount to turn
+        #   if x is 3, the gripper with y = 1 to open and y = 2 to close?
         self.movement_queue = []
 
     def process(self, sensor_information):
@@ -41,6 +42,7 @@ class RobotBrain():
     def check_for_collision(self, sensor_information, ignore=None):
         tr = self.robot.radius + self.held_radius()
         for obj in sensor_information:
+            # the code for the real robot should probably treat the ignore slightly differently...
             if obj.distance - tr - obj.radius < 0.05 and not obj.parent in ignore and not obj.parent in self.holding:
 #                print("yikes! that's a bit close in'it?")
                 self.movement_queue = []

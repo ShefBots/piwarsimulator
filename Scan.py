@@ -7,6 +7,7 @@ def Scan(TheWorld):
     for obj in TheWorld[1:len(TheWorld)]:
         if not obj.ignore:
             y = ScanObject.do_scan(obj, robot)
+            # add some uncertainty to objects that are further away
             result.append(y)
 
     return result

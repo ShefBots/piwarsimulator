@@ -22,6 +22,7 @@ class EcoDisasterBrain(RobotBrain):
             return
 
         # are we within grabbing distance of the goal?
+        # this should only execute if we're facing the goal
         tr = self.robot.radius + self.held_radius()
         if goal.object_type == ObjectType.ZONE:
             pass
