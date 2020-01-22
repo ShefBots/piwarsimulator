@@ -30,7 +30,7 @@ class RobotBrain():
         # in the format of [x, y] where
         #   x is 1 or 2 to indicate move, turn
         #   y is the distance to go/amount to turn
-        self.movement_queue = [[1, 0.1]]
+        self.movement_queue = []
 
     def process(self, sensor_information):
         self.check_for_collision(sensor_information)
