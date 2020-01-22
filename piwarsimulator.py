@@ -58,6 +58,10 @@ for i in range(0, random.randint(6, 12)):
     )
 
 renderer = WorldRenderer(TheWorld)
+renderer.update()
+print("getting ready...")
+time.sleep(1) # wait for the world to load
+print("go!")
 
 running = True
 dt = 1/60.0 # aim for 60 fps simulation
