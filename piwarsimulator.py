@@ -74,6 +74,8 @@ while running:
     robot_brain.process(sensor_information)
     robot_brain.simulate(dt)
 
-    time.sleep(dt - (time.time() - now))
+    tosleep = dt - (time.time() - now)
+    if tosleep > 0:
+        time.sleep(tosleep)
 
     # need a routine to clean up the world and remove targets that are in goals
