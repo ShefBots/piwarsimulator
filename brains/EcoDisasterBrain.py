@@ -8,17 +8,22 @@ from brains.RobotBrain import RobotBrain
 
 class EcoDisasterBrain(RobotBrain):
     def process(self, sensor_information):
+
         # find something to move towards
         goal = self.find_goal(sensor_information)
+        if self.goal == None and goal != None:
+            self.goal = goal.parent
 
-        self.check_for_collision(sensor_information, ignore=[goal.parent])
+        self.check_for_collision(sensor_information, ignore=[self.goal])
 
-        # if we didn't find anything, were we already moving towards something?
-#        if goal != None and self.goal == None:
-#            print("setting new long term goal")
-#            self.goal = copy.copy(goal)
-        if goal == None and self.goal == None:
-            print("no goals, doing nothing")
+        if len(self.movement_queue) == 0:
+            self.goal = goal.parent
+        else:
+            # we're currently executing movement to a goal, so don't do any new thinking
+            return
+
+        if self.goal == None:
+#            print("no goals, doing nothing")
             return
 
         # are we within grabbing distance of the goal?
@@ -40,20 +45,22 @@ class EcoDisasterBrain(RobotBrain):
                 self.execute_move(-self.speed, goal.heading)
             return
 
-
-        # for now operate off the short term goal only
-
         # rotate so we are facing the target
         heading_offset = goal.heading - self.robot.angle
-        # NOTE: sometimes we rotate in the wrong direction
-        # this is probably an x - 360 type issue?
-        if abs(heading_offset) > self.turning_speed / 2:
-            if heading_offset > 0:
-                self.execute_rotate(self.turning_speed)
-            else:
-                self.execute_rotate(-self.turning_speed)
-        else: # we're already facing so move
-            self.execute_move(self.speed, goal.heading)
+        # this should be the fix for the it turns a complete circle sometimes bug
+        if heading_offset > 180:
+            heading_offset -= 360
+        elif heading_offset < -180:
+            heading_offset += 360
+#        print("%f - %f = %f" % (goal.heading, self.robot.angle, heading_offset))
+        if abs(heading_offset) > 5:
+            self.movement_queue.append([2, heading_offset])
+        
+        # move towards the target
+        totravel = goal.distance - self.robot.radius - self.held_radius() - goal.radius + 0.02 # a little margin to make sure we get there
+        if goal.object_type == ObjectType.ZONE:
+           totravel += goal.radius # make sure we travel into the zone
+        self.movement_queue.append([1, totravel])
 
     def find_goal(self, sensor_information):
         """find the closest TARGET or ZONE"""
