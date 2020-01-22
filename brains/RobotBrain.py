@@ -80,10 +80,12 @@ class RobotBrain():
                 movement_function = lambda x: self.execute_move(x, self.robot.angle)
             elif movement_type == 2:
                 movement_amount = self.turning_speed * dt
+                if movement_left < 0:
+                    movement_amount = -movement_amount
                 movement_function = lambda x: self.execute_rotate(x)
 
             movement_left -= movement_amount
-            if movement_left > 0:
+            if abs(movement_left) > 1e-10:
                 movement_function(movement_amount)
                 self.movement_queue[0][1] -= movement_amount
             else:
