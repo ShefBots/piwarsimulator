@@ -69,6 +69,8 @@ class WorldRenderer:
         pygame.display.flip()
         self.frame += 1
 
+        # TODO would be nice if we could display log output on the screen
+
 
 #    def __del__(self):
 

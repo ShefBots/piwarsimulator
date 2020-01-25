@@ -7,6 +7,8 @@ from ScanObject import *
 from Scan import *
 from brains.EcoDisasterBrain import EcoDisasterBrain
 
+# TODO add log class, use that for output instead of print
+
 TheWorld = []
 
 robot = WorldObject(object_type=ObjectType.ROBOT, x=1.1, y=0.4, radius=0.1125)
@@ -27,9 +29,6 @@ TheWorld.append(WorldObject(object_type=ObjectType.WALL, x=1.1, y=0, angle = 0, 
 TheWorld.append(WorldObject(object_type=ObjectType.WALL, x=1.1, y=2.2, angle = 0, radius=1.1, color='gray', ignore=True))
 TheWorld.append(WorldObject(object_type=ObjectType.WALL, x=0, y=1.1, angle = 90, radius=1.1, color='gray', ignore=True))
 TheWorld.append(WorldObject(object_type=ObjectType.WALL, x=2.2, y=1.1, angle = 90, radius=1.1, color='gray', ignore=True))
-
-
-# check zone dimensions in rules, then maximum possible number of barrels that would fit
 
 #TheWorld.append(WorldObject(object_type=ObjectType.TARGET, x=1.25, y=0.2, radius=0.056, color='blue'))
 #TheWorld.append(WorldObject(object_type=ObjectType.TARGET, x=0, y=-0.5, radius=0.056, color='blue'))
@@ -69,7 +68,11 @@ while running:
     now = time.time();
     renderer.update()
     running = renderer.running
+    # TODO should handle ctrl c and alt f4
 
+    # TODO when running real hardware Scan() will be replaced with something
+    # that talks to the sensors, and then for the renderer we'll need to create
+    # a TheWorld based off of that
     sensor_information = Scan(TheWorld)
     robot_brain.process(sensor_information)
     robot_brain.simulate(dt)
@@ -77,5 +80,3 @@ while running:
     tosleep = dt - (time.time() - now)
     if tosleep > 0:
         time.sleep(tosleep)
-
-    # need a routine to clean up the world and remove targets that are in goals

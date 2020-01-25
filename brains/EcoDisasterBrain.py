@@ -11,13 +11,15 @@ class EcoDisasterBrain(RobotBrain):
 
         # find something to move towards
         goal = self.find_goal(sensor_information)
-        if self.goal == None and goal != None:
+        if self.goal == None and goal != None: # may only want to do this if we're not holding something?
             self.goal = goal.parent
+        # TODO verify goal and self.goal are the same in case of dodgy sensor input
 
         collision_check_result = self.check_for_collision(sensor_information, ignore=[self.goal])
         if collision_check_result == True:
             return
 
+        # this maybe should be before check_for_collision as it emptys the movement_queue?
         if not self.movement_queue:
             self.goal = goal.parent
         else:
@@ -30,6 +32,9 @@ class EcoDisasterBrain(RobotBrain):
 
         # are we within grabbing distance of the goal?
         # this should only execute if we're facing the goal
+        # TODO if the angles don't match, backup rotate, try to grab again
+        # TODO add the movement for this to the movement_queue
+        # i'd argue this doesn't belong in RobotTrain because the gripper is a specific atachment for EcoDisaster?
         tr = self.robot.radius + self.held_radius()
         if goal.object_type == ObjectType.ZONE:
             pass
@@ -44,7 +49,7 @@ class EcoDisasterBrain(RobotBrain):
                 print("dropping off target!")
                 self.holding.pop(0)
                 # move backwards a little after dropping off target
-                self.execute_move(-self.speed, goal.heading)
+                # self.execute_move(-self.speed, goal.heading)
             return
 
         # rotate so we are facing the target

@@ -17,11 +17,9 @@ class RobotBrain():
         assert isinstance(self.robot, WorldObject)
         assert self.robot.object_type == ObjectType.ROBOT
 
-        # need to set long term goal
-        # this should be a copy of a scan result so that we can
-        # use inertial tracking in case it doesn't show up in the next scan
+        # the long term goal - we get this from a scan result and
+        # use it to cross verify with subsequent scan results
         self.goal = None
-        # need to initalise movement history
 
         # anything we're transporting
         self.holding = []
@@ -43,6 +41,8 @@ class RobotBrain():
         tr = self.robot.radius + self.held_radius()
         for obj in sensor_information:
             # the code for the real robot should probably treat the ignore slightly differently...
+            # TODO collisions in a circle that's the robot and holding isn't effective,
+            # replace this with something that checks the radius of both independently
             if obj.distance - tr - obj.radius < 0.05 and not obj.parent in ignore and not obj.parent in self.holding:
                 print("yikes! that's a bit close in'it?")
                 self.movement_queue = []
@@ -51,6 +51,7 @@ class RobotBrain():
         return False
 
     def execute_rotate(self, amount):
+        """Communicate to the robot to rotate a given amount..."""
         self.robot.angle += amount
 
         # rotate objects we're holding about us
@@ -64,6 +65,7 @@ class RobotBrain():
             obj.y = self.robot.y + dy
 
     def execute_move(self, dist, heading):
+        """Communicate to the robot to move a given amount in a given direction..."""
         x = dist * math.sin(math.radians(heading))
         y = dist * math.cos(math.radians(heading))
 
@@ -76,6 +78,10 @@ class RobotBrain():
             obj.x += x
             obj.y += y
 
+    # this may be named incorrectly, it executes the movement_queue
+    # in time to the timestep so the robot animates correctly, but with
+    # real hardware we need something that does this same thing, but just
+    # sends the command to the motors
     def simulate(self, dt):
         """When simulating the robot wouldn't otherwise move itself..."""
         if self.movement_queue:
