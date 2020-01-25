@@ -16,7 +16,7 @@ class EcoDisasterBrain(RobotBrain):
 
         self.check_for_collision(sensor_information, ignore=[self.goal])
 
-        if len(self.movement_queue) == 0:
+        if not self.movement_queue:
             self.goal = goal.parent
         else:
             # we're currently executing movement to a goal, so don't do any new thinking
@@ -55,12 +55,12 @@ class EcoDisasterBrain(RobotBrain):
 #        print("%f - %f = %f" % (goal.heading, self.robot.angle, heading_offset))
         if abs(heading_offset) > 5:
             self.movement_queue.append([2, heading_offset])
-        
+
         # move towards the target
-        totravel = goal.distance - self.robot.radius - self.held_radius() - goal.radius + 0.02 # a little margin to make sure we get there
+        to_travel = goal.distance - self.robot.radius - self.held_radius() - goal.radius + 0.02 # a little margin to make sure we get there
         if goal.object_type == ObjectType.ZONE:
-           totravel += goal.radius # make sure we travel into the zone
-        self.movement_queue.append([1, totravel])
+           to_travel += goal.radius # make sure we travel into the zone
+        self.movement_queue.append([1, to_travel])
 
     def find_goal(self, sensor_information):
         """find the closest TARGET or ZONE"""

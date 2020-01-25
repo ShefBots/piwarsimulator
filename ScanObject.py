@@ -26,6 +26,7 @@ class ScanObject(WorldObject):
         assert isinstance(so, ScanObject)
 
         # calculate distance and angle
+        # only true if nothing in the way, need to calculate the movement cost to the object
         so.distance = math.sqrt(math.pow(so.x - robot.x, 2) + math.pow(so.y - robot.y, 2))
         if abs(so.x - robot.x) < 1e-1 and so.y < robot.y: # special case for tan
             so.heading = -180

@@ -44,8 +44,9 @@ class RobotBrain():
         for obj in sensor_information:
             # the code for the real robot should probably treat the ignore slightly differently...
             if obj.distance - tr - obj.radius < 0.05 and not obj.parent in ignore and not obj.parent in self.holding:
-#                print("yikes! that's a bit close in'it?")
+                print("yikes! that's a bit close in'it?")
                 self.movement_queue = []
+                # this isn't working because the same move just gets repeated I think?
 
     def execute_rotate(self, amount):
         self.robot.angle += amount
@@ -66,6 +67,8 @@ class RobotBrain():
 
         self.robot.x += x
         self.robot.y += y
+        # perhaps here we can check, would this move collide with something
+        # if so don't do it
 
         for obj in self.holding:
             obj.x += x
@@ -73,7 +76,7 @@ class RobotBrain():
 
     def simulate(self, dt):
         """When simulating the robot wouldn't otherwise move itself..."""
-        if len(self.movement_queue) != 0:
+        if self.movement_queue:
             movement_type = self.movement_queue[0][0]
             movement_left = self.movement_queue[0][1]
 
