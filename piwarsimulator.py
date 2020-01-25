@@ -10,7 +10,7 @@ from brains.EcoDisasterBrain import EcoDisasterBrain
 TheWorld = []
 
 robot = WorldObject(object_type=ObjectType.ROBOT, x=1.1, y=0.4, radius=0.1125)
-robot_brain = EcoDisasterBrain(robot=robot, speed=0.1, turning_speed=15)
+robot_brain = EcoDisasterBrain(robot=robot, speed=0.3, turning_speed=45)
 
 # the order this is constructed in is the rendering order...
 TheWorld.append(robot) # this should always be index 0!
