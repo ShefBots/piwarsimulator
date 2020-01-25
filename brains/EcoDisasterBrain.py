@@ -14,7 +14,9 @@ class EcoDisasterBrain(RobotBrain):
         if self.goal == None and goal != None:
             self.goal = goal.parent
 
-        self.check_for_collision(sensor_information, ignore=[self.goal])
+        collision_check_result = self.check_for_collision(sensor_information, ignore=[self.goal])
+        if collision_check_result == True:
+            return
 
         if not self.movement_queue:
             self.goal = goal.parent

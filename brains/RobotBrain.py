@@ -46,7 +46,9 @@ class RobotBrain():
             if obj.distance - tr - obj.radius < 0.05 and not obj.parent in ignore and not obj.parent in self.holding:
                 print("yikes! that's a bit close in'it?")
                 self.movement_queue = []
+                return True
                 # this isn't working because the same move just gets repeated I think?
+        return False
 
     def execute_rotate(self, amount):
         self.robot.angle += amount
