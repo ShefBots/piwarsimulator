@@ -20,7 +20,7 @@ class WorldRenderer:
 
         self.screen = pygame.display.set_mode((800, 600))
 
-        self.font = pygame.font.Font(None, self.WorldScale // 7) # default font
+        self.font = pygame.font.Font(None, self.WorldScale // 10) # default font
 
         self.frame = 0
 
@@ -44,24 +44,28 @@ class WorldRenderer:
         # reset the canvas
         self.screen.fill(Color('black'))
 
-        for obj in self.TheWorld:
-            i = self.tW(obj.x)
-            j = self.tV(obj.y)
-            r = self.transform_coordinate(obj.radius)
-            if obj.object_type == ObjectType.WALL:
-                pygame.gfxdraw.line(self.screen, 
-                    i - round(r*math.cos(math.radians(obj.angle))), 
-                    j - round(r*math.sin(math.radians(obj.angle))), 
-                    i + round(r*math.cos(math.radians(obj.angle))), 
-                    j + round(r*math.sin(math.radians(obj.angle))), obj.color)
-            else:
-                pygame.gfxdraw.filled_circle(self.screen, i, j, r, obj.color)
-                pygame.gfxdraw.aacircle(self.screen, i, j, r, obj.color)
+        for row_idx, row in enumerate(self.TheWorld):
+            for col_idx, col in enumerate(self.TheWorld[row_idx]):
+                # print(i, j)
+                obj = self.TheWorld[row_idx][col_idx]
+                i = self.tW(row_idx / 10)
+                j = self.tV(col_idx / 10)
+                # print(i, j)
+                r = self.transform_coordinate(obj.radius) // 2
+                if obj.object_type == ObjectType.WALL:
+                    pygame.gfxdraw.line(self.screen,
+                        i - round(r*math.cos(math.radians(obj.angle))),
+                        j - round(r*math.sin(math.radians(obj.angle))),
+                        i + round(r*math.cos(math.radians(obj.angle))),
+                        j + round(r*math.sin(math.radians(obj.angle))), obj.color)
+                else:
+                    pygame.gfxdraw.filled_circle(self.screen, i, j, r, obj.color)
+                    pygame.gfxdraw.aacircle(self.screen, i, j, r, obj.color)
 
-            # render a label on each item in the world
-            text = self.font.render(str(obj.object_type), True, Color('orange'))
-            text2 = pygame.transform.rotate(text, -obj.angle)
-            self.screen.blit(text2, (i - text2.get_width() // 2 + 0.5, j - text2.get_height() // 2 + 2))
+                # render a label on each item in the world
+                text = self.font.render(str(obj.object_type), True, Color('orange'))
+                text2 = pygame.transform.rotate(text, -obj.angle)
+                self.screen.blit(text2, (i - text2.get_width() // 2 + 0.5, j - text2.get_height() // 2 + 2))
 
         # uncomment to save each frame to make a video
 #        pygame.image.save(self.screen, "frames/image%08d.png" % self.frame)
