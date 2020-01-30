@@ -37,29 +37,23 @@ print(np.matrix(TheWorld))
 #TheWorld.append(WorldObject(object_type=ObjectType.TARGET, x=1.25, y=0.2, radius=0.056, color='blue'))
 #TheWorld.append(WorldObject(object_type=ObjectType.TARGET, x=0, y=-0.5, radius=0.056, color='blue'))
 
-# for i in range(0, random.randint(6, 12)):
-#     if random.random() < 0.5:
-#         c = 'blue'
-#     else:
-#         c = 'darkgreen'
-#
-#     # need to check if we have a valid barrel position
-#     x=0.3+random.random()*1.6
-#     y=0.3+random.random()*1.6
-#     while x > 0.95 and x < 1.25 and y > 0.2 and y < 0.6:
-#         x=0.3+random.random()*1.6
-#         y=0.3+random.random()*1.6
-#
-#     TheWorld.append(
-#         WorldObject(
-#             object_type=ObjectType.TARGET,
-#             x=x,
-#             y=y,
-#             radius=0.056,
-#             color=c
-#         )
-#     )
-#
+for i in range(0, random.randint(6, 12)):
+    if random.random() < 0.5:
+        c = 'blue'
+    else:
+        c = 'darkgreen'
+
+    x = round(random.random() * 25)
+    y = round(random.random() * 21)
+
+    TheWorld[x][y] = WorldObject(
+        object_type=ObjectType.TARGET,
+        x=x,
+        y=y,
+        radius=0.056,
+        color=c
+    )
+
 renderer = WorldRenderer(TheWorld)
 renderer.update()
 print("getting ready...")
