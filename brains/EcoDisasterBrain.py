@@ -1,6 +1,8 @@
 import math
 import copy
 
+import pyvisgraph
+
 from WorldObject import *
 from ObjectType import *
 from brains.RobotBrain import RobotBrain
@@ -8,6 +10,18 @@ from brains.RobotBrain import RobotBrain
 
 class EcoDisasterBrain(RobotBrain):
     def process(self, sensor_information):
+        graph_objs = []
+        for object in sensor_information:
+            object_coords = []
+            for coords in object.polygon.exterior.coords:
+                object_coords.append(pyvisgraph.Point(coords[0], coords[1]))
+            graph_objs.append(object_coords)
+
+
+        graph = pyvisgraph.VisGraph()
+        graph.build(graph_objs)
+        path = graph.shortest_path(pyvisgraph.Point(self.robot.x, self.robot.y), pyvisgraph.Point(sensor_information[0].x, sensor_information[0].y))
+        print(path)
 
         # find something to move towards
         goal = self.find_goal(sensor_information)
