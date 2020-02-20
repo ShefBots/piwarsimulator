@@ -49,14 +49,17 @@ class WorldRenderer:
             j = self.tV(obj.y)
             r = self.transform_coordinate(obj.radius)
             if obj.object_type == ObjectType.WALL:
-                pygame.gfxdraw.line(self.screen, 
-                    i - round(r*math.cos(math.radians(obj.angle))), 
-                    j - round(r*math.sin(math.radians(obj.angle))), 
-                    i + round(r*math.cos(math.radians(obj.angle))), 
+                pygame.gfxdraw.line(self.screen,
+                    i - round(r*math.cos(math.radians(obj.angle))),
+                    j - round(r*math.sin(math.radians(obj.angle))),
+                    i + round(r*math.cos(math.radians(obj.angle))),
                     j + round(r*math.sin(math.radians(obj.angle))), obj.color)
             else:
                 pygame.gfxdraw.filled_circle(self.screen, i, j, r, obj.color)
                 pygame.gfxdraw.aacircle(self.screen, i, j, r, obj.color)
+                red = pygame.Color(255, 0, 0)
+                points = [(self.tW(x), self.tV(y)) for x,y in obj.polygon.exterior.coords]
+                pygame.gfxdraw.polygon(self.screen, points, red)
 
             # render a label on each item in the world
             text = self.font.render(str(obj.object_type), True, Color('orange'))

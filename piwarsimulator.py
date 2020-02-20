@@ -64,6 +64,7 @@ print("go!")
 
 running = True
 dt = 1/60.0 # aim for 60 fps simulation
+
 while running:
     now = time.time();
     renderer.update()
@@ -73,6 +74,7 @@ while running:
     # TODO when running real hardware Scan() will be replaced with something
     # that talks to the sensors, and then for the renderer we'll need to create
     # a TheWorld based off of that
+
     sensor_information = Scan(TheWorld)
     robot_brain.process(sensor_information)
     robot_brain.simulate(dt)

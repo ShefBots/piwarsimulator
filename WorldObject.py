@@ -14,7 +14,11 @@ class WorldObject:
         self.object_type = kwargs.get('object_type', 0)
         self.color = Color(kwargs.get('color', 'white'))
         self.ignore = kwargs.get('ignore', False)
-        self.polygon = Point(self.x, self.y).buffer(self.radius * 100, resolution=8)
+
+        if self.object_type == 1:
+            self.polygon = Point(self.x, self.y).buffer(self.radius, resolution=4)
+        else:
+            self.polygon = Point(self.x, self.y).buffer(self.radius * 1.5, resolution=4)
 
     def __str__(self):
         return "Located at %0.3f, %0.3f with rotated %0.3f degrees" % (self.x, self.y, self.angle)
