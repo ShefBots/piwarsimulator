@@ -15,9 +15,9 @@ class EcoDisasterBrain(RobotBrain):
             self.goal = goal.parent
         # TODO verify goal and self.goal are the same in case of dodgy sensor input
 
-        collision_check_result = self.check_for_collision(sensor_information, ignore=[self.goal])
-        if collision_check_result == True:
-            return
+        # collision_check_result = self.check_for_collision(sensor_information, ignore=[self.goal])
+        # if collision_check_result == True:
+        #     return
 
         # this maybe should be before check_for_collision as it emptys the movement_queue?
         if not self.movement_queue:
@@ -84,3 +84,59 @@ class EcoDisasterBrain(RobotBrain):
                 return obj
 
         return closest
+
+    def move_to_zone(self, sensor_information, step):
+        # print("running move to zone")
+        if step == 0:
+            # self.movement_queue.append([2, 90])
+            self.execute_rotate(90)
+            print("turning 90")
+
+        if step == 1:
+            for obj in sensor_information:
+                # print(obj.object_type, obj.heading)
+                if obj.object_type == ObjectType.WALL and obj.heading == 0:
+                    # print(obj.distance)
+                    wall_distance = obj.distance
+                    break
+            # self.movement_queue.append([1, wall_distance - self.robot.radius])
+            self.execute_move(wall_distance - self.robot.x, heading=90)
+            print("moving ", wall_distance - self.robot.radius)
+
+        if step == 2:
+            # self.movement_queue.append([2, -90])
+            self.execute_rotate(-90)
+            print("turning -90")
+        #
+        if step == 3:
+            for obj in sensor_information:
+                print(obj.object_type, obj.heading)
+                if obj.object_type == ObjectType.WALL and obj.heading < 20 and obj.heading < -20:
+                    print(obj.distance)
+                    wall_distance = obj.distance
+                    # break
+            print("moving ", wall_distance - self.robot.y - self.robot.radius)
+            # self.movement_queue.append([1, wall_distance - self.robot.radius])
+            self.execute_move(wall_distance - self.robot.y - self.robot.radius, heading=0)
+
+            print("robot pos ", self.robot.x, self.robot.y)
+        #
+        if step == 4:
+            print("turning -90")
+            self.execute_rotate(-90)
+        #     # self.movement_queue.append([2, -90])
+        #
+        if step == 5:
+            for obj in sensor_information:
+                print(obj.object_type, obj.heading, obj.x, obj.y)
+                if obj.object_type == ObjectType.ZONE:
+                    print(obj.distance)
+                    zone_distance = obj.distance
+                    break
+            # self.movement_queue.append([1, zone_distance])
+            self.execute_move(zone_distance - self.robot.x - self.robot.radius, heading=90)
+            print("moving ", zone_distance - self.robot.x - self.robot.radius)
+
+        if step == 6:
+            print("turning -90")
+            self.execute_rotate(-90)

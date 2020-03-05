@@ -11,7 +11,7 @@ from brains.EcoDisasterBrain import EcoDisasterBrain
 
 TheWorld = []
 
-robot = WorldObject(object_type=ObjectType.ROBOT, x=1.1, y=0.4, radius=0.1125)
+robot = WorldObject(object_type=ObjectType.ROBOT, x=1.1, y=0.2, radius=0.1125)
 robot_brain = EcoDisasterBrain(robot=robot, speed=0.3, turning_speed=45)
 
 # the order this is constructed in is the rendering order...
@@ -25,10 +25,10 @@ TheWorld.append(WorldObject(object_type=ObjectType.ZONE, x=1.7, y=2.1, radius=0.
 
 # The walls around the arena, see https://i0.wp.com/piwars.org/wp-content/uploads/2019/07/EcoDisasterPlanLabelled.png
 # for walls, the radius is half the length
-TheWorld.append(WorldObject(object_type=ObjectType.WALL, x=1.1, y=0, angle = 0, radius=1.1, color='gray', ignore=True))
-TheWorld.append(WorldObject(object_type=ObjectType.WALL, x=1.1, y=2.2, angle = 0, radius=1.1, color='gray', ignore=True))
-TheWorld.append(WorldObject(object_type=ObjectType.WALL, x=0, y=1.1, angle = 90, radius=1.1, color='gray', ignore=True))
-TheWorld.append(WorldObject(object_type=ObjectType.WALL, x=2.2, y=1.1, angle = 90, radius=1.1, color='gray', ignore=True))
+TheWorld.append(WorldObject(object_type=ObjectType.WALL, x=1.1, y=0, angle = 0, radius=1.1, color='gray'))
+TheWorld.append(WorldObject(object_type=ObjectType.WALL, x=1.1, y=2.2, angle = 0, radius=1.1, color='gray'))
+TheWorld.append(WorldObject(object_type=ObjectType.WALL, x=0, y=1.1, angle = 90, radius=1.1, color='gray'))
+TheWorld.append(WorldObject(object_type=ObjectType.WALL, x=2.2, y=1.1, angle = 90, radius=1.1, color='gray'))
 
 #TheWorld.append(WorldObject(object_type=ObjectType.TARGET, x=1.25, y=0.2, radius=0.056, color='blue'))
 #TheWorld.append(WorldObject(object_type=ObjectType.TARGET, x=0, y=-0.5, radius=0.056, color='blue'))
@@ -64,6 +64,9 @@ print("go!")
 
 running = True
 dt = 1/60.0 # aim for 60 fps simulation
+reached_zone = False
+step = 0
+
 while running:
     now = time.time();
     renderer.update()
@@ -74,8 +77,14 @@ while running:
     # that talks to the sensors, and then for the renderer we'll need to create
     # a TheWorld based off of that
     sensor_information = Scan(TheWorld)
-    robot_brain.process(sensor_information)
+
+    if step > 6:
+        robot_brain.process(sensor_information)
+    else:
+        robot_brain.move_to_zone(sensor_information, step)
+    step += 1
     robot_brain.simulate(dt)
+    # print(step)
 
     tosleep = dt - (time.time() - now)
     if tosleep > 0:
