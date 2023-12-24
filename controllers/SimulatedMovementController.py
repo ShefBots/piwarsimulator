@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import math
 import time
 from threading import Thread
 from controllers.Controller import Controller
@@ -11,7 +12,10 @@ class SimulatedMovementController(Controller, Thread):
     UPDATE_RATE = 1 / 120.0
 
     def __init__(self, robot):
-        super(SimulatedMovementController, self).__init__() # https://stackoverflow.com/questions/13380819/multiple-inheritance-along-with-threading-in-python
+        # https://stackoverflow.com/questions/13380819/multiple-inheritance-along-with-threading-in-python
+        super(
+            SimulatedMovementController, self
+        ).__init__()  
         assert robot.object_type == ObjectType.ROBOT
         self.robot = robot
 
@@ -25,21 +29,40 @@ class SimulatedMovementController(Controller, Thread):
     def set_angular_velocity(self, theta):
         """set angular velocity in degrees per second"""
         self.theta_vel = theta
-        self.start()
+        if not self.running:
+            self.start()
 
     def set_plane_velocities(self, x, y):
         self.x_vel = x
         self.y_vel = y
-        self.start()
+        if not self.running:
+            self.start()
 
     def run(self):
         self.running = True
         while self.running == True:
             now = time.time()
 
-            self.robot.x += self.x_vel * self.UPDATE_RATE 
-            self.robot.y += self.y_vel * self.UPDATE_RATE 
-            self.robot.angle += self.theta_vel
+            # TODO handle any objects the robot is holding
+
+            self.robot.angle += self.theta_vel * self.UPDATE_RATE
+
+            self.robot.x += (
+                math.cos(math.radians(-self.robot.angle))
+                * self.x_vel
+                * self.UPDATE_RATE
+                - math.sin(math.radians(-self.robot.angle))
+                * self.y_vel
+                * self.UPDATE_RATE
+            )
+            self.robot.y += (
+                math.sin(math.radians(-self.robot.angle))
+                * self.x_vel
+                * self.UPDATE_RATE
+                + math.cos(math.radians(-self.robot.angle))
+                * self.y_vel
+                * self.UPDATE_RATE
+            )
 
             to_sleep = self.UPDATE_RATE - (time.time() - now)
             if to_sleep > 0:
