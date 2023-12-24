@@ -27,8 +27,8 @@ ExteriorTheWorld.append(WorldObject(object_type=ObjectType.WALL, x=-1, y=0, angl
 ExteriorTheWorld.append(WorldObject(object_type=ObjectType.WALL, x=1, y=0, angle = 90, radius=1, color='gray', ignore=True))
 
 # some barrels
-ExteriorTheWorld.append(WorldObject(object_type=ObjectType.BARREL, x=0.5, y=-0.5, radius=0.056, color='red'))
-ExteriorTheWorld.append(WorldObject(object_type=ObjectType.BARREL, x=0.5, y=0.5, radius=0.056, color='darkgreen'))
+ExteriorTheWorld.append(WorldObject(object_type=ObjectType.BARREL, x=0.5, y=-0.55, radius=0.05, color='red'))
+ExteriorTheWorld.append(WorldObject(object_type=ObjectType.BARREL, x=0.5, y=0.5, radius=0.05, color='darkgreen'))
 
 # logic for the robot
 sim_controller = SimulatedMovementController(robot)
@@ -37,7 +37,7 @@ sim_controller.set_angular_velocity(5)
 robot_brain = RobotBrain(robot=robot, controller=sim_controller, speed=0.3, turning_speed=45)
 robot_brain.add_sensor(SimulatedVision360(ExteriorTheWorld))
 
-renderer = WorldRenderer() # default 0,0 is centre of screen
+renderer = WorldRenderer(x_res=1000, y_res=1000, world_scale=400) # default 0,0 is centre of screen
 renderer.update()
 print("Getting ready...")
 time.sleep(1) # wait for the world to load

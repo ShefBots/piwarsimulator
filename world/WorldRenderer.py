@@ -9,8 +9,6 @@ from world.ObjectType import *
 class WorldRenderer:
     """Render the world so we can see what the robot is doing"""
 
-    world_scale = 200
-
     def __init__(self, **kwargs):
         print("Initialising renderer...")
 
@@ -23,6 +21,7 @@ class WorldRenderer:
         self.x_offset = kwargs.get("x_offset", self.x_res / 2)
         self.y_offset = kwargs.get("y_offset", self.y_res / 2)
         self.screen = pygame.display.set_mode((self.x_res, self.y_res))
+        self.world_scale = kwargs.get("world_scale", 200)
         self.font = pygame.font.Font(None, self.world_scale // 10)  # default font
         self.frame = 0
 
