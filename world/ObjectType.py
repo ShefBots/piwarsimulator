@@ -21,7 +21,7 @@ class ObjectType(Enum):
             self.ROBOT: "R",
             self.ZONE: "Z",
             self.OBSTACLE: "O",
-            self.BARREL: "T",
+            self.BARREL: "B",
             self.LINE: "L",
             self.WALL: "W",
         }[self]

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import math
 from pygame import Color
 from world.ObjectType import *
 
@@ -14,9 +15,17 @@ class WorldObject:
         self.object_type = kwargs.get("object_type", 0)
         self.color = Color(kwargs.get("color", "white"))
         self.ignore = kwargs.get("ignore", False)
+        self.is_held = kwargs.get("is_held", False)
+
+    def distance(self, obj=None):
+        if obj == None:
+            return math.sqrt(math.pow(self.x, 2) + math.pow(self.y, 2))
+        else:
+            assert isinstance(obj, WorldObject)
+            return math.sqrt(math.pow(self.x - obj.x, 2) + math.pow(self.y - obj.y, 2))
 
     def __str__(self):
-        return "Located at %0.3f, %0.3f with rotated %0.3f degrees" % (
+        return "Located at %0.3f, %0.3f rotated %0.3f degrees" % (
             self.x,
             self.y,
             self.angle,

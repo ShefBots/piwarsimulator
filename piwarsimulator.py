@@ -4,13 +4,13 @@ import numpy as np
 
 from world.WorldObject import *
 from world.WorldRenderer import *
-from sensors.ScanObject import *
-from sensors.Scan import *
+from sensors.SimulatedVision360 import SimulatedVision360
 from brains.RobotBrain import RobotBrain
 
 # TODO add log class, use that for output instead of print
 # TODO for now everything is simulated
 # TODO proper dimensions and whatnot
+# TODO should trap/handle ctrl c
 
 ExteriorTheWorld = []
 
@@ -31,6 +31,7 @@ ExteriorTheWorld.append(WorldObject(object_type=ObjectType.BARREL, x=0.5, y=0.5,
 
 # logic for the robot
 robot_brain = RobotBrain(robot=robot, speed=0.3, turning_speed=45)
+robot_brain.add_sensor(SimulatedVision360(ExteriorTheWorld))
 
 renderer = WorldRenderer() # default 0,0 is centre of screen
 renderer.update()
@@ -42,17 +43,13 @@ print("Running...")
 frame_time = 1/60.0 # aim for 60 fps simulation
 while running:
     now = time.time();
-    renderer.update(ExteriorTheWorld)
-    running = renderer.running
-    # TODO should handle ctrl c and alt f4
 
-    # TODO when running real hardware Scan() will be replaced with something
-    # that talks to the sensors, and then for the renderer we'll need to create
-    # a TheWorld based off of that
-    #sensor_information = Scan(TheWorld)
-#    robot_brain.process(sensor_information)
+    robot_brain.process()
     #robot_brain.simulate(dt)
 
+    renderer.update(ExteriorTheWorld, robot_brain.TheWorld) # see the world as it is and as the robot sees it
+    #renderer.update(robot_brain.TheWorld) # see the world as the robot sees it
+    running = renderer.running
     to_sleep = frame_time - (time.time() - now)
     if to_sleep > 0:
         time.sleep(to_sleep)

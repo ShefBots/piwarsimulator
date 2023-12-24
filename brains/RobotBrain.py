@@ -8,9 +8,9 @@ from world.ObjectType import *
 # what type of AI challenge we're dealing with
 
 class RobotBrain():
+    """the basics of every brain"""
 
-    def __init__(self, *args, **kwargs):
-#        print("Building brain")
+    def __init__(self, **kwargs):
         self.robot = kwargs.get('robot', None)
         self.speed = kwargs.get('speed', 0.001) # 1 mm/s
         self.turning_speed = kwargs.get('turning_speed', 1) # 1 degrees/s
@@ -31,24 +31,57 @@ class RobotBrain():
         #   if x is 3, the gripper with y = 1 to open and y = 2 to close?
         self.movement_queue = []
 
-    def process(self, sensor_information):
-        self.check_for_collision(sensor_information)
+        # for sensor output
+        self.sensors = []
+        self.TheWorld = []
 
-    def find_goal(self, sensor_information):
+    def add_sensor(self, sensor):
+        self.sensors.append(sensor);
+    
+    def poll_sensors(self):
+        """poll all sensors attached to the robot and check for collisions"""
+        # add in ourself to start with
+        self.TheWorld = [WorldObject(object_type=ObjectType.ROBOT, x=0, y=0, radius=self.robot.radius, angle=self.robot.angle)]
+        for s in self.sensors:
+            self.TheWorld += s.do_scan()
+
+    def process(self):
+        """basic logic is to just not hit anything"""
+        self.poll_sensors();
+        if self.check_for_collision():
+            # TODO controller halt
+            pass
+
+    def find_goal(self):
+        """default brain has no goal"""
         pass
 
-    def check_for_collision(self, sensor_information, ignore=None):
-        tr = self.robot.radius + self.held_radius()
-        for obj in sensor_information:
+    def check_for_collision(self):
+        tr = self.radius()
+        for obj in self.TheWorld[1:]: # ignore the robot in 0
             # the code for the real robot should probably treat the ignore slightly differently...
             # TODO collisions in a circle that's the robot and holding isn't effective,
             # replace this with something that checks the radius of both independently
-            if obj.distance - tr - obj.radius < 0.05 and not obj.parent in ignore and not obj.parent in self.holding:
+            if obj.distance() - tr - obj.radius < 0.05:
+                print(obj)
                 print("yikes! that's a bit close in'it?")
-                self.movement_queue = []
                 return True
-                # this isn't working because the same move just gets repeated I think?
         return False
+
+    def radius(self):
+        """estimated radius including anything being held"""
+        r = 0
+        for obj in self.holding:
+            tr = obj.distance() + obj.radius # assuming what we're holding is coordinates relative to robot
+            if tr > r:
+                r = tr
+        
+        # if holding nothing we're at least as big as ther robot itself
+        if r <= self.robot.radius:
+            r = self.robot.radius
+
+        return r
+
 
     def execute_rotate(self, amount):
         """Communicate to the robot to rotate a given amount..."""
@@ -110,14 +143,3 @@ class RobotBrain():
             else:
                 movement_function(self.movement_queue[0][1])
                 self.movement_queue.pop(0)
-
-    def held_radius(self):
-        """Roughly increase in radius due to items being held"""
-        r = 0
-        for obj in self.holding:
-            dist = math.sqrt(math.pow(obj.x - self.robot.x, 2) + math.pow(obj.y - self.robot.y, 2))
-            tr = dist - self.robot.radius + obj.radius
-            if tr > r:
-                r = tr
-
-        return r

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import math
 import copy
 
@@ -7,10 +8,16 @@ from brains.RobotBrain import RobotBrain
 
 
 class EcoDisasterBrain(RobotBrain):
+    """logic for the ecodisaster challenge"""
+
     def process(self, sensor_information):
+        """do the basic brain stuff then do specific ecodisaster things"""
+        super().process(self)
+
+        # TODO: redo all this logic for new architecture...
 
         # find something to move towards
-        goal = self.find_goal(sensor_information)
+        goal = self.find_goal()
         if self.goal == None and goal != None: # may only want to do this if we're not holding something?
             self.goal = goal.parent
         # TODO verify goal and self.goal are the same in case of dodgy sensor input
@@ -69,7 +76,7 @@ class EcoDisasterBrain(RobotBrain):
            to_travel += goal.radius # make sure we travel into the zone
         self.movement_queue.append([1, to_travel])
 
-    def find_goal(self, sensor_information):
+    def find_goal(self):
         """find the closest TARGET or ZONE"""
         closest = None
         closest_distance = 9e99
