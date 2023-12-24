@@ -6,7 +6,7 @@ from world.ObjectType import *
 class WorldObject:
     """Anything that exists in the world"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         self.x = kwargs.get("x", 0)
         self.y = kwargs.get("y", 0)
         self.angle = kwargs.get("angle", 0)
