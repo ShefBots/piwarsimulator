@@ -45,6 +45,10 @@ class SimulatedMovementController(Controller, Thread):
 
             # TODO handle any objects the robot is holding
 
+            # TODO need to account for when translating and rotating the x,y coordinate is no longer the centre of rotation
+            # "If we're moving < 1 m/s and rotation < 15 degrees/s how different are the origins?"
+            # "I don't know off the top of my head, but probably in the metres range"
+
             self.robot.angle += self.theta_vel * self.UPDATE_RATE
 
             self.robot.x += (
