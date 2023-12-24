@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from ScanObject import *
+from sensors.ScanObject import *
 
 def Scan(TheWorld):
     result = []

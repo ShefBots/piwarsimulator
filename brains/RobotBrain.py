@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-from WorldObject import *
-from ObjectType import *
 import math
 import copy
+from world.WorldObject import *
+from world.ObjectType import *
 
 # note: at some point we can probably use child classes to define
 # what type of AI challenge we're dealing with

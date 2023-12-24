@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import copy
 import math
-from WorldObject import *
+from world.WorldObject import *
 
 class ScanObject(WorldObject):
     """Something the robot sees"""

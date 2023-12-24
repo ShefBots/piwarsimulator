@@ -1,8 +1,8 @@
 import math
 import copy
 
-from WorldObject import *
-from ObjectType import *
+from world.WorldObject import *
+from world.ObjectType import *
 from brains.RobotBrain import RobotBrain
 
 
@@ -41,7 +41,7 @@ class EcoDisasterBrain(RobotBrain):
         else:
             tr += goal.radius
         if goal.distance < tr:
-            if goal.object_type == ObjectType.TARGET:
+            if goal.object_type == ObjectType.BARREL:
                 print("grabbing goal!")
                 self.holding.append(goal.parent)
             if goal.object_type == ObjectType.ZONE and len(self.holding) > 0:
@@ -75,7 +75,7 @@ class EcoDisasterBrain(RobotBrain):
         closest_distance = 9e99
         for obj in sensor_information:
             # only look for a target if we're holding nothing
-            if obj.object_type == ObjectType.TARGET and len(self.holding) == 0:
+            if obj.object_type == ObjectType.BARREL and len(self.holding) == 0:
                 if obj.distance < closest_distance:
                     closest = obj
                     closest_distance = obj.distance
