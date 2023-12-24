@@ -1,0 +1,6 @@
+name: piwars
+channels:
+  - defaults
+dependencies:
+  - pygame
+  - numpy
