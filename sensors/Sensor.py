@@ -2,7 +2,7 @@
 
 
 class Sensor:
-    """the basics of every sensor"""
+    """sensors see/detect things"""
 
     def do_scan(self):
         """return the results of a scan/poll, by default nothing"""

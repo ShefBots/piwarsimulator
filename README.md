@@ -25,7 +25,7 @@ This code, once finished, can either be run in simulation or control mode. It co
 
 * TheWorld – list of everything in the world (either detected or when simulation synthetic), comprised of WorldObjects that contain coordinates and type information
 * RobotBrain – provides basic logic for scanning and simulation (super classes provide dedicated logic)
-* Sensor – Provides sensor information (vision system, time of flight, optical flow, controller) 
+* Sensor – Provides sensor information (vision system, time of flight, optical flow, radio receiver) 
 * Controller – Acts on the robot (wheels or launcher or ExteriorTheWorld in simulation)
 * WorldRender – displays the world
 

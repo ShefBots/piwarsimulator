@@ -16,6 +16,7 @@ class WorldObject:
         self.color = Color(kwargs.get("color", "white"))
         self.ignore = kwargs.get("ignore", False)
         self.is_held = kwargs.get("is_held", False)
+        self.exterior = None  # exterior world version when simulation
 
     def distance(self, obj=None):
         if obj == None:
@@ -25,15 +26,9 @@ class WorldObject:
             return math.sqrt(math.pow(self.x - obj.x, 2) + math.pow(self.y - obj.y, 2))
 
     def __str__(self):
-        return "Located at %0.3f, %0.3f rotated %0.3f degrees" % (
+        return "%s located at %0.3f, %0.3f rotated %0.3f degrees" % (
+            self.object_type,
             self.x,
             self.y,
             self.angle,
-        )
-
-    def __repr__(self):
-        return "\nI am a %s with radius %0.3f - %s" % (
-            self.object_type,
-            self.radius,
-            self.__str__(),
         )

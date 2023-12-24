@@ -12,6 +12,7 @@ class RobotBrain():
 
     def __init__(self, **kwargs):
         self.robot = kwargs.get('robot', None)
+        self.controller = kwargs.get('controller', None)
         self.speed = kwargs.get('speed', 0.001) # 1 mm/s
         self.turning_speed = kwargs.get('turning_speed', 1) # 1 degrees/s
         assert isinstance(self.robot, WorldObject)
@@ -21,7 +22,7 @@ class RobotBrain():
         # use it to cross verify with subsequent scan results
         self.goal = None
 
-        # anything we're transporting
+        # anything we're transporting (exterior world objects when simulating)
         self.holding = []
 
         # the set of directions we're currently following
@@ -49,8 +50,7 @@ class RobotBrain():
         """basic logic is to just not hit anything"""
         self.poll_sensors();
         if self.check_for_collision():
-            # TODO controller halt
-            pass
+            self.controller.stop()
 
     def find_goal(self):
         """default brain has no goal"""
@@ -62,7 +62,7 @@ class RobotBrain():
             # the code for the real robot should probably treat the ignore slightly differently...
             # TODO collisions in a circle that's the robot and holding isn't effective,
             # replace this with something that checks the radius of both independently
-            if obj.distance() - tr - obj.radius < 0.05:
+            if obj.distance() - tr - obj.radius < 0.05 and not obj.exterior in self.holding:
                 print(obj)
                 print("yikes! that's a bit close in'it?")
                 return True
@@ -72,7 +72,7 @@ class RobotBrain():
         """estimated radius including anything being held"""
         r = 0
         for obj in self.holding:
-            tr = obj.distance() + obj.radius # assuming what we're holding is coordinates relative to robot
+            tr = obj.distance(self.robot) + obj.radius
             if tr > r:
                 r = tr
         

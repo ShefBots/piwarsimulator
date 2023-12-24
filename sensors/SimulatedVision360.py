@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 import copy
 import math
+from sensors.Sensor import Sensor
 from world.ObjectType import *
 
 
-class SimulatedVision360:
+class SimulatedVision360(Sensor):
     """simulated output from the 360 vision system"""
 
     def __init__(self, ExteriorTheWorld):
@@ -25,6 +26,7 @@ class SimulatedVision360:
             barrel.x -= self.ExteriorTheWorld[0].x
             barrel.y -= self.ExteriorTheWorld[0].y
             barrel.angle = math.degrees(math.atan2(barrel.x, barrel.y))
+            barrel.exterior = obj
 
             scan_result.append(barrel)
 

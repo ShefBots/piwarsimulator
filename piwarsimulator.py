@@ -2,10 +2,11 @@
 import time
 import numpy as np
 
+from brains.RobotBrain import RobotBrain
+from controllers.SimulatedMovementController import SimulatedMovementController
+from sensors.SimulatedVision360 import SimulatedVision360
 from world.WorldObject import *
 from world.WorldRenderer import *
-from sensors.SimulatedVision360 import SimulatedVision360
-from brains.RobotBrain import RobotBrain
 
 # TODO add log class, use that for output instead of print
 # TODO for now everything is simulated
@@ -30,7 +31,9 @@ ExteriorTheWorld.append(WorldObject(object_type=ObjectType.BARREL, x=0.5, y=-0.5
 ExteriorTheWorld.append(WorldObject(object_type=ObjectType.BARREL, x=0.5, y=0.5, radius=0.056, color='darkgreen'))
 
 # logic for the robot
-robot_brain = RobotBrain(robot=robot, speed=0.3, turning_speed=45)
+sim_controller = SimulatedMovementController(robot)
+sim_controller.set_plane_velocities(0, 0.05)
+robot_brain = RobotBrain(robot=robot, controller=sim_controller, speed=0.3, turning_speed=45)
 robot_brain.add_sensor(SimulatedVision360(ExteriorTheWorld))
 
 renderer = WorldRenderer() # default 0,0 is centre of screen
@@ -47,9 +50,12 @@ while running:
     robot_brain.process()
     #robot_brain.simulate(dt)
 
-    renderer.update(ExteriorTheWorld, robot_brain.TheWorld) # see the world as it is and as the robot sees it
+    renderer.update(ExteriorTheWorld)
+    #renderer.update(ExteriorTheWorld, robot_brain.TheWorld) # see the world as it is and as the robot sees it
     #renderer.update(robot_brain.TheWorld) # see the world as the robot sees it
     running = renderer.running
     to_sleep = frame_time - (time.time() - now)
     if to_sleep > 0:
         time.sleep(to_sleep)
+
+sim_controller.stop()
