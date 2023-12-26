@@ -32,7 +32,7 @@ ExteriorTheWorld.append(WorldObject(object_type=ObjectType.BARREL, x=0.5, y=0.5,
 
 # logic for the robot
 sim_controller = SimulatedMovementController(robot)
-sim_controller.set_plane_velocities(0, 0.05)
+sim_controller.set_plane_velocity([0, 0.05])
 sim_controller.set_angular_velocity(5)
 robot_brain = RobotBrain(robot=robot, controller=sim_controller, speed=0.3, turning_speed=45)
 robot_brain.add_sensor(SimulatedVision360(ExteriorTheWorld))

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import math
+import numpy as np
 from pygame import Color
 from world.ObjectType import *
 
@@ -8,8 +9,7 @@ class WorldObject:
     """Anything that exists in the world"""
 
     def __init__(self, **kwargs):
-        self.x = kwargs.get("x", 0)
-        self.y = kwargs.get("y", 0)
+        self.pos = np.array([kwargs.get("x", 0),  kwargs.get("y", 0)])
         self.angle = kwargs.get("angle", 0)
         self.radius = kwargs.get("radius", 0.1)
         self.object_type = kwargs.get("object_type", 0)
@@ -20,15 +20,15 @@ class WorldObject:
 
     def distance(self, obj=None):
         if obj == None:
-            return math.sqrt(math.pow(self.x, 2) + math.pow(self.y, 2))
+            return np.linalg.norm(self.pos)
         else:
             assert isinstance(obj, WorldObject)
-            return math.sqrt(math.pow(self.x - obj.x, 2) + math.pow(self.y - obj.y, 2))
+            return np.linalg.norm(self.pos - obj.pos)
 
     def __str__(self):
         return "%s located at %0.3f, %0.3f rotated %0.3f degrees" % (
             self.object_type,
-            self.x,
-            self.y,
+            self.pos[0],
+            self.pos[1],
             self.angle,
         )

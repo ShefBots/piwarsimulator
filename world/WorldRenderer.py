@@ -50,8 +50,8 @@ class WorldRenderer:
 
         for TheWorld in Worlds:
             for obj in TheWorld:
-                i = self.transform_horizontal(obj.x)
-                j = self.transform_vertical(obj.y)
+                i = self.transform_horizontal(obj.pos[0])
+                j = self.transform_vertical(obj.pos[1])
                 r = self.transform_coordinate(obj.radius)
                 if obj.object_type == ObjectType.WALL:
                     pygame.gfxdraw.line(
