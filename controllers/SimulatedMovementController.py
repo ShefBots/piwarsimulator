@@ -87,7 +87,7 @@ class SimulatedMovementController(Controller, Thread):
 
             else:
                 # Translate the robot position in its local frame
-                world_translation = util.rotate_by(translation, self.robot.angle)
+                world_translation = util.rotate_by(translation, -self.robot.angle)
                 self.robot.pos = world_translation + self.robot.pos
 
             to_sleep = self.UPDATE_RATE - (time.time() - now)
