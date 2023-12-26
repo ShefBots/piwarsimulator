@@ -26,13 +26,6 @@ class RobotBrain:
         # anything we're transporting (exterior world objects when simulating)
         self.holding = []
 
-        # the set of directions we're currently following
-        # in the format of [x, y] where
-        #   x is 1 or 2 to indicate move, turn
-        #   y is the distance to go/amount to turn
-        #   if x is 3, the gripper with y = 1 to open and y = 2 to close?
-        self.movement_queue = []
-
         self.collision_tolerance = kwargs.get("collision_tolerance", 0.01)  # m
 
         # for sensor output

@@ -10,84 +10,81 @@ from brains.RobotBrain import RobotBrain
 class EcoDisasterBrain(RobotBrain):
     """logic for the ecodisaster challenge"""
 
-    def process(self, sensor_information):
+    # will need to account for gripper in collisions, this'll probably need a constructor
+    # will need to account for zones in collisions
+
+    GOAL_MAPPING = {"darkgreen": "blue", "red": "yellow"}
+
+    GRIPPER_ANGLE_TOLERANCE = 2  # degree
+    GRIPPER_TOLERANCE = 0.02  # m
+
+    def process(self):
         """do the basic brain stuff then do specific ecodisaster things"""
-        super().process(self)
+
+        # check sensors and stop if collision is imminent
+        super().process()
 
         # TODO: redo all this logic for new architecture...
 
         # find something to move towards
-        goal = self.find_goal()
-        if self.goal == None and goal != None: # may only want to do this if we're not holding something?
-            self.goal = goal.parent
-        # TODO verify goal and self.goal are the same in case of dodgy sensor input
-
-        collision_check_result = self.check_for_collision(sensor_information, ignore=[self.goal])
-        if collision_check_result == True:
+        (goal, goal_distance) = self.find_goal()
+        if goal == None:
             return
 
-        # this maybe should be before check_for_collision as it emptys the movement_queue?
-        if not self.movement_queue:
-            self.goal = goal.parent
+        print(goal_distance)
+        print(self.radius() + self.GRIPPER_TOLERANCE)
+
+        # if in range of target
+        if goal_distance < self.radius() + self.GRIPPER_TOLERANCE:
+            print("In range of goal!")
+            self.controller.stop()
         else:
-            # we're currently executing movement to a goal, so don't do any new thinking
-            return
+            # turn towards target
+            if goal.angle > self.GRIPPER_ANGLE_TOLERANCE:
+                self.controller.set_angular_velocity(self.turning_speed)
+            elif goal.angle < -self.GRIPPER_ANGLE_TOLERANCE:
+                self.controller.set_angular_velocity(-self.turning_speed)
+            else:
+                self.controller.set_angular_velocity(0)
+                self.controller.set_plane_velocity([0, self.speed])
 
-        if self.goal == None:
-#            print("no goals, doing nothing")
-            return
-
-        # are we within grabbing distance of the goal?
-        # this should only execute if we're facing the goal
         # TODO if the angles don't match, backup rotate, try to grab again
-        # TODO add the movement for this to the movement_queue
-        # i'd argue this doesn't belong in RobotTrain because the gripper is a specific atachment for EcoDisaster?
-        tr = self.robot.radius + self.held_radius()
+
+        # if a barrel pick it up
+        if goal.object_type == ObjectType.BARREL:
+            pass
+            # print("Grabbing barrel")
+            # self.holding.append(goal)
+            # goal.exterior.is_held = True  # this is a simulation thing
+
+        # if a zone drop the barrel off
         if goal.object_type == ObjectType.ZONE:
             pass
-        else:
-            tr += goal.radius
-        if goal.distance < tr:
-            if goal.object_type == ObjectType.BARREL:
-                print("grabbing goal!")
-                self.holding.append(goal.parent)
-            if goal.object_type == ObjectType.ZONE and len(self.holding) > 0:
-                self.holding[0].ignore = True
-                print("dropping off target!")
-                self.holding.pop(0)
-                # move backwards a little after dropping off target
-                # self.execute_move(-self.speed, goal.heading)
-            return
-
-        # rotate so we are facing the target
-        heading_offset = goal.heading - self.robot.angle
-        # this should be the fix for the it turns a complete circle sometimes bug
-        if heading_offset > 180:
-            heading_offset -= 360
-        elif heading_offset < -180:
-            heading_offset += 360
-#        print("%f - %f = %f" % (goal.heading, self.robot.angle, heading_offset))
-        if abs(heading_offset) > 5:
-            self.movement_queue.append([2, heading_offset])
-
-        # move towards the target
-        to_travel = goal.distance - self.robot.radius - self.held_radius() - goal.radius + 0.02 # a little margin to make sure we get there
-        if goal.object_type == ObjectType.ZONE:
-           to_travel += goal.radius # make sure we travel into the zone
-        self.movement_queue.append([1, to_travel])
+            # print("Dropping off barrel")
+            # self.holding.pop(0)
+            # # TODO need some way to distinguish barrels in zones
 
     def find_goal(self):
         """find the closest TARGET or ZONE"""
         closest = None
         closest_distance = 9e99
-        for obj in sensor_information:
+        for obj in self.TheWorld:
             # only look for a target if we're holding nothing
-            if obj.object_type == ObjectType.BARREL and len(self.holding) == 0:
-                if obj.distance < closest_distance:
+            if (
+                obj.object_type == ObjectType.BARREL
+                and not obj.exterior in self.holding
+            ):
+                if obj.distance() < closest_distance:
                     closest = obj
-                    closest_distance = obj.distance
+                    closest_distance = obj.distance()
             # otherwise find the zone that matches the target colour
-            elif len(self.holding) > 0 and obj.object_type == ObjectType.ZONE and obj.color == self.holding[0].color:
-                return obj
+            elif (
+                len(self.holding) > 0
+                and obj.object_type == ObjectType.ZONE
+                and obj.color == self.GOAL_MAPPING[self.holding[0].color]
+                and obj.distance() < closest_distance
+            ):
+                closest = obj
+                closest_distance = obj.distance()
 
-        return closest
+        return (closest, closest_distance)
