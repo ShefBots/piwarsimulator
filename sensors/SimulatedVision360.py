@@ -25,6 +25,7 @@ class SimulatedVision360(Sensor):
             barrel = copy.deepcopy(obj)
             barrel.pos -= self.ExteriorTheWorld[0].pos
             barrel.angle = math.degrees(math.atan2(barrel.pos[0], barrel.pos[1]))
+            barrel.angle = barrel.angle - self.ExteriorTheWorld[0].angle # make relative to heading of robot
             barrel.exterior = obj
 
             scan_result.append(barrel)
