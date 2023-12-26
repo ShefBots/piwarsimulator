@@ -32,6 +32,8 @@ class RobotBrain():
         #   if x is 3, the gripper with y = 1 to open and y = 2 to close?
         self.movement_queue = []
 
+        self.collision_tolerance = kwargs.get("collision_tolerance", 0.01)  # m
+
         # for sensor output
         self.sensors = []
         self.TheWorld = []
@@ -62,9 +64,12 @@ class RobotBrain():
             # the code for the real robot should probably treat the ignore slightly differently...
             # TODO collisions in a circle that's the robot and holding isn't effective,
             # replace this with something that checks the radius of both independently
-            if obj.distance() - tr - obj.radius < 0.05 and not obj.exterior in self.holding:
+            if (
+                obj.distance() - tr - obj.radius < self.collision_tolerance
+                and not obj.exterior in self.holding
+            ):
                 print(obj)
-                print("yikes! that's a bit close in'it?")
+                print("Yikes! Something's a bit close!")
                 return True
         return False
 
