@@ -24,23 +24,23 @@ class SimulatedMovementController(Controller, Thread):
         self.vel = np.array([0, 0])
         self.theta_vel = 0  # angular velocity
 
-        self.running = False
+        self.moving = False
 
     def set_angular_velocity(self, theta):
         """set angular velocity in degrees per second"""
         self.theta_vel = theta
-        if not self.running:
+        if not self.moving:
             self.start()
 
     def set_plane_velocity(self, vel):
-        """velocity aligned to the robot"""
+        """velocity aligned to the robot (sideways, forwards)"""
         self.vel = np.array(vel)
-        if not self.running:
+        if not self.moving:
             self.start()
 
     def run(self):
-        self.running = True
-        while self.running == True:
+        self.moving = True
+        while self.moving == True:
             now = time.time()
 
             # TODO handle any objects the robot is holding
@@ -98,4 +98,4 @@ class SimulatedMovementController(Controller, Thread):
         """stop moving"""
         self.vel = np.array([0, 0])
         self.theta_vel = 0
-        self.running = False
+        self.moving = False
