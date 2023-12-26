@@ -7,14 +7,15 @@ from world.ObjectType import *
 # note: at some point we can probably use child classes to define
 # what type of AI challenge we're dealing with
 
-class RobotBrain():
+
+class RobotBrain:
     """the basics of every brain"""
 
     def __init__(self, **kwargs):
-        self.robot = kwargs.get('robot', None)
-        self.controller = kwargs.get('controller', None)
-        self.speed = kwargs.get('speed', 0.001) # 1 mm/s
-        self.turning_speed = kwargs.get('turning_speed', 1) # 1 degrees/s
+        self.robot = kwargs.get("robot", None)
+        self.controller = kwargs.get("controller", None)
+        self.speed = kwargs.get("speed", 0.001)  # 1 mm/s
+        self.turning_speed = kwargs.get("turning_speed", 1)  # 1 degrees/s
         assert isinstance(self.robot, WorldObject)
         assert self.robot.object_type == ObjectType.ROBOT
 
@@ -39,18 +40,26 @@ class RobotBrain():
         self.TheWorld = []
 
     def add_sensor(self, sensor):
-        self.sensors.append(sensor);
-    
+        self.sensors.append(sensor)
+
     def poll_sensors(self):
         """poll all sensors attached to the robot and check for collisions"""
         # add in ourself to start with
-        self.TheWorld = [WorldObject(object_type=ObjectType.ROBOT, x=0, y=0, radius=self.robot.radius, angle=self.robot.angle)]
+        self.TheWorld = [
+            WorldObject(
+                object_type=ObjectType.ROBOT,
+                x=0,
+                y=0,
+                radius=self.robot.radius,
+                angle=self.robot.angle,
+            )
+        ]
         for s in self.sensors:
             self.TheWorld += s.do_scan()
 
     def process(self):
         """basic logic is to just not hit anything"""
-        self.poll_sensors();
+        self.poll_sensors()
         if self.check_for_collision():
             self.controller.stop()
 
@@ -60,7 +69,7 @@ class RobotBrain():
 
     def check_for_collision(self):
         tr = self.radius()
-        for obj in self.TheWorld[1:]: # ignore the robot in 0
+        for obj in self.TheWorld[1:]:  # ignore the robot in 0
             # the code for the real robot should probably treat the ignore slightly differently...
             # TODO collisions in a circle that's the robot and holding isn't effective,
             # replace this with something that checks the radius of both independently
@@ -80,7 +89,7 @@ class RobotBrain():
             tr = obj.distance(self.robot) + obj.radius
             if tr > r:
                 r = tr
-        
+
         # if holding nothing we're at least as big as ther robot itself
         if r <= self.robot.radius:
             r = self.robot.radius
