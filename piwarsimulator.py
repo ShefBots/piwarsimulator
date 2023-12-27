@@ -10,6 +10,7 @@ from controllers.SimulatedMovementController import SimulatedMovementController
 from sensors.SimulatedVision360 import SimulatedVision360
 from world.WorldObject import *
 from world.WorldRenderer import *
+from world.EcoDisasterMap import *
 
 # TODO add log class, use that for output instead of print
 # TODO for now everything is simulated
@@ -32,19 +33,8 @@ robot = WorldObject(object_type=ObjectType.ROBOT, x=0, y=0, radius=0.1, angle=0)
 # the order this is constructed in is also the rendering order...
 ExteriorTheWorld.append(robot) # this should always be index 0!
 
-# for walls x and y are the center of the wall and they are extended by radius
-ExteriorTheWorld.append(WorldObject(object_type=ObjectType.WALL, x=0, y=-1, angle = 0, radius=1, color='gray', ignore=True))
-ExteriorTheWorld.append(WorldObject(object_type=ObjectType.WALL, x=0, y=1, angle = 0, radius=1, color='gray', ignore=True))
-ExteriorTheWorld.append(WorldObject(object_type=ObjectType.WALL, x=-1, y=0, angle = 90, radius=1, color='gray', ignore=True))
-ExteriorTheWorld.append(WorldObject(object_type=ObjectType.WALL, x=1, y=0, angle = 90, radius=1, color='gray', ignore=True))
-
-# some barrels
-ExteriorTheWorld.append(WorldObject(object_type=ObjectType.BARREL, x=0.5, y=-0.55, radius=0.04, color='red'))
-ExteriorTheWorld.append(WorldObject(object_type=ObjectType.BARREL, x=0.5, y=0.5, radius=0.04, color='darkgreen'))
-
-# some zones
-ExteriorTheWorld.append(WorldObject(object_type=ObjectType.ZONE, x=-0.5, y=0.9, radius=0.08, color='blue'))
-ExteriorTheWorld.append(WorldObject(object_type=ObjectType.ZONE, x=0.5, y=0.9, radius=0.08, color='yellow'))
+# import a map
+SimpleEcoDisasterMap(ExteriorTheWorld)
 
 # logic for the robot
 sim_controller = SimulatedMovementController(robot)
