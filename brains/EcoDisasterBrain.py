@@ -31,8 +31,8 @@ class EcoDisasterBrain(RobotBrain):
         if goal == None:
             return
 
-        print(goal_distance)
-        print(self.radius() + self.GRIPPER_TOLERANCE)
+        # print(goal_distance)
+        # print(self.radius() + self.GRIPPER_TOLERANCE)
 
         # if in range of target
         if goal_distance < self.radius() + self.GRIPPER_TOLERANCE:

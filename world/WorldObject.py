@@ -8,7 +8,7 @@ class WorldObject:
     """Anything that exists in the world"""
 
     def __init__(self, **kwargs):
-        self.pos = np.array([kwargs.get("x", 0),  kwargs.get("y", 0)])
+        self.pos = np.array([kwargs.get("x", 0), kwargs.get("y", 0)])
         self.angle = kwargs.get("angle", 0)
         self.radius = kwargs.get("radius", 0.1)
         self.object_type = kwargs.get("object_type", 0)
