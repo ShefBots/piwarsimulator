@@ -15,6 +15,7 @@ class SimulatedMovementController(Controller, Thread):
     ROTATION_THRESHOLD = 0.001  # degrees
 
     def __init__(self, robot):
+        print("Initialising SimulatedMovementController...")
         # https://stackoverflow.com/questions/13380819/multiple-inheritance-along-with-threading-in-python
         super(SimulatedMovementController, self).__init__()
         assert robot.object_type == ObjectType.ROBOT
@@ -42,12 +43,12 @@ class SimulatedMovementController(Controller, Thread):
             self.start()
 
     def run(self):
+        print("Starting simulated movement thread...")
         self.running = True
         while self.running == True:
             now = time.time()
 
             if self.moving:
-
                 # TODO handle any objects the robot is holding
 
                 rotation = self.theta_vel * self.UPDATE_RATE
@@ -69,11 +70,13 @@ class SimulatedMovementController(Controller, Thread):
                         path_factor = np.degrees(1 / np.abs(rotation))
                         if rotation > 0.0:
                             centre_of_rotation = (
-                                np.array([translation[1], -translation[0]]) * path_factor
+                                np.array([translation[1], -translation[0]])
+                                * path_factor
                             )
                         else:
                             centre_of_rotation = (
-                                np.array([-translation[1], translation[0]]) * path_factor
+                                np.array([-translation[1], translation[0]])
+                                * path_factor
                             )
 
                         # Convert it to be in world coordinates
@@ -99,8 +102,7 @@ class SimulatedMovementController(Controller, Thread):
             if to_sleep > 0:
                 time.sleep(to_sleep)
 
-        print("Simulated movement end")
-        self.running = False
+        print("Simulated movement thread end")
 
     def stop(self, exiting=False):
         """stop moving"""

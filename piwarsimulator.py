@@ -5,7 +5,6 @@ import time
 import numpy as np
 from os import listdir
 from signal import signal, SIGINT
-from sys import exit
 
 
 # TODO proper dimensions/sizes of items
@@ -19,10 +18,8 @@ frame_time = 1/60.0 # aim for 60 fps simulation/processing
 def sigint_handler(signal_received, frame):
     """trap/handle ctrl c"""
     global running # why does this need to be global?
-    print('SIGINT or CTRL-C detected. Exiting gracefully')
+    print('SIGINT or CTRL-C detected')
     running = False
-    time.sleep(0.1) # wait a moment for pygame
-    exit()
 signal(SIGINT, sigint_handler)
 
 # list of available brains for argument list
@@ -102,4 +99,5 @@ while running:
     if to_sleep > 0:
         time.sleep(to_sleep)
 
+print("Quitting...")
 controller.stop(exiting=True)
