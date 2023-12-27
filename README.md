@@ -1,6 +1,25 @@
 # piwarsimulator
 Robot simulator to work on PiWars logic. This is a work in progress, revivified for 2024.
 
+```
+$ ./piwarsimulator.py -h
+usage: piwarsimulator.py [-h] [--brain {EcoDisasterBrain,RobotBrain}] [--map {SimpleEcoDisasterMap}] [--mode {simulation,sensor_simulation,control}]
+                         [--rendering {true,false}]
+
+Simulator/controller for ShefBots Mark 1b for PiWars 2024
+
+options:
+  -h, --help            show this help message and exit
+  --brain {EcoDisasterBrain,RobotBrain}
+                        robot brain/challenge (default RobotBrain)
+  --map {SimpleEcoDisasterMap}
+                        map (default SimpleEcoDisasterMap)
+  --mode {simulation,sensor_simulation,control}
+                        operation mode (default simulation)
+  --rendering {true,false}
+                        render world on screen (default true)
+```
+
 ## Getting started
 
 Create a development environment, then run `python3 piwarsimulator.py`.
