@@ -5,6 +5,8 @@ import numpy as np
 from pygame import Color
 from world.ObjectType import *
 
+# TODO wall detection and avoidance
+
 
 class WorldRenderer:
     """Render the world so we can see what the robot is doing"""
@@ -101,7 +103,9 @@ class WorldRenderer:
             self.fps_at = 0
 
         # uncomment to save each frame to make a video
-        # pygame.image.save(self.screen, "frames/image%08d.png" % self.frame)
+        # pygame.image.save(self.screen, "frames/image%08d.bmp" % self.frame)
+        # ffmpeg -framerate 60 -i frames/image%08d.bmp -r 60 -vcodec libx265 -preset medium -crf 28 test.mp4
+        # ffmpeg -framerate 60 -i frames/image%08d.bmp -r 60 -vcodec libx264 -crf 28 -pix_fmt yuv420p test.mp4
 
         pygame.display.flip()
         self.frame += 1
