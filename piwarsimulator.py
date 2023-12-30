@@ -58,7 +58,8 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-from sensors.Keyboard import Keyboard
+if args.rendering == "true":
+    from sensors.Keyboard import Keyboard
 
 if args.mode == "simulation":
     from controllers.SimulatedMovementController import SimulatedMovementController
@@ -96,7 +97,9 @@ robot_brain = brain(robot=robot, controller=controller, speed=0.05, turning_spee
 
 print("Attaching sensors...")
 if args.mode == "simulation" or args.mode == "sensor_simulation":
-    robot_brain.add_sensor(Keyboard(robot_brain.speed, robot_brain.turning_speed))
+    if args.rendering == "true":
+        print("   Keyboard")
+        robot_brain.add_sensor(Keyboard(robot_brain.speed, robot_brain.turning_speed))
     if args.brain == "EcoDisasterBrain":
         print("   360 vision")
         robot_brain.add_sensor(SimulatedVision360(ExteriorTheWorld))
@@ -126,9 +129,13 @@ while running:
     # robot_brain.simulate(dt)
 
     if args.rendering == "true":
-        renderer.update(ExteriorTheWorld)
-        # renderer.update(ExteriorTheWorld, robot_brain.TheWorld) # see the world as it is and as the robot sees it
-        # renderer.update(robot_brain.TheWorld) # see the world as the robot sees it
+        if args.mode == "control":
+            renderer.update(robot_brain.TheWorld)  # see the world as the robot sees it
+        else:
+            renderer.update(
+                ExteriorTheWorld, robot_brain.TheWorld
+            )  # see the world as it is and as the robot sees it
+
         if renderer.running == False:
             running = False
 
