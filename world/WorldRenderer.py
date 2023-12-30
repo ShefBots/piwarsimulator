@@ -57,7 +57,8 @@ class WorldRenderer:
 
         world_at = 0
         for TheWorld in Worlds:
-            for obj in TheWorld:
+            for obj in reversed(TheWorld):
+                # iterate through backwards so that the robot is always rendered last (on top)
                 # get the coordinates of the outline (also draws line type objects)
                 x, y = obj.xy()
                 x = self.transform_horizontal(np.array(x)) + world_at * self.x_res
