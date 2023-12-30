@@ -88,6 +88,11 @@ class RobotBrain:
             if (
                 self.TheWorld[0].get_distance(obj) < self.collision_tolerance
                 and not obj.exterior in self.holding
+                and not (
+                    # can't collide with flat objects
+                    obj.object_type == ObjectType.MINE
+                    or obj.object_type == ObjectType.LINE
+                )
             ):
                 print(obj)
                 print("Yikes! Something's a bit close!")
