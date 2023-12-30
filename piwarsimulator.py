@@ -16,7 +16,7 @@ from world.WorldObject import WorldObject
 # TODO maps for the different scenarios
 
 running = True  # state of simulator
-frame_time = 1 / 60.0  # aim for 60 fps simulation/processing
+target_frame_time = 1 / 60.0  # aim for 60 fps simulation/processing
 
 
 def sigint_handler(signal_received, frame):
@@ -139,7 +139,7 @@ while running:
         if renderer.running == False:
             running = False
 
-    to_sleep = frame_time - (time.time() - now)
+    to_sleep = target_frame_time - (time.time() - now)
     if to_sleep > 0:
         time.sleep(to_sleep)
 

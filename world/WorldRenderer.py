@@ -23,6 +23,10 @@ class WorldRenderer:
         self.screen = pygame.display.set_mode((self.x_res, self.y_res))
         self.world_scale = kwargs.get("world_scale", 200)
         self.font = pygame.font.Font(None, self.world_scale // 10)  # default font
+        self.small_font = pygame.font.Font(None, self.world_scale // 16)  # default font
+        self.last_time = time.time()
+        self.fps = np.ones(30) * (1 / 60)
+        self.fps_at = 0
         self.frame = 0
 
     def transform_coordinate(self, c, offset=0):
@@ -74,6 +78,18 @@ class WorldRenderer:
                     text2,
                     (i - text2.get_width() // 2 + 0.5, j - text2.get_height() // 2 + 2),
                 )
+
+        # calculate fps
+        now = time.time()
+        frame_time = now - self.last_time
+        self.fps[self.fps_at] = 1 / frame_time
+        fps = np.mean(self.fps)
+        text = self.small_font.render(f"{fps:.0f} FPS", True, Color("gray"))
+        self.screen.blit(text, (10, 10))
+        self.last_time = now
+        self.fps_at += 1
+        if self.fps_at == len(self.fps):
+            self.fps_at = 0
 
         # uncomment to save each frame to make a video
         # pygame.image.save(self.screen, "frames/image%08d.png" % self.frame)
