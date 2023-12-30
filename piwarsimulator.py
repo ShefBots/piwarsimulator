@@ -15,14 +15,19 @@ from world.WorldObject import WorldObject
 # TODO brains: lava palava, ecodisaster, escape route
 
 running = True  # state of simulator
+ctrlc_count = 0 # if hitting 3 try and sys.exit
 target_frame_time = 1 / 60.0  # aim for 60 fps simulation/processing
 
 
 def sigint_handler(signal_received, frame):
     """trap/handle ctrl c"""
     global running  # why does this need to be global?
+    global ctrlc_count
     print("SIGINT or CTRL-C detected")
     running = False
+    ctrlc_count += 1
+    if ctrlc_count == 3:
+        exit()
 
 
 signal(SIGINT, sigint_handler)
