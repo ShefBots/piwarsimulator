@@ -5,5 +5,9 @@ class Sensor:
     """sensors see/detect things"""
 
     def do_scan(self):
-        """return the results of a scan/poll, by default nothing"""
-        return []
+        """
+        return the results of a scan/poll, by default nothing
+        returns a list of WorldObjects and a dictionary of other readings
+        """
+
+        return [], {}

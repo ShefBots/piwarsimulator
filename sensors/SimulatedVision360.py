@@ -52,4 +52,4 @@ class SimulatedVision360(Sensor):
 
             scan_result.append(scanned_obj)
 
-        return scan_result
+        return scan_result, {}

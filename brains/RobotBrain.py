@@ -29,8 +29,9 @@ class RobotBrain:
         self.collision_tolerance = kwargs.get("collision_tolerance", 0.01)  # m
 
         # for sensor output
-        self.sensors = []
-        self.TheWorld = []
+        self.sensors = []  # any sensors
+        self.TheWorld = []  # any objects returned by sensors
+        self.sensor_measurements = {}  # direct sensor measurements
 
     def add_sensor(self, sensor):
         self.sensors.append(sensor)
@@ -50,13 +51,28 @@ class RobotBrain:
             )
         ]
         for s in self.sensors:
-            self.TheWorld += s.do_scan()
+            objects, readings = s.do_scan()
+            self.TheWorld += objects
+            for k, v in readings.items():
+                self.sensor_measurements[k] = v
 
     def process(self):
-        """basic logic is to just not hit anything"""
+        """basic logic is to just not hit anything & respond to control input"""
         self.poll_sensors()
         if self.check_for_collision():
             self.controller.stop()
+
+        # print(self.sensor_measurements)
+        if self.sensor_measurements["manual_control"]:
+            self.controller.set_plane_velocity(
+                [
+                    self.sensor_measurements["sideways_vel"],
+                    self.sensor_measurements["forward_vel"],
+                ]
+            )
+            self.controller.set_angular_velocity(
+                self.sensor_measurements["angular_vel"]
+            )
 
     def find_goal(self):
         """default brain has no goal"""

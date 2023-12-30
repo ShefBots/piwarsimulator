@@ -9,8 +9,9 @@ from signal import signal, SIGINT
 
 # TODO proper dimensions/sizes of items
 # TODO control mode for real hardware
-# TODO sensor_simulation for real hardware but simulated sensor input
+# TODO sensor_simulation mode for real hardware but simulated sensor input
 # TODO side by side output of world and sensor
+# TODO maps for the different scenarios
 
 running = True  # state of simulator
 frame_time = 1 / 60.0  # aim for 60 fps simulation/processing
@@ -55,6 +56,8 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
+from sensors.Keyboard import Keyboard
+
 if args.mode == "simulation":
     from world.WorldObject import *
     from controllers.SimulatedMovementController import SimulatedMovementController
@@ -92,7 +95,10 @@ robot_brain = brain(robot=robot, controller=controller, speed=0.05, turning_spee
 
 print("Attaching sensors...")
 if args.mode == "simulation" or args.mode == "sensor_simulation":
-    robot_brain.add_sensor(SimulatedVision360(ExteriorTheWorld))
+    robot_brain.add_sensor(Keyboard(robot_brain.speed, robot_brain.turning_speed))
+    if args.brain == "EcoDisasterBrain":
+        print("   360 vision")
+        robot_brain.add_sensor(SimulatedVision360(ExteriorTheWorld))
 else:
     # TODO real hardware
     pass
@@ -107,6 +113,9 @@ if args.rendering == "true":
 
 print("Waiting...")
 time.sleep(1)  # wait for things to settle
+
+# controller.set_plane_velocity([0, 0.15])
+# controller.set_angular_velocity(12)
 
 print("Running...")
 while running:
