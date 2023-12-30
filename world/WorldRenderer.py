@@ -72,7 +72,10 @@ class WorldRenderer:
                 j = self.transform_vertical(obj.center[1])
 
                 # render a label on each item in the world
-                text = self.font.render(str(obj.object_type), True, Color("orange"))
+                font = self.font
+                if obj.object_type == ObjectType.BARREL:
+                    font = self.small_font
+                text = font.render(str(obj.object_type), True, Color("orange"))
                 text2 = pygame.transform.rotate(text, -obj.angle)
                 self.screen.blit(
                     text2,

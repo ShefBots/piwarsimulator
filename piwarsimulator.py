@@ -9,7 +9,6 @@ from world.ObjectType import ObjectType
 from world.WorldObject import WorldObject
 
 
-# TODO proper dimensions/sizes of items
 # TODO control mode for real hardware
 # TODO sensor_simulation mode for real hardware but simulated sensor input
 # TODO side by side output of world and sensor
@@ -75,7 +74,7 @@ elif args.mode == "control":
 # the order this is constructed in is also the rendering order...
 ExteriorTheWorld = []
 robot = WorldObject(
-    object_type=ObjectType.ROBOT, x=0, y=0, w=0.12, h=0.15, angle=0
+    object_type=ObjectType.ROBOT, x=0, y=0, w=0.18, h=0.235, angle=0
 )  # units metres and degress
 ExteriorTheWorld.append(robot)  # this should always be index 0!
 

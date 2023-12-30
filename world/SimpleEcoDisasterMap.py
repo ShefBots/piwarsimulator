@@ -28,12 +28,12 @@ def SimpleEcoDisasterMap(ExteriorTheWorld):
     # some barrels
     ExteriorTheWorld.append(
         WorldObject(
-            object_type=ObjectType.BARREL, x=0.5, y=-0.55, radius=0.04, color="red"
+            object_type=ObjectType.BARREL, x=0.5, y=-0.55, radius=0.025, color="red"
         )
     )
     ExteriorTheWorld.append(
         WorldObject(
-            object_type=ObjectType.BARREL, x=0.5, y=0.7, radius=0.04, color="darkgreen"
+            object_type=ObjectType.BARREL, x=0.5, y=0.7, radius=0.025, color="darkgreen"
         )
     )
 
