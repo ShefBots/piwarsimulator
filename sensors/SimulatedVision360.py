@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import copy
 import math
+from pygame import Color
 from sensors.Sensor import Sensor
 from world.ObjectType import *
 from util import rotate_by
@@ -24,6 +25,9 @@ class SimulatedVision360(Sensor):
                 not (
                     obj.object_type == ObjectType.BARREL
                     or obj.object_type == ObjectType.ZONE
+                    or (
+                        obj.object_type == ObjectType.MINE and obj.color == Color("red")
+                    )
                 )
                 or obj.is_held
             ):
