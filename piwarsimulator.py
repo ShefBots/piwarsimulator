@@ -110,9 +110,13 @@ else:
 if args.rendering == "true":
     from world.WorldRenderer import *
 
+    # default 0,0 is centre of screen
     renderer = WorldRenderer(
-        x_res=1000, y_res=1000, world_scale=400
-    )  # default 0,0 is centre of screen
+        x_res=900,
+        y_res=900,
+        world_scale=375,
+        num_worlds=1 if args.mode == "control" else 2,
+    )
     renderer.update()
 
 print("Waiting...")

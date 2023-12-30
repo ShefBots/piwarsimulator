@@ -18,9 +18,12 @@ class WorldRenderer:
         self.running = True
         self.x_res = int(kwargs.get("x_res", 800))
         self.y_res = int(kwargs.get("y_res", 600))
+        self.num_worlds = int(kwargs.get("num_worlds", 1))
         self.x_offset = kwargs.get("x_offset", self.x_res / 2)
         self.y_offset = kwargs.get("y_offset", self.y_res / 2)
-        self.screen = pygame.display.set_mode((self.x_res, self.y_res))
+        self.screen = pygame.display.set_mode(
+            (self.x_res * self.num_worlds, self.y_res)
+        )
         self.world_scale = kwargs.get("world_scale", 200)
         self.font = pygame.font.Font(None, self.world_scale // 10)  # default font
         self.small_font = pygame.font.Font(None, self.world_scale // 16)  # default font
@@ -52,11 +55,12 @@ class WorldRenderer:
         # reset the canvas
         self.screen.fill(Color("black"))
 
+        world_at = 0
         for TheWorld in Worlds:
             for obj in TheWorld:
                 # get the coordinates of the outline (also draws line type objects)
                 x, y = obj.xy()
-                x = self.transform_horizontal(np.array(x))
+                x = self.transform_horizontal(np.array(x)) + world_at * self.x_res
                 y = self.transform_vertical(np.array(y))
                 pnts = np.column_stack((x, y))
 
@@ -68,7 +72,7 @@ class WorldRenderer:
                 # render at a higher resolution with thick regular lines and resize to the dispaly res? (via @ZodiusInfuser)
 
                 # coordinates of center
-                i = self.transform_horizontal(obj.center[0])
+                i = self.transform_horizontal(obj.center[0]) + world_at * self.x_res
                 j = self.transform_vertical(obj.center[1])
 
                 # render a label on each item in the world
@@ -81,6 +85,7 @@ class WorldRenderer:
                     text2,
                     (i - text2.get_width() // 2 + 0.5, j - text2.get_height() // 2 + 2),
                 )
+            world_at += 1
 
         # calculate fps
         now = time.time()
