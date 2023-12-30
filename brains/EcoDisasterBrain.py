@@ -23,6 +23,9 @@ class EcoDisasterBrain(RobotBrain):
 
         # check sensors and stop if collision is imminent
         super().process()
+        # don't do anything if the manual override is triggered
+        if self.sensor_measurements["manual_control"]:
+            return
 
         # TODO: redo all this logic for new architecture...
 
