@@ -12,12 +12,16 @@ class MinesweeperMap(Thread):
     with the robot over the lit mine for > 1 second, another mine lights up
     """
 
+    OVERLAP_TARGET = (
+        0.5  # how much of the robot should be on the tile (match to MinesweeperBrain)
+    )
+
     def __init__(self, ExteriorTheWorld):
         super(MinesweeperMap, self).__init__()
         self.robot = ExteriorTheWorld[0]
         assert isinstance(self.robot, WorldObject)
         assert self.robot.object_type == ObjectType.ROBOT
-        
+
         # let the thread just be interrupted on exit and terminate
         # https://www.mandricmihai.com/2021/01/Python%20threads%20how%20to%20timeout%20and%20use%20KeyboardIntrerupt%20CTRL%20%20C.html
         self.daemon = True
@@ -97,17 +101,20 @@ class MinesweeperMap(Thread):
     def run(self):
         self.running = True
         while self.running == True:
-            
-            # for mine in self.mines:
-                # if self.robot.outline.intersects(mine.outline):
-                    # print("ON THE MINE")
-            if self.robot.outline.intersects(self.mines[self.active_mine].outline):
+            if (
+                self.robot.outline.intersects(self.mines[self.active_mine].outline)
+                and self.robot.outline.intersection(
+                    self.mines[self.active_mine].outline
+                ).area
+                / self.robot.outline.area
+                > self.OVERLAP_TARGET
+            ):
                 if self.mine_touched_time == 0:
                     self.mine_touched_time = time.time()
                 on_for = time.time() - self.mine_touched_time
-                if on_for > 1:
+                if on_for > 1:  # 1 second nominally?
                     self.activate_mine()
             else:
                 self.mine_touched_time = 0
 
-            time.sleep(0.25) # assume the judge can't react any faster than 250 ms
+            time.sleep(0.25)  # assume the judge can't react any faster than 250 ms

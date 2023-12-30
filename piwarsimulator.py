@@ -11,8 +11,8 @@ from world.WorldObject import WorldObject
 
 # TODO control mode for real hardware
 # TODO sensor_simulation mode for real hardware but simulated sensor input
-# TODO side by side output of world and sensor
-# TODO maps for the different scenarios
+# TODO maps: lava palava, full ecodisaster map, escape route
+# TODO brains: lava palava, ecodisaster, escape route
 
 running = True  # state of simulator
 target_frame_time = 1 / 60.0  # aim for 60 fps simulation/processing
