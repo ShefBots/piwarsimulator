@@ -33,7 +33,8 @@ brains = sorted([s[:-3] for s in listdir("brains/") if "Brain.py" in s])
 maps = sorted([s[:-3] for s in listdir("world/") if "Map.py" in s])
 
 parser = argparse.ArgumentParser(
-    description="Simulator/controller for ShefBots Mark 1b for PiWars 2024"
+    description="""Simulator/controller for ShefBots Mark 1b for PiWars 2024.
+    Press SPACE to engage manual control, WASD/Arrow keys for strafe, and QE for rotate."""
 )
 parser.add_argument(
     "--brain",

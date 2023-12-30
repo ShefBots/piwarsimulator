@@ -1,12 +1,12 @@
 # piwarsimulator
-Robot simulator to work on PiWars logic. This is a work in progress, revivified for 2024.
+Robot simulator to work on PiWars logic. This is a work in progress, revivified for 2024. Currently the software for no challenges is complete, but the robot can be driven manually by pressing spacebar to engage manual control, and then driving with WASD/arrow for strafe and QE for rotate.
 
 ```
 $ ./piwarsimulator.py -h
 usage: piwarsimulator.py [-h] [--brain {EcoDisasterBrain,RobotBrain}] [--map {SimpleEcoDisasterMap}] [--mode {simulation,sensor_simulation,control}]
                          [--rendering {true,false}]
 
-Simulator/controller for ShefBots Mark 1b for PiWars 2024
+Simulator/controller for ShefBots Mark 1b for PiWars 2024. Press SPACE to engage manual control, WASD/Arrow keys for strafe, and QE for rotate.
 
 options:
   -h, --help            show this help message and exit
