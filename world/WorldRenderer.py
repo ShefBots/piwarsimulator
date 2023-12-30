@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import pygame
 import math
+import numpy as np
 from pygame import Color
 from pygame import gfxdraw
 from world.ObjectType import *
@@ -27,7 +28,7 @@ class WorldRenderer:
 
     def transform_coordinate(self, c, offset=0):
         """scale metres to pixels, offset by offset pixels"""
-        return round(c * self.world_scale + offset)
+        return np.round(c * self.world_scale + offset)
 
     def transform_horizontal(self, c):
         """transform horizontal coordiant to pixels"""
@@ -50,21 +51,22 @@ class WorldRenderer:
 
         for TheWorld in Worlds:
             for obj in TheWorld:
-                i = self.transform_horizontal(obj.pos[0])
-                j = self.transform_vertical(obj.pos[1])
-                r = self.transform_coordinate(obj.radius)
-                if obj.object_type == ObjectType.WALL:
-                    pygame.gfxdraw.line(
-                        self.screen,
-                        i - round(r * math.cos(math.radians(obj.angle))),
-                        j - round(r * math.sin(math.radians(obj.angle))),
-                        i + round(r * math.cos(math.radians(obj.angle))),
-                        j + round(r * math.sin(math.radians(obj.angle))),
-                        obj.color,
-                    )
-                else:
-                    pygame.gfxdraw.filled_circle(self.screen, i, j, r, obj.color)
-                    pygame.gfxdraw.aacircle(self.screen, i, j, r, obj.color)
+                # get the coordinates of the outline (also draws line type objects)
+                x, y = obj.xy()
+                x = self.transform_horizontal(np.array(x))
+                y = self.transform_vertical(np.array(y))
+                pnts = np.column_stack((x, y))
+
+                # draw the outline/line & fill if outline
+                if len(x) > 2:
+                    pygame.draw.polygon(self.screen, obj.color, pnts)
+                pygame.draw.aalines(self.screen, obj.color, True, pnts)
+                # TODO is there a way to draw a thicker antialiased line?
+                # render at a higher resolution with thick regular lines and resize to the dispaly res? (via @ZodiusInfuser)
+
+                # coordinates of center
+                i = self.transform_horizontal(obj.center[0])
+                j = self.transform_vertical(obj.center[1])
 
                 # render a label on each item in the world
                 text = self.font.render(str(obj.object_type), True, Color("orange"))
@@ -75,7 +77,7 @@ class WorldRenderer:
                 )
 
         # uncomment to save each frame to make a video
-        #        pygame.image.save(self.screen, "frames/image%08d.png" % self.frame)
+        # pygame.image.save(self.screen, "frames/image%08d.png" % self.frame)
 
         pygame.display.flip()
         self.frame += 1

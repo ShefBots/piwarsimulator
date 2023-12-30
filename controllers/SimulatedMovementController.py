@@ -80,13 +80,13 @@ class SimulatedMovementController(Controller, Thread):
                         # Convert it to be in world coordinates
                         world_centre_of_rotation = (
                             util.rotate_by(centre_of_rotation, -self.robot.angle)
-                            + self.robot.pos
+                            + self.robot.center
                         )
 
                         # Rotate the robot position around the centre of rotation
-                        relative_position = self.robot.pos - world_centre_of_rotation
+                        relative_position = self.robot.center - world_centre_of_rotation
                         rotated_position = util.rotate_by(relative_position, -rotation)
-                        self.robot.pos = rotated_position + world_centre_of_rotation
+                        self.robot.center = rotated_position + world_centre_of_rotation
 
                     # Change the robot's heading
                     self.robot.angle += rotation
@@ -94,7 +94,7 @@ class SimulatedMovementController(Controller, Thread):
                 else:
                     # Translate the robot position in its local frame
                     world_translation = util.rotate_by(translation, -self.robot.angle)
-                    self.robot.pos = world_translation + self.robot.pos
+                    self.robot.center = world_translation + self.robot.center
 
             to_sleep = self.UPDATE_RATE - (time.time() - now)
             if to_sleep > 0:

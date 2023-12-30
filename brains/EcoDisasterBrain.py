@@ -35,14 +35,14 @@ class EcoDisasterBrain(RobotBrain):
         # print(self.radius() + self.GRIPPER_TOLERANCE)
 
         # if in range of target
-        if goal_distance < self.radius() + self.GRIPPER_TOLERANCE:
+        if goal_distance < self.GRIPPER_TOLERANCE:
             print("In range of goal!")
             self.controller.stop()
         else:
             # turn towards target
-            if goal.angle > self.GRIPPER_ANGLE_TOLERANCE:
+            if goal.heading > self.GRIPPER_ANGLE_TOLERANCE:
                 self.controller.set_angular_velocity(self.turning_speed)
-            elif goal.angle < -self.GRIPPER_ANGLE_TOLERANCE:
+            elif goal.heading < -self.GRIPPER_ANGLE_TOLERANCE:
                 self.controller.set_angular_velocity(-self.turning_speed)
             else:
                 self.controller.set_angular_velocity(0)
@@ -68,23 +68,24 @@ class EcoDisasterBrain(RobotBrain):
         """find the closest TARGET or ZONE"""
         closest = None
         closest_distance = 9e99
-        for obj in self.TheWorld:
+        for obj in self.TheWorld[1:]:
+            dist = self.TheWorld[0].get_distance(obj)
             # only look for a target if we're holding nothing
             if (
                 obj.object_type == ObjectType.BARREL
                 and not obj.exterior in self.holding
             ):
-                if obj.distance() < closest_distance:
+                if dist < closest_distance:
                     closest = obj
-                    closest_distance = obj.distance()
+                    closest_distance = dist
             # otherwise find the zone that matches the target colour
             elif (
                 len(self.holding) > 0
                 and obj.object_type == ObjectType.ZONE
                 and obj.color == self.GOAL_MAPPING[self.holding[0].color]
-                and obj.distance() < closest_distance
+                and dist < closest_distance
             ):
                 closest = obj
-                closest_distance = obj.distance()
+                closest_distance = dist
 
         return (closest, closest_distance)

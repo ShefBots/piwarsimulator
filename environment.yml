@@ -4,3 +4,4 @@ channels:
 dependencies:
   - pygame
   - numpy
+  - shapely

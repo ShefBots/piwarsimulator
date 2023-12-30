@@ -69,7 +69,7 @@ elif args.mode == "control":
 # the order this is constructed in is also the rendering order...
 ExteriorTheWorld = []
 robot = WorldObject(
-    object_type=ObjectType.ROBOT, x=0, y=0, radius=0.1, angle=0
+    object_type=ObjectType.ROBOT, x=0, y=0, w=0.12, h=0.15, angle=0
 )  # units metres and degress
 ExteriorTheWorld.append(robot)  # this should always be index 0!
 

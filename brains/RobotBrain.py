@@ -39,12 +39,14 @@ class RobotBrain:
         """poll all sensors attached to the robot and check for collisions"""
         # add in ourself to start with
         self.TheWorld = [
+            # scanned coordinates should be relative to robot north
             WorldObject(
                 object_type=ObjectType.ROBOT,
                 x=0,
                 y=0,
-                radius=self.robot.radius,
-                angle=self.robot.angle,
+                w=self.robot.width,
+                h=self.robot.height,
+                angle=0,
             )
         ]
         for s in self.sensors:
@@ -61,30 +63,15 @@ class RobotBrain:
         pass
 
     def check_for_collision(self):
-        tr = self.radius()
         for obj in self.TheWorld[1:]:  # ignore the robot in 0
             # the code for the real robot should probably treat the ignore slightly differently...
             # TODO collisions in a circle that's the robot and holding isn't effective,
             # replace this with something that checks the radius of both independently
             if (
-                obj.distance() - tr - obj.radius < self.collision_tolerance
+                self.TheWorld[0].get_distance(obj) < self.collision_tolerance
                 and not obj.exterior in self.holding
             ):
                 print(obj)
                 print("Yikes! Something's a bit close!")
                 return True
         return False
-
-    def radius(self):
-        """estimated radius including anything being held"""
-        r = 0
-        for obj in self.holding:
-            tr = obj.distance(self.robot) + obj.radius
-            if tr > r:
-                r = tr
-
-        # if holding nothing we're at least as big as ther robot itself
-        if r <= self.robot.radius:
-            r = self.robot.radius
-
-        return r
