@@ -4,6 +4,6 @@
 class Controller:
     """controllers are things that move the robot"""
 
-    def stop(self):
+    def stop(self, exiting=False):
         """stop moving"""
         pass
