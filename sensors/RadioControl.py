@@ -4,4 +4,6 @@ from sensors.Sensor import Sensor
 
 class RadioControl(Sensor):
     """collects radio contorller inputs and passes them back"""
-    pass
+
+    def __init__(self):
+        print("Activating radio controller sensor")

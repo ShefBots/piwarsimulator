@@ -12,6 +12,7 @@ class SimulatedVision360(Sensor):
     def __init__(self, ExteriorTheWorld):
         self.ExteriorTheWorld = ExteriorTheWorld
         assert ExteriorTheWorld[0].object_type == ObjectType.ROBOT
+        print("Activating simulated 360 degree vision sensor")
 
     def do_scan(self):
         """return just the barrels from TheExteriorWorld"""

@@ -98,11 +98,8 @@ robot_brain = brain(robot=robot, controller=controller, speed=0.05, turning_spee
 print("Attaching sensors...")
 if args.mode == "simulation" or args.mode == "sensor_simulation":
     if args.rendering == "true":
-        print("   Keyboard")
         robot_brain.add_sensor(Keyboard(robot_brain.speed, robot_brain.turning_speed))
-    if args.brain == "EcoDisasterBrain":
-        print("   360 vision")
-        robot_brain.add_sensor(SimulatedVision360(ExteriorTheWorld))
+    robot_brain.add_sensor(SimulatedVision360(ExteriorTheWorld))
 else:
     # TODO real hardware
     pass

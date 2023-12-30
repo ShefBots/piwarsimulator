@@ -7,6 +7,7 @@ class Keyboard(Sensor):
     """keyboard inputs through pygame"""
 
     def __init__(self, speed, turning_speed):
+        print("Activating keyboard sensor")
         self.speed = speed
         self.turning_speed = turning_speed
 
