@@ -5,6 +5,8 @@ import time
 import numpy as np
 from os import listdir
 from signal import signal, SIGINT
+from world.ObjectType import ObjectType
+from world.WorldObject import WorldObject
 
 
 # TODO proper dimensions/sizes of items
@@ -59,7 +61,6 @@ args = parser.parse_args()
 from sensors.Keyboard import Keyboard
 
 if args.mode == "simulation":
-    from world.WorldObject import *
     from controllers.SimulatedMovementController import SimulatedMovementController
     from sensors.SimulatedVision360 import SimulatedVision360
 elif args.mode == "sensor_simulation":

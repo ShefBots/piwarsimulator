@@ -5,7 +5,7 @@ from pygame import Color
 from shapely.geometry import LineString, Point, Polygon
 from shapely.affinity import rotate
 from shapely.affinity import translate
-from world.ObjectType import *
+from world.ObjectType import ObjectType
 
 
 class WorldObject:

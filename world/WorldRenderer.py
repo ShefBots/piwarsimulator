@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 import pygame
-import math
+import time
 import numpy as np
 from pygame import Color
-from pygame import gfxdraw
 from world.ObjectType import *
 
 
