@@ -8,10 +8,12 @@ class ObjectType(Enum):
     UNKNOWN = 0
     ROBOT = 1
     ZONE = 2
-    OBSTACLE = 3
     BARREL = 4
     LINE = 5
     WALL = 6
+    MINE = 7
+    GRIPPER_CLOSED = 8
+    GRIPPER_OPEN = 9
 
     def __str__(self):
         """Return a string representation of the ObjectType"""
@@ -20,8 +22,10 @@ class ObjectType(Enum):
             self.UNKNOWN: "U",
             self.ROBOT: "R",
             self.ZONE: "Z",
-            self.OBSTACLE: "O",
             self.BARREL: "B",
             self.LINE: "L",
             self.WALL: "W",
+            self.MINE: "M",
+            self.GRIPPER_CLOSED: "GC",
+            self.GRIPPER_OPEN: "GO",
         }[self]
