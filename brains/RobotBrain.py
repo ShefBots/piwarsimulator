@@ -31,7 +31,9 @@ class RobotBrain:
         # for sensor output
         self.sensors = []  # any sensors
         self.TheWorld = []  # any objects returned by sensors
-        self.sensor_measurements = {}  # direct sensor measurements
+        self.sensor_measurements = {
+            "manual_control": False
+        }  # direct sensor measurements
 
     def add_sensor(self, sensor):
         self.sensors.append(sensor)
