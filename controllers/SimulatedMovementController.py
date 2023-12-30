@@ -28,19 +28,17 @@ class SimulatedMovementController(Controller, Thread):
         self.running = False
         self.moving = False
 
+        self.start()
+
     def set_angular_velocity(self, theta):
         """set angular velocity in degrees per second"""
         self.theta_vel = theta
         self.moving = True
-        if not self.running:
-            self.start()
 
     def set_plane_velocity(self, vel):
         """velocity aligned to the robot (sideways, forwards)"""
         self.vel = np.array(vel)
         self.moving = True
-        if not self.running:
-            self.start()
 
     def run(self):
         print("Starting simulated movement thread...")
