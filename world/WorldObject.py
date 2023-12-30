@@ -62,15 +62,15 @@ class WorldObject:
                 [
                     (
                         self._center[0]
-                        - self.length * math.cos(math.radians(self._angle)),
+                        - self.length/2 * math.cos(math.radians(self._angle)),
                         self._center[1]
-                        - self.length * math.sin(math.radians(self._angle)),
+                        - self.length/2 * math.sin(math.radians(self._angle)),
                     ),
                     (
                         self._center[0]
-                        + self.length * math.cos(math.radians(self._angle)),
+                        + self.length/2 * math.cos(math.radians(self._angle)),
                         self._center[1]
-                        + self.length * math.sin(math.radians(self._angle)),
+                        + self.length/2 * math.sin(math.radians(self._angle)),
                     ),
                 ]
             )

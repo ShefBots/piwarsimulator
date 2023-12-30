@@ -6,22 +6,22 @@ def SimpleEcoDisasterMap(ExteriorTheWorld):
     # for walls x and y are the center of the wall and they are extended by radius
     ExteriorTheWorld.append(
         WorldObject(
-            object_type=ObjectType.WALL, x=0, y=-1.1, angle=0, l=1.1, color="gray"
+            object_type=ObjectType.WALL, x=0, y=-1.1, angle=0, l=2.2, color="gray"
         )
     )
     ExteriorTheWorld.append(
         WorldObject(
-            object_type=ObjectType.WALL, x=0, y=1.1, angle=0, l=1.1, color="gray"
+            object_type=ObjectType.WALL, x=0, y=1.1, angle=0, l=2.2, color="gray"
         )
     )
     ExteriorTheWorld.append(
         WorldObject(
-            object_type=ObjectType.WALL, x=-1.1, y=0, angle=90, l=1.1, color="gray"
+            object_type=ObjectType.WALL, x=-1.1, y=0, angle=90, l=2.2, color="gray"
         )
     )
     ExteriorTheWorld.append(
         WorldObject(
-            object_type=ObjectType.WALL, x=1.1, y=0, angle=90, l=1.1, color="gray"
+            object_type=ObjectType.WALL, x=1.1, y=0, angle=90, l=2.2, color="gray"
         )
     )
 
