@@ -71,12 +71,12 @@ class WorldRenderer:
                 m = max(xmax - xmin, ymax - ymin)
                 if m > self.VERTICAL_VIEW:
                     world_scale = self.y_res / (m + 0.5)
-                    zerozero_xoffset_pixels = np.round(
-                        world_scale * ((xmax - xmin) / 2 + xmin)
-                    )
-                    zerozero_yoffset_pixels = np.round(
-                        world_scale * ((ymax - ymin) / 2 + ymin)
-                    )
+                zerozero_xoffset_pixels = -np.round(
+                    world_scale * (xmax - (xmax - xmin) / 2)
+                )
+                zerozero_yoffset_pixels = np.round(
+                    world_scale * (ymax - (ymax - ymin) / 2)
+                )
 
             for obj in reversed(TheWorld):
                 # iterate through backwards so that the robot is always rendered last (on top)
@@ -122,6 +122,14 @@ class WorldRenderer:
                     (i - text2.get_width() // 2 + 0.5, j - text2.get_height() // 2 + 2),
                 )
             world_at += 1
+
+            # line to split viewports
+            pygame.draw.aaline(
+                self.screen,
+                pygame.Color("gray80"),
+                (world_at * self.x_res, 0),
+                (world_at * self.x_res, self.y_res),
+            )
 
         # calculate fps
         now = time.time()
