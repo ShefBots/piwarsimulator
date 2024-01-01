@@ -11,6 +11,8 @@ from world.ObjectType import *
 class WorldRenderer:
     """Render the world so we can see what the robot is doing"""
 
+    VERTICAL_VIEW = 3.0  # number of metres shown
+
     def __init__(self, **kwargs):
         print("Initialising renderer...")
 
@@ -24,9 +26,10 @@ class WorldRenderer:
         self.screen = pygame.display.set_mode(
             (self.x_res * self.num_worlds, self.y_res)
         )
-        self.world_scale = kwargs.get("world_scale", self.y_res / 3)
-        self.font = pygame.font.Font(None, self.world_scale // 10)  # default font
-        self.small_font = pygame.font.Font(None, self.world_scale // 14)  # smaller font
+        self.world_scale = kwargs.get("world_scale", self.y_res / self.VERTICAL_VIEW)
+        self.auto_scale = kwargs.get("auto_scale", True)
+        self.font = pygame.font.Font(None, self.y_res // 32)  # default font
+        self.small_font = pygame.font.Font(None, self.y_res // 42)  # smaller font
         self.last_time = time.time()
         self.fps = np.ones(30) * (1 / 60)
         self.fps_at = 0
@@ -51,7 +54,29 @@ class WorldRenderer:
 
         world_at = 0
         for TheWorld in Worlds:
+            # render each world
+
+            # the default scale works out so that about 2 m is shown
+            # work out a scale that can see the whold world
+            # might want to turn this off if CPU usage is high
             world_scale = self.world_scale
+            zerozero_xoffset_pixels = 0
+            zerozero_yoffset_pixels = 0
+            if self.auto_scale:
+                # thanks ChatGPT for making this a bit shorter
+                xmin = min(np.min(obj.xy()[0]) for obj in TheWorld)
+                xmax = max(np.max(obj.xy()[0]) for obj in TheWorld)
+                ymin = min(np.min(obj.xy()[1]) for obj in TheWorld)
+                ymax = max(np.max(obj.xy()[1]) for obj in TheWorld)
+                m = max(xmax - xmin, ymax - ymin)
+                if m > self.VERTICAL_VIEW:
+                    world_scale = self.y_res / (m + 0.5)
+                    zerozero_xoffset_pixels = np.round(
+                        world_scale * ((xmax - xmin) / 2 + xmin)
+                    )
+                    zerozero_yoffset_pixels = np.round(
+                        world_scale * ((ymax - ymin) / 2 + ymin)
+                    )
 
             for obj in reversed(TheWorld):
                 # iterate through backwards so that the robot is always rendered last (on top)
@@ -60,8 +85,12 @@ class WorldRenderer:
                 x = (
                     self.transform_horizontal(np.array(x), world_scale)
                     + world_at * self.x_res
+                    + zerozero_xoffset_pixels
                 )
-                y = self.transform_vertical(np.array(y), world_scale)
+                y = (
+                    self.transform_vertical(np.array(y), world_scale)
+                    + zerozero_yoffset_pixels
+                )
                 pnts = np.column_stack((x, y))
 
                 # draw the outline/line & fill if outline
@@ -75,8 +104,12 @@ class WorldRenderer:
                 i = (
                     self.transform_horizontal(obj.center[0], world_scale)
                     + world_at * self.x_res
+                    + zerozero_xoffset_pixels
                 )
-                j = self.transform_vertical(obj.center[1], world_scale)
+                j = (
+                    self.transform_vertical(obj.center[1], world_scale)
+                    + zerozero_yoffset_pixels
+                )
 
                 # render a label on each item in the world
                 font = self.font

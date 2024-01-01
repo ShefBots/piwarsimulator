@@ -117,7 +117,6 @@ if args.rendering == "true":
     renderer = WorldRenderer(
         x_res=900,
         y_res=900,
-        world_scale=375,
         num_worlds=1 if args.mode == "control" else 2,
     )
     renderer.update()
