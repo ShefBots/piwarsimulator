@@ -17,7 +17,7 @@ class WorldObject:
 
     def __init__(self, **kwargs):
         self._center = np.array([kwargs.get("x", 0), kwargs.get("y", 0)])
-        self._angle = kwargs.get("angle", 0)
+        self._angle = 0  # construct the objects vertically then rotate
         self.object_type = kwargs.get("object_type", 0)
         self.color = Color(kwargs.get("color", "white"))
 
@@ -61,16 +61,12 @@ class WorldObject:
             self.outline = LineString(
                 [
                     (
-                        self._center[0]
-                        - self.length/2 * math.cos(math.radians(self._angle)),
-                        self._center[1]
-                        - self.length/2 * math.sin(math.radians(self._angle)),
+                        self._center[0],
+                        self._center[1] - self.length / 2,
                     ),
                     (
-                        self._center[0]
-                        + self.length/2 * math.cos(math.radians(self._angle)),
-                        self._center[1]
-                        + self.length/2 * math.sin(math.radians(self._angle)),
+                        self._center[0],
+                        self._center[1] + self.length / 2,
                     ),
                 ]
             )
@@ -78,6 +74,8 @@ class WorldObject:
             pass
         else:
             raise Exception("unknown object type")
+
+        self.angle = kwargs.get("angle", 0)
 
         self.is_held = kwargs.get("is_held", False)
         self.exterior = None  # exterior world version when simulation

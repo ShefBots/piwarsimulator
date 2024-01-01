@@ -32,7 +32,7 @@ class MinesweeperMap(Thread):
                 object_type=ObjectType.WALL,
                 x=0,
                 y=-0.81,
-                angle=00,
+                angle=90,
                 l=1.62,
                 color="gray",
             )
@@ -42,7 +42,7 @@ class MinesweeperMap(Thread):
                 object_type=ObjectType.WALL,
                 x=0,
                 y=+0.81,
-                angle=00,
+                angle=90,
                 l=1.62,
                 color="gray",
             )
@@ -52,7 +52,7 @@ class MinesweeperMap(Thread):
                 object_type=ObjectType.WALL,
                 x=-0.81,
                 y=0,
-                angle=90,
+                angle=00,
                 l=1.62,
                 color="gray",
             )
@@ -62,7 +62,7 @@ class MinesweeperMap(Thread):
                 object_type=ObjectType.WALL,
                 x=+0.81,
                 y=0,
-                angle=90,
+                angle=00,
                 l=1.62,
                 color="gray",
             )
