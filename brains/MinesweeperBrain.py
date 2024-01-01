@@ -10,6 +10,8 @@ from brains.RobotBrain import RobotBrain
 class MinesweeperBrain(RobotBrain):
     """logic for the minesweeper challenge"""
 
+    FUN_MODE = False  # do interesting looking turns?
+
     ANGLE_TOLERANCE = 5  # turn in at least this much towards mine
     OVERLAP_TARGET = 0.5  # fraction to overlap mine by before stopping
 
@@ -38,17 +40,17 @@ class MinesweeperBrain(RobotBrain):
             speed_modifier = 1
             overlap = 0
 
-        # TODO more boring movement
         if overlap > self.OVERLAP_TARGET and self.controller.moving:
             self.controller.stop()
         elif overlap < self.OVERLAP_TARGET:
-            # turn towards target
-            if goal.heading > self.ANGLE_TOLERANCE:
-                self.controller.set_angular_velocity(self.turning_speed)
-            elif goal.heading < -self.ANGLE_TOLERANCE:
-                self.controller.set_angular_velocity(-self.turning_speed)
-            else:
-                self.controller.set_angular_velocity(0)
+            if self.FUN_MODE:
+                # turn towards target
+                if goal.heading > self.ANGLE_TOLERANCE:
+                    self.controller.set_angular_velocity(self.turning_speed)
+                elif goal.heading < -self.ANGLE_TOLERANCE:
+                    self.controller.set_angular_velocity(-self.turning_speed)
+                else:
+                    self.controller.set_angular_velocity(0)
 
             # move sideways towards
             if goal.center[0] > self.TheWorld[0].center[0]:
