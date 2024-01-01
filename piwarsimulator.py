@@ -11,7 +11,8 @@ from world.WorldObject import WorldObject
 
 # TODO control mode for real hardware
 # TODO sensor_simulation mode for real hardware but simulated sensor input
-# TODO maps: lava palava, full ecodisaster map, escape route
+# TODO time of flight wall sensors
+# TODO maps: full ecodisaster map, escape route
 # TODO brains: lava palava, ecodisaster, escape route
 
 running = True  # state of simulator
