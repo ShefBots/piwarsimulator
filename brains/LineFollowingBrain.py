@@ -25,7 +25,7 @@ class LineFollowingBrain(RobotBrain):
             self.controller.stop()
             return
 
-       # TODO write line following logic
+    # TODO write line following logic
 
     def find_goal(self):
         """find the closest LINE"""

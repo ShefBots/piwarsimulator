@@ -74,7 +74,7 @@ class WorldObject:
                 self._center = np.array(
                     [self.outline.centroid.x, self.outline.centroid.y]
                 )
-                self._angle = 90-math.degrees(
+                self._angle = 90 - math.degrees(
                     math.atan2(kwargs["y2"] - kwargs["y1"], kwargs["x2"] - kwargs["x1"])
                 )
 

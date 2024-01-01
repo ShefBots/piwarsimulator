@@ -65,10 +65,10 @@ class EcoDisasterBrain(RobotBrain):
             pass
             # print("Dropping off barrel")
             # self.holding.pop(0)
-            # # TODO need some way to distinguish barrels in zones
 
     def find_goal(self):
         """find the closest TARGET or ZONE"""
+        # TODO need to ignore barrels in zones
         closest = None
         closest_distance = 9e99
         for obj in self.TheWorld[1:]:

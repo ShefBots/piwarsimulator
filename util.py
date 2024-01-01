@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import numpy as np
 
+
 def sqr_magnitude_of(vector):
     return np.sum(np.power(vector, 2))
+
 
 def rotate_by(vector, angle):
     angle_rad = np.radians(angle)

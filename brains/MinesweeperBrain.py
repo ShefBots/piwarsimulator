@@ -29,7 +29,6 @@ class MinesweeperBrain(RobotBrain):
             return
 
         # slow down as we approach the mine
-
         if self.TheWorld[0].outline.intersects(goal.outline):
             overlap_outline = self.TheWorld[0].outline.intersection(goal.outline)
             overlap = overlap_outline.area / self.TheWorld[0].outline.area
@@ -39,6 +38,7 @@ class MinesweeperBrain(RobotBrain):
             speed_modifier = 1
             overlap = 0
 
+        # TODO more boring movement
         if overlap > self.OVERLAP_TARGET and self.controller.moving:
             self.controller.stop()
         elif overlap < self.OVERLAP_TARGET:

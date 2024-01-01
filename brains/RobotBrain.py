@@ -61,6 +61,7 @@ class RobotBrain:
     def process(self):
         """basic logic is to just not hit anything & respond to control input"""
         self.poll_sensors()
+        # TODO do we always want to check for collisions?
         if self.check_for_collision():
             self.controller.stop()
 
@@ -82,9 +83,7 @@ class RobotBrain:
 
     def check_for_collision(self):
         for obj in self.TheWorld[1:]:  # ignore the robot in 0
-            # the code for the real robot should probably treat the ignore slightly differently...
-            # TODO collisions in a circle that's the robot and holding isn't effective,
-            # replace this with something that checks the radius of both independently
+            # TODO collision checks for held objects
             if (
                 self.TheWorld[0].get_distance(obj) < self.collision_tolerance
                 and not obj.exterior in self.holding

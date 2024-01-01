@@ -9,14 +9,13 @@ from world.ObjectType import ObjectType
 from world.WorldObject import WorldObject
 
 
-# TODO control mode for real hardware
-# TODO sensor_simulation mode for real hardware but simulated sensor input
-# TODO time of flight wall sensors
-# TODO maps: full ecodisaster map, escape route
-# TODO brains: lava palava, ecodisaster, escape route
+# TODO simulated time of flight wall sensors
+# TODO brains: escape route, lava palava, ecodisaster
+# TODO classes for real hardware
+# TODO sensor_simulation (real control only) mode and control mode (all real)
 
 running = True  # state of simulator
-ctrlc_count = 0 # if hitting 3 try and sys.exit
+ctrlc_count = 0  # if hitting 3 try and sys.exit
 target_frame_time = 1 / 60.0  # aim for 60 fps simulation/processing
 
 

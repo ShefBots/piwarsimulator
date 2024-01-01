@@ -5,8 +5,6 @@ import numpy as np
 from pygame import Color
 from world.ObjectType import *
 
-# TODO wall detection and avoidance
-
 
 class WorldRenderer:
     """Render the world so we can see what the robot is doing"""
