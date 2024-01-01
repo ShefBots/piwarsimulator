@@ -29,6 +29,8 @@ class WorldObject:
             self.radius = kwargs.get("radius", 0.1)
             # circular objects are points with a buffer (turning them into a polygon)
             self.outline = Point(self._center).buffer(self.radius)
+
+            self.angle = kwargs.get("angle", 0)
         elif (
             self.object_type == ObjectType.ROBOT
             or self.object_type == ObjectType.ZONE
@@ -59,6 +61,8 @@ class WorldObject:
                     ),
                 ]
             )
+
+            self.angle = kwargs.get("angle", 0)
         elif self.object_type == ObjectType.LINE or self.object_type == ObjectType.WALL:
             if "x1" in kwargs and "y1" in kwargs and "x2" in kwargs and "y2" in kwargs:
                 # set wall/line by coordinates
@@ -66,16 +70,13 @@ class WorldObject:
                 self.outline = LineString(
                     [(kwargs["x1"], kwargs["y1"]), (kwargs["x2"], kwargs["y2"])]
                 )
-                print(self.outline.coords[:])
                 self.length = self.outline.length
                 self._center = np.array(
                     [self.outline.centroid.x, self.outline.centroid.y]
                 )
-                print(self._center)
                 self._angle = 90-math.degrees(
                     math.atan2(kwargs["y2"] - kwargs["y1"], kwargs["x2"] - kwargs["x1"])
                 )
-                print(self._angle)
 
             else:
                 self._center = np.array([kwargs.get("x", 0), kwargs.get("y", 0)])
@@ -94,6 +95,8 @@ class WorldObject:
                         ),
                     ]
                 )
+
+                self.angle = kwargs.get("angle", 0)
 
         else:
             raise Exception("unknown object type")
