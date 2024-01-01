@@ -21,32 +21,24 @@ class WorldRenderer:
         self.x_res = int(kwargs.get("x_res", 800))
         self.y_res = int(kwargs.get("y_res", 600))
         self.num_worlds = int(kwargs.get("num_worlds", 1))
-        self.x_offset = kwargs.get("x_offset", self.x_res / 2)
-        self.y_offset = kwargs.get("y_offset", self.y_res / 2)
         self.screen = pygame.display.set_mode(
             (self.x_res * self.num_worlds, self.y_res)
         )
-        self.world_scale = kwargs.get("world_scale", 200)
+        self.world_scale = kwargs.get("world_scale", self.y_res / 3)
         self.font = pygame.font.Font(None, self.world_scale // 10)  # default font
-        self.small_font = pygame.font.Font(None, self.world_scale // 16)  # default font
+        self.small_font = pygame.font.Font(None, self.world_scale // 14)  # smaller font
         self.last_time = time.time()
         self.fps = np.ones(30) * (1 / 60)
         self.fps_at = 0
         self.frame = 0
 
-    def transform_coordinate(self, c, offset=0):
-        """scale metres to pixels, offset by offset pixels"""
-        return np.round(c * self.world_scale + offset)
-
-    def transform_horizontal(self, c):
+    def transform_horizontal(self, scale, c):
         """transform horizontal coordiant to pixels"""
-        return self.transform_coordinate(c, self.x_offset)  # 10?
+        return np.round(c * scale + self.x_res / 2)
 
-    def transform_vertical(self, c):
-        """transform vertical coordiant to pixels"""
-        return self.transform_coordinate(
-            -c, -self.y_offset + self.screen.get_height()
-        )  # -10?
+    def transform_vertical(self, c, scale):
+        """transform vertical coordiant to pixels (flipping so y = 0 is bottom )"""
+        return np.round(-c * scale + self.screen.get_height() - self.y_res / 2)
 
     def update(self, *Worlds):
         for event in pygame.event.get():
@@ -59,12 +51,17 @@ class WorldRenderer:
 
         world_at = 0
         for TheWorld in Worlds:
+            world_scale = self.world_scale
+
             for obj in reversed(TheWorld):
                 # iterate through backwards so that the robot is always rendered last (on top)
                 # get the coordinates of the outline (also draws line type objects)
                 x, y = obj.xy()
-                x = self.transform_horizontal(np.array(x)) + world_at * self.x_res
-                y = self.transform_vertical(np.array(y))
+                x = (
+                    self.transform_horizontal(np.array(x), world_scale)
+                    + world_at * self.x_res
+                )
+                y = self.transform_vertical(np.array(y), world_scale)
                 pnts = np.column_stack((x, y))
 
                 # draw the outline/line & fill if outline
@@ -75,8 +72,11 @@ class WorldRenderer:
                 # render at a higher resolution with thick regular lines and resize to the dispaly res? (via @ZodiusInfuser)
 
                 # coordinates of center
-                i = self.transform_horizontal(obj.center[0]) + world_at * self.x_res
-                j = self.transform_vertical(obj.center[1])
+                i = (
+                    self.transform_horizontal(obj.center[0], world_scale)
+                    + world_at * self.x_res
+                )
+                j = self.transform_vertical(obj.center[1], world_scale)
 
                 # render a label on each item in the world
                 font = self.font
