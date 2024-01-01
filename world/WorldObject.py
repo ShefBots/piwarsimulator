@@ -16,8 +16,6 @@ class WorldObject:
     """
 
     def __init__(self, **kwargs):
-        self._center = np.array([kwargs.get("x", 0), kwargs.get("y", 0)])
-        self._angle = 0  # construct the objects vertically then rotate
         self.object_type = kwargs.get("object_type", 0)
         self.color = Color(kwargs.get("color", "white"))
 
@@ -25,7 +23,9 @@ class WorldObject:
             self.object_type == ObjectType.UNKNOWN
             or self.object_type == ObjectType.BARREL
         ):
-            # print(self._center)
+            self._center = np.array([kwargs.get("x", 0), kwargs.get("y", 0)])
+            self._angle = 0  # construct the objects vertically then rotate
+
             self.radius = kwargs.get("radius", 0.1)
             # circular objects are points with a buffer (turning them into a polygon)
             self.outline = Point(self._center).buffer(self.radius)
@@ -34,6 +34,9 @@ class WorldObject:
             or self.object_type == ObjectType.ZONE
             or self.object_type == ObjectType.MINE
         ):
+            self._center = np.array([kwargs.get("x", 0), kwargs.get("y", 0)])
+            self._angle = 0  # construct the objects vertically then rotate
+
             self.width = kwargs.get("w", 0.1)  # width
             self.height = kwargs.get("h", 0.1)  # height
             self.outline = Polygon(
@@ -57,25 +60,43 @@ class WorldObject:
                 ]
             )
         elif self.object_type == ObjectType.LINE or self.object_type == ObjectType.WALL:
-            self.length = kwargs.get("l", 1)  # length
-            self.outline = LineString(
-                [
-                    (
-                        self._center[0],
-                        self._center[1] - self.length / 2,
-                    ),
-                    (
-                        self._center[0],
-                        self._center[1] + self.length / 2,
-                    ),
-                ]
-            )
+            if "x1" in kwargs and "y1" in kwargs and "x2" in kwargs and "y2" in kwargs:
+                # set wall/line by coordinates
 
-            pass
+                self.outline = LineString(
+                    [(kwargs["x1"], kwargs["y1"]), (kwargs["x2"], kwargs["y2"])]
+                )
+                print(self.outline.coords[:])
+                self.length = self.outline.length
+                self._center = np.array(
+                    [self.outline.centroid.x, self.outline.centroid.y]
+                )
+                print(self._center)
+                self._angle = 90-math.degrees(
+                    math.atan2(kwargs["y2"] - kwargs["y1"], kwargs["x2"] - kwargs["x1"])
+                )
+                print(self._angle)
+
+            else:
+                self._center = np.array([kwargs.get("x", 0), kwargs.get("y", 0)])
+                self._angle = 0  # construct the objects vertically then rotate
+
+                self.length = kwargs.get("l", 1)  # length
+                self.outline = LineString(
+                    [
+                        (
+                            self._center[0],
+                            self._center[1] - self.length / 2,
+                        ),
+                        (
+                            self._center[0],
+                            self._center[1] + self.length / 2,
+                        ),
+                    ]
+                )
+
         else:
             raise Exception("unknown object type")
-
-        self.angle = kwargs.get("angle", 0)
 
         self.is_held = kwargs.get("is_held", False)
         self.exterior = None  # exterior world version when simulation
@@ -87,12 +108,7 @@ class WorldObject:
 
     @center.setter
     def center(self, pos):
-        # TODO manipulate outline with changes
         d_pos = pos - self._center
-        # if self.object_type == ObjectType.BARREL:
-        #     print(pos)
-        #     print(self._center)
-        #     print(d_pos)
         self.outline = translate(self.outline, d_pos[0], d_pos[1])
         self._center = pos
 
