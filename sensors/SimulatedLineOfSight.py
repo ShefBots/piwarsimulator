@@ -11,7 +11,7 @@ from util import rotate_by
 
 
 class SimulatedLineOfSight(Sensor):
-    """simulated output from a line of sight sensor"""
+    """simulated output from a line of sight (time of flight) sensor"""
 
     # from VL53L4CD datasheet
     FIELD_OF_VIEW = 18  # degrees
@@ -20,7 +20,7 @@ class SimulatedLineOfSight(Sensor):
     def __init__(self, ExteriorTheWorld, angle):
         self.ExteriorTheWorld = ExteriorTheWorld
         assert ExteriorTheWorld[0].object_type == ObjectType.ROBOT
-        print(f"Activating simulated line of sight sensor pointing {angle}'")
+        print(f"Activating simulated time of flight sensor, pointing at {angle}'")
 
         # construct a triangle reprsenting the sensor field of view
         # this is relative to the robot's center
