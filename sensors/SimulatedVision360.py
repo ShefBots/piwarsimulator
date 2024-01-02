@@ -16,7 +16,9 @@ class SimulatedVision360(Sensor):
         print("Activating simulated 360 degree vision sensor")
 
     def do_scan(self):
-        """return just the barrels from TheExteriorWorld"""
+        """return barrels, zones, and red mines from TheExteriorWorld"""
+
+        # TODO return white lines ahead of the robot
 
         scan_result = []
 
@@ -31,9 +33,9 @@ class SimulatedVision360(Sensor):
                 )
                 or obj.is_held
             ):
-                continue  # skip non-barrels and things being held
+                continue  # skip non-barrels, zones, red mines and things being held
 
-            # copy the barrel and then change its coordinate to something relative to the robot
+            # copy the scanned object and then change its coordinate to something relative to the robot
             scanned_obj = copy.deepcopy(obj)
             # barrel.center -= self.ExteriorTheWorld[0].center DOES NOT WORK
             scanned_obj.center = scanned_obj.center - self.ExteriorTheWorld[0].center
