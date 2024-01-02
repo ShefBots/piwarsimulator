@@ -13,7 +13,8 @@ class MinesweeperMap(Thread):
     """
 
     OVERLAP_TARGET = (
-        0.5  # how much of the robot should be on the tile (match to MinesweeperBrain)
+        0.49  # how much of the robot should be on the tile before it's counted as on
+        # a little bit elss than in MinesweeperBrain to avoid getting stuck
     )
 
     def __init__(self, ExteriorTheWorld):
