@@ -9,7 +9,6 @@ from world.ObjectType import ObjectType
 from world.WorldObject import WorldObject
 
 
-# TODO simulated time of flight wall sensors
 # TODO brains: escape route, lava palava, ecodisaster
 # TODO held items
 # TODO classes for real hardware
