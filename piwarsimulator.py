@@ -11,6 +11,7 @@ from world.WorldObject import WorldObject
 
 # TODO simulated time of flight wall sensors
 # TODO brains: escape route, lava palava, ecodisaster
+# TODO held items
 # TODO classes for real hardware
 # TODO sensor_simulation (real control only) mode and control mode (all real)
 
@@ -68,6 +69,7 @@ if args.rendering == "true":
 
 if args.mode == "simulation":
     from controllers.SimulatedMovementController import SimulatedMovementController
+    from sensors.SimulatedLineOfSight import SimulatedLineOfSight
     from sensors.SimulatedVision360 import SimulatedVision360
 elif args.mode == "sensor_simulation":
     # TODO real hardware, simulated sensors
@@ -98,12 +100,16 @@ else:
 
 print(f"Loading {args.brain}...")
 brain = getattr(importlib.import_module("brains." + args.brain), args.brain)
-robot_brain = brain(robot=robot, controller=controller, speed=0.05, turning_speed=10)
+# robot_brain = brain(robot=robot, controller=controller, speed=0.05, turning_speed=10)
+robot_brain = brain(robot=robot, controller=controller, speed=0.3, turning_speed=60)
 
 print("Attaching sensors...")
 if args.mode == "simulation" or args.mode == "sensor_simulation":
     if args.rendering == "true":
         robot_brain.add_sensor(Keyboard(robot_brain.speed, robot_brain.turning_speed))
+    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, 0))
+    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, -90))
+    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, 90))
     robot_brain.add_sensor(SimulatedVision360(ExteriorTheWorld))
 else:
     # TODO real hardware
