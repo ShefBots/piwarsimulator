@@ -27,7 +27,7 @@ class SimulatedLineOfSight(Sensor):
         self.angle = angle
 
         # need to get mounting position on the chassis
-        # distance to scan for
+        # first distance to check edge for (larger than width or height to make sure it goes beyond)
         l = max(self.ExteriorTheWorld[0].width, self.ExteriorTheWorld[0].height) * 2
         # find edge
         t = rotate(
@@ -43,13 +43,14 @@ class SimulatedLineOfSight(Sensor):
                     ),
                 ]
             ),
-            -self.angle,
+            -self.angle, # make scan in direction of sensor
             origin=(
                 self.ExteriorTheWorld[0].center[0],
                 self.ExteriorTheWorld[0].center[1],
             ),
         ).intersection(self.ExteriorTheWorld[0].outline)
-        x0, y0 = t.coords[1]
+        x0, y0 = t.coords[1] # intersection of sensor and robot outline
+        # the intersection point is where the sensor is "mounted"
         self.dist_to_hull = max(x0, y0)
 
         self.outline = Polygon(
@@ -107,7 +108,6 @@ class SimulatedLineOfSight(Sensor):
             if fov.intersects(obj.outline):
                 u = fov.intersection(obj.outline)
                 dist = self.ExteriorTheWorld[0].outline.distance(u)
-                # only look for a target if we're holding nothing
                 if dist < closest_distance:
                     closest = obj
                     closest_distance = dist
