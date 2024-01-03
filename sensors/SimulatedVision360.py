@@ -2,25 +2,79 @@
 import copy
 import math
 from pygame import Color
+from shapely.geometry import Polygon
+from shapely.affinity import rotate
+from shapely.affinity import translate
 from sensors.Sensor import Sensor
 from world.ObjectType import *
+from world.WorldObject import *
 from util import rotate_by
 
 
 class SimulatedVision360(Sensor):
     """simulated output from the 360 vision system"""
 
+    # how far around the robot to scan for lines
+    # this excludes the robot dimension, so make sure it's big enough
+    LINE_DECTION_DISTANCE = 0.2
+
     def __init__(self, ExteriorTheWorld):
         self.ExteriorTheWorld = ExteriorTheWorld
         assert ExteriorTheWorld[0].object_type == ObjectType.ROBOT
         print("Activating simulated 360 degree vision sensor")
 
-    def do_scan(self):
-        """return barrels, zones, and red mines from TheExteriorWorld"""
+        # detect lines pretty similar to how simulated line of sight works
+        # construct a box ahead of the robot where a line may be detected
+        # find the closest line in the box, and then return that
+        self.outline = rotate(
+            Polygon(
+                [
+                    (
+                        self.ExteriorTheWorld[0].center[0] - self.LINE_DECTION_DISTANCE,
+                        self.ExteriorTheWorld[0].center[1],
+                    ),
+                    (
+                        self.ExteriorTheWorld[0].center[0] + self.LINE_DECTION_DISTANCE,
+                        self.ExteriorTheWorld[0].center[1],
+                    ),
+                    (
+                        self.ExteriorTheWorld[0].center[0] + self.LINE_DECTION_DISTANCE,
+                        self.ExteriorTheWorld[0].center[1] + self.LINE_DECTION_DISTANCE,
+                    ),
+                    (
+                        self.ExteriorTheWorld[0].center[0] - self.LINE_DECTION_DISTANCE,
+                        self.ExteriorTheWorld[0].center[1] + self.LINE_DECTION_DISTANCE,
+                    ),
+                ]
+            ),
+            -ExteriorTheWorld[0].angle,
+            origin=(
+                self.ExteriorTheWorld[0].center[0],
+                self.ExteriorTheWorld[0].center[1],
+            ),
+        )
+        # subtract the outline of the robot
+        self.outline = self.outline.difference(ExteriorTheWorld[0].outline)
+        assert self.outline.geom_type == "Polygon"  # LINE_DECTION_DISTANCE not small
 
-        # TODO return white lines ahead of the robot
+    def do_scan(self):
+        """
+        return barrels, zones, and red mines from TheExteriorWorld
+        also returns the closest white line
+        """
+
+        # from SimulatedLineOfSight
+        fov = rotate(self.outline, -self.ExteriorTheWorld[0].angle, origin=(0, 0))
+        fov = translate(
+            fov, self.ExteriorTheWorld[0].center[0], self.ExteriorTheWorld[0].center[1]
+        )
 
         scan_result = []
+
+        # from SimulatedLineOfSight
+        closest = None
+        closest_distance = 9e99
+        closest_line = None
 
         for obj in self.ExteriorTheWorld[1:]:  # ignore the robot in 0
             if (
@@ -33,7 +87,55 @@ class SimulatedVision360(Sensor):
                 )
                 or obj.is_held
             ):
-                continue  # skip non-barrels, zones, red mines and things being held
+                if (
+                    obj.object_type == ObjectType.LINE
+                    and obj.color
+                    and fov.intersects(obj.outline)
+                ):
+                    # from SimulatedLineOfSight
+                    u = fov.intersection(obj.outline)
+                    if u.geom_type == "LineString":
+                        dist = self.ExteriorTheWorld[0].outline.distance(u)
+                        if dist < closest_distance:
+                            closest = obj
+                            closest_distance = dist
+                            closest_line = rotate(
+                                translate(
+                                    u,
+                                    -self.ExteriorTheWorld[0].center[0],  # inversed
+                                    -self.ExteriorTheWorld[0].center[1],  # inversed
+                                ),
+                                self.ExteriorTheWorld[0].angle,  # inversed
+                                origin=(0, 0),
+                            )
+                    elif u.geom_type == "MultiLineString":
+                        # line is being bisected into two or more parts by the robot
+                        # find the first part head of the robot and use that
+                        # easiest way to do this is to put the lines back in the robot's
+                        # frame of reference and pick something straight ahead
+                        u2 = rotate(
+                            translate(
+                                u,
+                                -self.ExteriorTheWorld[0].center[0],  # inversed
+                                -self.ExteriorTheWorld[0].center[1],  # inversed
+                            ),
+                            self.ExteriorTheWorld[0].angle,  # inversed
+                            origin=(0, 0),
+                        )
+                        for u in u2.geoms:
+                            if (
+                                u.coords[0][1] >= self.ExteriorTheWorld[0].height / 2
+                                and u.coords[1][1]
+                                >= self.ExteriorTheWorld[0].height / 2
+                            ):
+                                print(u)
+                                dist = self.ExteriorTheWorld[0].outline.distance(u)
+                                if dist < closest_distance:
+                                    closest = obj
+                                    closest_distance = dist
+                                    closest_line = u
+
+                continue  # skip non-barrels, non-zones, non-red mines, non-lines and things being held
 
             # copy the scanned object and then change its coordinate to something relative to the robot
             scanned_obj = copy.deepcopy(obj)
@@ -57,6 +159,33 @@ class SimulatedVision360(Sensor):
 
             scanned_obj.exterior = obj
 
+            scan_result.append(scanned_obj)
+
+        # a line was detected
+        # from SimulatedLineOfSight
+        if closest != None:
+            x1, y1 = closest_line.coords[0]
+            x2, y2 = closest_line.coords[1]
+
+            scanned_obj = WorldObject(
+                object_type=ObjectType.LINE,
+                x1=x1,
+                y1=y1,
+                x2=x2,
+                y2=y2,
+                color="white",
+            )
+
+            scanned_obj._center = np.array(
+                [scanned_obj.outline.centroid.x, scanned_obj.outline.centroid.y]
+            )
+
+            # let's have the heading as the centroid of the detected line, probably best compromise
+            scanned_obj.heading = math.degrees(
+                math.atan2(scanned_obj.center[0], scanned_obj.center[1])
+            )
+
+            scanned_obj.exterior = obj
             scan_result.append(scanned_obj)
 
         return scan_result, {}
