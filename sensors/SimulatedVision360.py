@@ -89,7 +89,7 @@ class SimulatedVision360(Sensor):
             ):
                 if (
                     obj.object_type == ObjectType.LINE
-                    and obj.color
+                    and obj.color == Color("white")
                     and fov.intersects(obj.outline)
                 ):
                     # from SimulatedLineOfSight
@@ -128,7 +128,6 @@ class SimulatedVision360(Sensor):
                                 and u.coords[1][1]
                                 >= self.ExteriorTheWorld[0].height / 2
                             ):
-                                print(u)
                                 dist = self.ExteriorTheWorld[0].outline.distance(u)
                                 if dist < closest_distance:
                                     closest = obj
