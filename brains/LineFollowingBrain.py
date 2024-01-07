@@ -8,7 +8,7 @@ class LineFollowingBrain(RobotBrain):
     """logic for the line following challenge"""
 
     def process(self):
-        """do the basic brain stuff then do specific ecodisaster things"""
+        """do the basic brain stuff then do specific line following things"""
 
         # check sensors and stop if collision is imminent
         super().process()
@@ -26,14 +26,4 @@ class LineFollowingBrain(RobotBrain):
 
     def find_goal(self):
         """find the closest LINE"""
-        closest = None
-        closest_distance = 9e99
-        for obj in self.TheWorld[1:]:
-            dist = self.TheWorld[0].get_distance(obj)
-            # only look for a target if we're holding nothing
-            if obj.object_type == ObjectType.LINE:
-                if dist < closest_distance:
-                    closest = obj
-                    closest_distance = dist
-
-        return (closest, closest_distance)
+        return self.find_closest(ObjectType.LINE)

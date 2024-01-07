@@ -12,6 +12,10 @@ class RobotBrain:
     includes some common logic
     """
 
+    COLLISION_TOLERANCE = 0.02  # m, how close is too close
+    # precision when trying to match objects based on location
+    HOLDING_TOLERANCE = 0.01  # m
+
     # where time of flight sensors are installed pointing
     SENSOR_HEADINGS = [-90, 0, 90]
 
@@ -29,8 +33,6 @@ class RobotBrain:
 
         # anything we're transporting (exterior world objects when simulating)
         self.holding = []
-
-        self.collision_tolerance = kwargs.get("collision_tolerance", 0.01)  # m
 
         # for sensor output
         self.sensors = []  # any sensors
@@ -92,10 +94,9 @@ class RobotBrain:
 
     def check_for_collision(self):
         for obj in self.TheWorld[1:]:  # ignore the robot in 0
-            # TODO collision checks for held objects
             if (
-                self.TheWorld[0].get_distance(obj) < self.collision_tolerance
-                and not obj.exterior in self.holding
+                self.TheWorld[0].get_distance(obj) < self.COLLISION_TOLERANCE
+                and not self.is_holding(obj)
                 and not (
                     # can't collide with flat objects
                     obj.object_type == ObjectType.MINE
@@ -106,6 +107,44 @@ class RobotBrain:
                 print("Yikes! Something's a bit close!")
                 return True
         return False
+
+    @staticmethod
+    def match_objects(obj1, obj2):
+        """try and determine if obj1 and obj2 are the same object based on coordinates"""
+        if (
+            obj1.object_type == obj2.object_type
+            and obj1.get_distance(obj2, relative_to="center")
+            < RobotBrain.HOLDING_TOLERANCE
+        ):
+            # assume that if they are sufficiently close they're the same
+            return True
+        else:
+            # they aren't the same
+            return False
+
+    def is_holding(self, obj2):
+        """check if obj is something we're holding"""
+        for obj1 in self.holding:
+            if RobotBrain.match_objects(obj1, obj2):
+                return True
+        return False
+
+    def find_closest(self, object_type, exclude=[]):
+        """find the closest object_type"""
+        closest = None
+        closest_distance = 9e99
+        for obj in self.TheWorld[1:]:  # skip the robot and check everything else
+            dist = self.TheWorld[0].get_distance(obj)
+            if (
+                obj.object_type == object_type
+                and not self.is_holding(obj)
+                and not any(RobotBrain.match_objects(obj, obj2) for obj2 in exclude)
+            ):
+                if dist < closest_distance:
+                    closest = obj
+                    closest_distance = dist
+
+        return (closest, closest_distance)
 
     def find_distances(self):
         """find the walls reported by sensors in each heading direction"""

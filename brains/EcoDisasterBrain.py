@@ -66,6 +66,7 @@ class EcoDisasterBrain(RobotBrain):
     def find_goal(self):
         """find the closest TARGET or ZONE"""
         # TODO need to ignore barrels in zones
+        # TODO use self.find_closest
         closest = None
         closest_distance = 9e99
         for obj in self.TheWorld[1:]:

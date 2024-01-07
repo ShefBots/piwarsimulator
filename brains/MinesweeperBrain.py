@@ -13,7 +13,7 @@ class MinesweeperBrain(RobotBrain):
     OVERLAP_TARGET = 0.5  # fraction to overlap mine by before stopping
 
     def process(self):
-        """do the basic brain stuff then do specific ecodisaster things"""
+        """do the basic brain stuff then do specific minesweeper things"""
 
         # check sensors and stop if collision is imminent
         super().process()
@@ -65,14 +65,4 @@ class MinesweeperBrain(RobotBrain):
 
     def find_goal(self):
         """find the closest MINE"""
-        closest = None
-        closest_distance = 9e99
-        for obj in self.TheWorld[1:]:
-            dist = self.TheWorld[0].get_distance(obj)
-            # only look for a target if we're holding nothing
-            if obj.object_type == ObjectType.MINE:
-                if dist < closest_distance:
-                    closest = obj
-                    closest_distance = dist
-
-        return (closest, closest_distance)
+        return self.find_closest(ObjectType.MINE)
