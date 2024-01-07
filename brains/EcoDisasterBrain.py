@@ -66,27 +66,10 @@ class EcoDisasterBrain(RobotBrain):
     def find_goal(self):
         """find the closest TARGET or ZONE"""
         # TODO need to ignore barrels in zones
-        # TODO use self.find_closest
-        closest = None
-        closest_distance = 9e99
-        for obj in self.TheWorld[1:]:
-            dist = self.TheWorld[0].get_distance(obj)
-            # only look for a target if we're holding nothing
-            if (
-                obj.object_type == ObjectType.BARREL
-                and not obj.exterior in self.holding
-            ):
-                if dist < closest_distance:
-                    closest = obj
-                    closest_distance = dist
-            # otherwise find the zone that matches the target colour
-            elif (
-                len(self.holding) > 0
-                and obj.object_type == ObjectType.ZONE
-                and obj.color == self.GOAL_MAPPING[self.holding[0].color]
-                and dist < closest_distance
-            ):
-                closest = obj
-                closest_distance = dist
-
-        return (closest, closest_distance)
+        if len(self.holding) > 0:
+            # otherwise find the zone that matches the held item colour
+            return self.find_closest(
+                ObjectType.BARREL, color=self.GOAL_MAPPING[self.holding[0].color]
+            )
+        else:
+            return self.find_closest(ObjectType.BARREL)

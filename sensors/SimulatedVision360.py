@@ -174,8 +174,6 @@ class SimulatedVision360(Sensor):
                 scanned_obj.angle - self.ExteriorTheWorld[0].angle
             )  # make relative to heading of robot
 
-            scanned_obj.exterior = obj
-
             scan_result.append(scanned_obj)
 
         # a line was detected
@@ -202,7 +200,6 @@ class SimulatedVision360(Sensor):
                 math.atan2(scanned_obj.center[0], scanned_obj.center[1])
             )
 
-            scanned_obj.exterior = obj
             scan_result.append(scanned_obj)
 
         return scan_result, {}
