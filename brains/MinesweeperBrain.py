@@ -52,9 +52,9 @@ class MinesweeperBrain(RobotBrain):
 
             # move sideways towards
             if goal.center[0] > self.TheWorld[0].center[0]:
-                sideways_vel = self.speed * speed_modifier
+                side_vel = self.speed * speed_modifier
             else:
-                sideways_vel = -self.speed * speed_modifier
+                side_vel = -self.speed * speed_modifier
 
             # move forwards towards
             if goal.center[1] > self.TheWorld[0].center[1]:
@@ -62,7 +62,7 @@ class MinesweeperBrain(RobotBrain):
             else:
                 forward_vel = -self.speed * speed_modifier
 
-            self.controller.set_plane_velocity([sideways_vel, forward_vel])
+            self.controller.set_plane_velocity([side_vel, forward_vel])
 
     def find_goal(self):
         """find the closest MINE"""
