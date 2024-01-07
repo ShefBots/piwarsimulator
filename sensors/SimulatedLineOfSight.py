@@ -17,9 +17,10 @@ class SimulatedLineOfSight(Sensor):
     FIELD_OF_VIEW = 18  # degrees
     MAX_RANGE = 1.3  # metres
 
-    def __init__(self, ExteriorTheWorld, angle):
+    def __init__(self, ExteriorTheWorld, brain, angle):
         super().__init__()
         self.ExteriorTheWorld = ExteriorTheWorld
+        self.robot_brain = brain  # needed for holding
         assert ExteriorTheWorld[0].object_type == ObjectType.ROBOT
         print(f"Activating simulated time of flight sensor, pointing at {angle}'")
 
@@ -84,14 +85,18 @@ class SimulatedLineOfSight(Sensor):
     def do_scan(self):
         """return the nearest barrel or wall from TheExteriorWorld within the field of view"""
 
+        scan_result = []
+
+        # if holding something a forward facing sensor won't see anything
+        if len(self.robot_brain.holding) > 0 and self.angle == 0:
+            return scan_result, {}
+
         # need to move the field of view outline to the robots locations and rotation
         # rotate first to take advantage of center (-ve because coordiante system)
         fov = rotate(self.outline, -self.ExteriorTheWorld[0].angle, origin=(0, 0))
         fov = translate(
             fov, self.ExteriorTheWorld[0].center[0], self.ExteriorTheWorld[0].center[1]
         )
-
-        scan_result = []
 
         closest = None
         closest_distance = 9e99

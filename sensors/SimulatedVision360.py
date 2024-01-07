@@ -18,9 +18,10 @@ class SimulatedVision360(Sensor):
     # this excludes the robot dimension, so make sure it's big enough
     LINE_DECTION_DISTANCE = 0.2
 
-    def __init__(self, ExteriorTheWorld):
+    def __init__(self, ExteriorTheWorld, brain):
         super().__init__()
         self.ExteriorTheWorld = ExteriorTheWorld
+        self.robot_brain = brain  # needed for holding
         assert ExteriorTheWorld[0].object_type == ObjectType.ROBOT
         print("Activating simulated 360 degree vision sensor")
 
