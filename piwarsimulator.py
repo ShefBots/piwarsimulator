@@ -107,10 +107,10 @@ print("Attaching sensors...")
 if args.mode == "simulation" or args.mode == "sensor_simulation":
     if args.rendering == "true":
         robot_brain.add_sensor(Keyboard(robot_brain.speed, robot_brain.turning_speed))
-    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, 0))
-    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, -90))
-    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, 90))
-    robot_brain.add_sensor(SimulatedVision360(ExteriorTheWorld))
+    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 0))
+    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, -90))
+    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 90))
+    robot_brain.add_sensor(SimulatedVision360(ExteriorTheWorld, robot_brain))
 else:
     # TODO real hardware
     pass
