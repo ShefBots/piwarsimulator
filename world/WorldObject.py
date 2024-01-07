@@ -141,8 +141,10 @@ class WorldObject:
             if obj == None:
                 print("WARNING: was this supposed to take into account the robot???")
                 return self.outline.distance(Point(0, 0))
-            else:
+            elif not isinstance(obj, Point):
                 return self.outline.distance(obj.outline)
+            else:
+                return self.outline.distance(obj)
         else:
             raise Exception("unknown distance comparison method")
 
