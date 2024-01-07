@@ -11,6 +11,7 @@ class MinesweeperBrain(RobotBrain):
 
     ANGLE_TOLERANCE = 5  # turn in at least this much towards mine
     OVERLAP_TARGET = 0.5  # fraction to overlap mine by before stopping
+    WALL_TOLERANCE = 0.2  # m how close to walls to get
 
     def process(self):
         """do the basic brain stuff then do specific minesweeper things"""
@@ -61,6 +62,29 @@ class MinesweeperBrain(RobotBrain):
                 forward_vel = self.speed * speed_modifier
             else:
                 forward_vel = -self.speed * speed_modifier
+
+            # handle walls so that we zig-zag off them
+            if (
+                not self.distance_forward() is None
+                and forward_vel > 0
+                and self.distance_forward() > self.WALL_TOLERANCE - 0.1
+                and self.distance_forward() < self.WALL_TOLERANCE
+            ):
+                forward_vel = -forward_vel
+            if (
+                not self.distance_left() is None
+                and side_vel < 0
+                and self.distance_left() > self.WALL_TOLERANCE - 0.1
+                and self.distance_left() < self.WALL_TOLERANCE
+            ):
+                side_vel = -side_vel
+            if (
+                not self.distance_right() is None
+                and side_vel > 0
+                and self.distance_right() > self.WALL_TOLERANCE - 0.1
+                and self.distance_right() < self.WALL_TOLERANCE
+            ):
+                side_vel = -side_vel
 
             self.controller.set_plane_velocity([side_vel, forward_vel])
 
