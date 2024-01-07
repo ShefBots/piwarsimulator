@@ -31,8 +31,16 @@ class LineFollowingBrain(RobotBrain):
                 self.controller.stop()
             return
 
-        # TODO if a wall is ahead do everything more slowly
-        speed_modifier = 1
+        # if a wall is ahead do everything more slowly
+        if self.distance_forward() is None or self.distance_forward() > 0.5:
+            speed_modifier = 1
+        elif self.distance_forward() < 0.3:
+            speed_modifier = 0.2
+        else:
+            speed_modifier = 0.2 + 0.8 * (self.distance_forward() - 0.3) / 0.2
+            print(
+                f"dist: {self.distance_forward()} m, speed modifier: {speed_modifier}"
+            )
         forward_vel = 0
         side_vel = 0
 
