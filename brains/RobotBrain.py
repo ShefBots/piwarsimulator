@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
+import math
+import numpy as np
+from time import time
 from brains.ExecutionState import ExecutionState
 from world.WorldObject import *
 from world.ObjectType import *
-
-# note: at some point we can probably use child classes to define
-# what type of AI challenge we're dealing with
 
 
 class RobotBrain:
     """
     the basics of every brain
     includes some common logic
+    brains (logic) for different challenges inherit this
     """
 
     COLLISION_TOLERANCE = 0.02  # m, how close is too close
@@ -19,6 +20,9 @@ class RobotBrain:
 
     # where time of flight sensors are installed pointing
     SENSOR_HEADINGS = [-90, 0, 90]
+
+    # seconds to move when doing square up procedure
+    SQUARE_UP_DURATION = 1
 
     def __init__(self, **kwargs):
         self.robot = kwargs.get("robot", None)
@@ -37,7 +41,13 @@ class RobotBrain:
 
         # what we're doing (roughly)
         self.state = ExecutionState.NO_CONTROL
-        self.square_up_heading = 180  # when squaring trying to align to this
+
+        # for squaring up
+        self.square_up_heading = 0  # direction we're aligning to
+        self.square_time = 0  # where we are in alignment process
+        self.square_distance = 0  # distance away at start of alignment
+        self.square_rotate_time = 0  # how much time to rotate for to get into alignment
+        self.square_up_pass = 0  # do it twice for best results
 
         # for sensor output
         self.sensors = []  # any sensors
@@ -187,13 +197,92 @@ class RobotBrain:
         return self.distances[self.SENSOR_HEADINGS.index(90)]
 
     def square_up(self):
-        """make sure we're parallel to a wall in a direction"""
-        # TODO squaring up routine
-        # move side to side checking forward and side sensors distance change
-        # use angle of that to rotate a specified amount
-        # then move backwards some to ensure distance to walls > WALL_STOP_DISTANCE
+        """
+        make sure we're parallel to a wall in a direction
+        move side to side checking forward and side sensors distance change
+        use angle of that to rotate a specified amount
+        """
 
-        # if no reading in alignment direction return
+        dist = self.distances[self.SENSOR_HEADINGS.index(self.square_up_heading)]
 
-        # return control to the brain
+        # direction of moment for alignment
+        speed = -self.speed / 4
+        if self.square_up_heading == 0:
+            alignment_vector = np.array([speed, 0])
+        elif abs(self.square_up_heading) == 90:
+            # note, not super tested aligning to side walls
+            alignment_vector = np.array([0, speed])
+        else:
+            dist = None  # trigger a failure unknown heading
+
+        if self.square_up_pass == 1:
+            speed = -speed
+            alignment_vector = -alignment_vector
+
+        # if no reading in alignment direction cancel and return
+        if dist is None:
+            print("No distance reading, canceling squaring")
+            self.square_up_cancel()
+            return
+
+        time_at = time() - self.square_time
+
+        if self.square_time == 0:
+            # routine start
+            self.square_time = time()
+            self.square_distance = dist
+            self.square_rotate_time = 0
+            self.controller.set_plane_velocity(alignment_vector)
+
+        elif time_at >= self.SQUARE_UP_DURATION and self.square_rotate_time == 0:
+            # finished moving left, check and align
+            self.controller.stop()
+
+            base = speed * self.SQUARE_UP_DURATION
+            height = self.square_distance - dist
+
+            # needs a magic factor, function of distance and angle... iterate instead
+            angle_to_wall = math.degrees(math.atan(height / base))
+
+            print(f"Square across {base} rise {height} angle {angle_to_wall}")
+
+            if math.fabs(angle_to_wall) < 2 or math.fabs(height) < 0.003:
+                # already pretty aligned
+                print("Already aligned, canceling squaring")
+                self.square_up_cancel()
+                return
+
+            self.square_rotate_time = math.fabs(
+                angle_to_wall / (self.turning_speed / 4)
+            )
+            if angle_to_wall < 0:
+                self.controller.set_angular_velocity(-self.turning_speed / 4)
+            else:
+                self.controller.set_angular_velocity(self.turning_speed / 4)
+
+        elif (
+            time_at >= self.SQUARE_UP_DURATION + self.square_rotate_time
+            and not self.controller.theta_vel == 0
+        ):
+            # finished rotating to align
+            self.controller.stop()
+            self.controller.set_plane_velocity(-alignment_vector)
+
+        elif time_at >= self.SQUARE_UP_DURATION * 2 + self.square_rotate_time:
+            # finished moving back
+            # return control to the brain
+            print(f"Done squaring up ({self.square_up_pass})")
+            if self.square_up_pass == 5:
+                print("Pass limit reached, canceling squaring")
+                self.square_up_cancel()
+                return
+            else:
+                self.square_up_pass += 1
+                self.square_time = 0
+
+    def square_up_cancel(self):
+        self.controller.stop()
+        self.square_time = 0
+        self.square_rotate_time = 0
+        self.square_up_pass = 0
         self.state = ExecutionState.PROGRAM_CONTROL
