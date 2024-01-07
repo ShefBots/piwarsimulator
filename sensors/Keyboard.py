@@ -16,6 +16,8 @@ class Keyboard(Sensor):
         self.manual_control = False
 
     def do_scan(self):
+        if not pygame.display.get_init():
+            return [], {}
         keys = pygame.key.get_pressed()
 
         forward_vel = 0
