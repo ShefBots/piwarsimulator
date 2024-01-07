@@ -5,26 +5,14 @@ from world.WorldObject import *
 def LavaPalavaMap(ExteriorTheWorld):
     """
     estimated lava palava map
-    0.55 m walls
-    2.5 m of straight
+    0.55 m distance between walls
+    2.2 m of straight
     1 m left turn (35 degrees)
     1 m straight
     1 m right turn (35 degrees)
-    2.5 m straight
-    walls start at -0.5 m, course starts at 0 m
+    2 m straight
+    walls start at -0.2 m, course starts at 0 m
     """
-
-    # wall behind start
-    ExteriorTheWorld.append(
-        WorldObject(
-            object_type=ObjectType.WALL,
-            x1=-0.275,
-            y1=-0.5,
-            x2=0.275,
-            y2=-0.5,
-            color="gray30",
-        )
-    )
 
     for x in [-0.275, 0, 0.275]:
         type = ObjectType.WALL
@@ -34,7 +22,7 @@ def LavaPalavaMap(ExteriorTheWorld):
             c = "white"
         # first section
         ExteriorTheWorld.append(
-            WorldObject(object_type=type, x1=x, y1=-0.5, x2=x, y2=2, color=c)
+            WorldObject(object_type=type, x1=x, y1=-0.2, x2=x, y2=2, color=c)
         )
         # left hand turn (35 degrees)
         ExteriorTheWorld.append(
@@ -61,7 +49,7 @@ def LavaPalavaMap(ExteriorTheWorld):
         )
         # last section
         ExteriorTheWorld.append(
-            WorldObject(object_type=type, x1=x, y1=5, x2=x, y2=7.5, color=c)
+            WorldObject(object_type=type, x1=x, y1=5, x2=x, y2=7, color=c)
         )
 
     # wall at end

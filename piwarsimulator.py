@@ -43,11 +43,21 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--brain",
     help="robot brain/challenge (default RobotBrain)",
-    default="RobotBrain",
+    # default="RobotBrain",
+    # default="MinesweeperBrain",
+    # default="MazeBrain",
+    default="LineFollowingBrain",
     choices=brains,
 )
 parser.add_argument(
-    "--map", help=f"map (default {maps[0]})", default=maps[0], choices=maps
+    "--map",
+    help=f"map (default {maps[0]})",
+    # default=maps[0],
+    # default="MinesweeperMap",
+    # default="EscapeRouteMap",
+    default="LavaPalavaMap",
+    choices=maps
+    # "--map", help=f"map (default {maps[0]})", default="LavaPalavaMap", choices=maps
 )
 parser.add_argument(
     "--mode",
@@ -81,7 +91,13 @@ elif args.mode == "control":
 # the order this is constructed in is also the rendering order...
 ExteriorTheWorld = []
 robot = WorldObject(
-    object_type=ObjectType.ROBOT, x=0, y=0, w=0.18, h=0.235, angle=0
+    object_type=ObjectType.ROBOT,
+    x=0,
+    y=0,
+    w=0.18,
+    h=0.235,
+    angle=0
+    # object_type=ObjectType.ROBOT, x=0.1, y=-0.3, w=0.18, h=0.235, angle=20
 )  # units metres and degress
 ExteriorTheWorld.append(robot)  # this should always be index 0!
 

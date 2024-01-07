@@ -13,7 +13,7 @@ class LineFollowingBrain(RobotBrain):
 
     def __init__(self, **kwargs):
         super(LineFollowingBrain, self).__init__(**kwargs)
-        self.last_reading = time()
+        self.last_goal = time()
 
     def process(self):
         """do the basic brain stuff then do specific line following things"""
@@ -27,9 +27,12 @@ class LineFollowingBrain(RobotBrain):
         # find something to move towards
         (goal, goal_distance) = self.find_goal()
         if goal is None:
-            if self.controller.moving:
+            # keep moving for a little bit in hopes of reacquiring line/passing goal
+            # otherwise just stop
+            if time() - self.last_goal > (0.4 / self.speed) and self.controller.moving:
                 self.controller.stop()
             return
+        self.last_goal = time()
 
         # if a wall is ahead do everything more slowly
         if self.distance_forward() is None or self.distance_forward() > 0.5:

@@ -177,3 +177,8 @@ class RobotBrain:
     def distance_right(self):
         """return the distance to left wall"""
         return self.distances[self.SENSOR_HEADINGS.index(90)]
+
+    def square_up(self, heading):
+        """make sure we're parallel to a wall in a direction"""
+        # TODO squaring up routine
+        pass

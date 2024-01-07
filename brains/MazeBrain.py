@@ -40,6 +40,7 @@ class MazeBrain(RobotBrain):
         # make sure we're parallel to a wall
         if self.CURRENT_MODE == self.ALIGNMENT:
             # TODO wall alignment routine
+            self.square_up(0)
             # move side to side checking forward and side sensors distance change
             # use angle of that to rotate a specified amount
             # then move backwards some to ensure distance to walls > WALL_STOP_DISTANCE
