@@ -41,6 +41,9 @@ class RobotBrain:
             "manual_control": False
         }  # direct sensor measurements
 
+        # are we close to colliding with something?
+        self.collision = None
+
         # distances to the nearest wall in dirction of TOF sensors
         self.distances = [None] * len(self.SENSOR_HEADINGS)
 
@@ -70,10 +73,11 @@ class RobotBrain:
     def process(self):
         """basic logic is to just not hit anything & respond to control input"""
         self.poll_sensors()
+        self.check_for_collision()
         self.find_distances()
 
-        # TODO do we always want to check for collisions?
-        if self.check_for_collision():
+        # TODO do we always want to try and stop on collisions? return?
+        if not self.collision is None:
             self.controller.stop()
 
         # print(self.sensor_measurements)
@@ -103,10 +107,9 @@ class RobotBrain:
                     or obj.object_type == ObjectType.LINE
                 )
             ):
-                print(obj)
-                print("Yikes! Something's a bit close!")
-                return True
-        return False
+                print(f"WARNING: {obj} is a bit close")
+                self.collision = obj
+                return
 
     @staticmethod
     def match_objects(obj1, obj2):
