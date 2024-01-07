@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import math
 import copy
+from time import time
 
 from world.WorldObject import *
 from world.ObjectType import *
@@ -19,8 +20,13 @@ class MazeBrain(RobotBrain):
     MOVE_LEFT = 1
     MOVE_FORWARD = 2
     MOVE_RIGHT = 3
+    STOPPED = 4
 
     CURRENT_MODE = 0
+
+    def __init__(self, **kwargs):
+        super(MazeBrain, self).__init__(**kwargs)
+        self.last_reading = time()
 
     def process(self):
         """do the basic brain stuff then do specific ecodisaster things"""
@@ -29,6 +35,9 @@ class MazeBrain(RobotBrain):
         super().process()
         # don't do anything if the manual override is triggered
         if self.sensor_measurements["manual_control"]:
+            return
+
+        if self.CURRENT_MODE == self.STOPPED:
             return
 
         if self.CURRENT_MODE == self.ALIGNMENT:
@@ -57,7 +66,10 @@ class MazeBrain(RobotBrain):
                     self.controller.set_plane_velocity([-self.speed, 0])
                     self.CURRENT_MODE = self.MOVE_LEFT
 
-            # TODO no reading from any sensors? STOP
+            if time() - self.last_reading > (0.03 / self.speed):
+                # stop if no walls have been seen for X seconds (30 cm distance equiv)
+                self.controller.stop()
+                self.current_MODE = self.STOPPED
 
         elif self.CURRENT_MODE == self.MOVE_RIGHT:
             if not distances[2] == None and distances[2] < self.WALL_STOP_DISTANCE:
@@ -79,6 +91,7 @@ class MazeBrain(RobotBrain):
                     continue
                 if obj.heading == self.SENSOR_HEADINGS[k]:
                     distances[k] = self.TheWorld[0].get_distance(obj)
+                    self.last_reading = time()
                     break
 
         return distances

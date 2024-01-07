@@ -9,7 +9,7 @@ from world.ObjectType import ObjectType
 from world.WorldObject import WorldObject
 
 
-# TODO brains: escape route, lava palava, ecodisaster
+# TODO brains: lava palava, ecodisaster
 # TODO held items
 # TODO classes for real hardware
 # TODO sensor_simulation (real control only) mode and control mode (all real)
