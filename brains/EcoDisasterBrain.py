@@ -28,7 +28,7 @@ class EcoDisasterBrain(RobotBrain):
 
         # find something to move towards
         (goal, goal_distance) = self.find_goal()
-        if goal == None:
+        if goal is None:
             return
 
         # print(goal_distance)

@@ -78,7 +78,7 @@ class WorldRenderer:
                 )
 
             for s in Sensors[k]:
-                if not s == None:
+                if not s is None:
                     # draw sensor outline
                     self.plot_outline(
                         s,

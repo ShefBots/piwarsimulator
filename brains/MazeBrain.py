@@ -53,7 +53,7 @@ class MazeBrain(RobotBrain):
         # move in directions with space after getting close-ish to a wall
         if self.CURRENT_MODE == self.MOVE_LEFT:
             if (
-                not self.distance_left() == None
+                not self.distance_left() is None
                 and self.distance_left() < self.WALL_STOP_DISTANCE
             ):
                 self.controller.set_plane_velocity([0, self.speed])
@@ -61,18 +61,18 @@ class MazeBrain(RobotBrain):
 
         elif self.CURRENT_MODE == self.MOVE_FORWARD:
             if (
-                not self.distance_forward() == None
+                not self.distance_forward() is None
                 and self.distance_forward() < self.WALL_STOP_DISTANCE
             ):
                 if (
-                    self.distance_right() == None
+                    self.distance_right() is None
                     or self.distance_right() > self.WALL_STOP_DISTANCE
                 ):
                     # there's space on the right, go that way
                     self.controller.set_plane_velocity([self.speed, 0])
                     self.CURRENT_MODE = self.MOVE_RIGHT
                 elif (
-                    self.distance_left() == None
+                    self.distance_left() is None
                     or self.distance_left() > self.WALL_STOP_DISTANCE
                 ):
                     # there's space on the left, go that way
@@ -90,7 +90,7 @@ class MazeBrain(RobotBrain):
 
         elif self.CURRENT_MODE == self.MOVE_RIGHT:
             if (
-                not self.distance_right() == None
+                not self.distance_right() is None
                 and self.distance_right() < self.WALL_STOP_DISTANCE
             ):
                 self.controller.set_plane_velocity([0, self.speed])

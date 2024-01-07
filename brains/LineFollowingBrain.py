@@ -25,7 +25,7 @@ class LineFollowingBrain(RobotBrain):
 
         # find something to move towards
         (goal, goal_distance) = self.find_goal()
-        if goal == None:
+        if goal is None:
             if self.controller.moving:
                 self.controller.stop()
             return
