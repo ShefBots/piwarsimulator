@@ -57,6 +57,20 @@ class SimulatedVision360(Sensor):
         )
         # subtract the outline of the robot
         self.outline = self.outline.difference(ExteriorTheWorld[0].outline)
+        self.outline = rotate(
+            self.outline,
+            ExteriorTheWorld[0].angle,
+            origin=(
+                self.ExteriorTheWorld[0].center[0],
+                self.ExteriorTheWorld[0].center[1],
+            ),
+        )
+        # make relative to a robot at 0,0 pointing north
+        self.outline = translate(
+            self.outline,
+            -self.ExteriorTheWorld[0].center[0],
+            -self.ExteriorTheWorld[0].center[1],
+        )
         assert self.outline.geom_type == "Polygon"  # LINE_DECTION_DISTANCE not small
 
     def do_scan(self):
