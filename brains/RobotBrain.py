@@ -113,6 +113,7 @@ class RobotBrain:
         """try and determine if obj1 and obj2 are the same object based on coordinates"""
         if (
             obj1.object_type == obj2.object_type
+            and obj1.color == obj2.color
             and obj1.get_distance(obj2, relative_to="center")
             < RobotBrain.HOLDING_TOLERANCE
         ):
@@ -129,7 +130,7 @@ class RobotBrain:
                 return True
         return False
 
-    def find_closest(self, object_type, exclude=[]):
+    def find_closest(self, object_type, color="", exclude=[]):
         """find the closest object_type"""
         closest = None
         closest_distance = 9e99
@@ -137,6 +138,7 @@ class RobotBrain:
             dist = self.TheWorld[0].get_distance(obj)
             if (
                 obj.object_type == object_type
+                and (color == "" or obj.color == color)
                 and not self.is_holding(obj)
                 and not any(RobotBrain.match_objects(obj, obj2) for obj2 in exclude)
             ):
