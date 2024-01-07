@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 from time import time
+from brains.ExecutionState import ExecutionState
+from brains.RobotBrain import RobotBrain
 from world.WorldObject import *
 from world.ObjectType import *
-from brains.RobotBrain import RobotBrain
 
 
 class LineFollowingBrain(RobotBrain):
@@ -13,6 +14,7 @@ class LineFollowingBrain(RobotBrain):
 
     def __init__(self, **kwargs):
         super(LineFollowingBrain, self).__init__(**kwargs)
+        self.state = ExecutionState.PROGRAM_CONTROL
         self.last_goal = time()
 
     def process(self):

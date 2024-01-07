@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from brains.ExecutionState import ExecutionState
 from world.WorldObject import *
 from world.ObjectType import *
 
@@ -33,6 +34,8 @@ class RobotBrain:
 
         # anything we're transporting (exterior world objects when simulating)
         self.holding = []
+
+        self.state = ExecutionState.NO_CONTROL
 
         # for sensor output
         self.sensors = []  # any sensors

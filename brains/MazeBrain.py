@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 from time import time
+from brains.ExecutionState import ExecutionState
+from brains.RobotBrain import RobotBrain
 from world.WorldObject import *
 from world.ObjectType import *
-from brains.RobotBrain import RobotBrain
 
 
 class MazeBrain(RobotBrain):
@@ -22,6 +23,7 @@ class MazeBrain(RobotBrain):
 
     def __init__(self, **kwargs):
         super(MazeBrain, self).__init__(**kwargs)
+        self.state = ExecutionState.PROGRAM_CONTROL
         self.last_reading = time()
 
     def process(self):

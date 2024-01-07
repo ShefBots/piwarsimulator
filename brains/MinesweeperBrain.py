@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
+from brains.ExecutionState import ExecutionState
+from brains.RobotBrain import RobotBrain
 from world.WorldObject import *
 from world.ObjectType import *
-from brains.RobotBrain import RobotBrain
 
 
 class MinesweeperBrain(RobotBrain):
@@ -12,6 +13,10 @@ class MinesweeperBrain(RobotBrain):
     ANGLE_TOLERANCE = 5  # turn in at least this much towards mine
     OVERLAP_TARGET = 0.5  # fraction to overlap mine by before stopping
     WALL_TOLERANCE = 0.2  # m how close to walls to get
+
+    def __init__(self, **kwargs):
+        super(MinesweeperBrain, self).__init__(**kwargs)
+        self.state = ExecutionState.PROGRAM_CONTROL
 
     def process(self):
         """do the basic brain stuff then do specific minesweeper things"""

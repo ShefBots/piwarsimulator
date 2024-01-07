@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
+from brains.ExecutionState import ExecutionState
+from brains.RobotBrain import RobotBrain
 from world.WorldObject import *
 from world.ObjectType import *
-from brains.RobotBrain import RobotBrain
 
 
 class EcoDisasterBrain(RobotBrain):
@@ -14,6 +15,10 @@ class EcoDisasterBrain(RobotBrain):
 
     GRIPPER_ANGLE_TOLERANCE = 2  # degree
     GRIPPER_TOLERANCE = 0.02  # m
+
+    def __init__(self, **kwargs):
+        super(EcoDisasterBrain, self).__init__(**kwargs)
+        self.state = ExecutionState.PROGRAM_CONTROL
 
     def process(self):
         """do the basic brain stuff then do specific ecodisaster things"""
