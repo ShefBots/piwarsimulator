@@ -45,15 +45,14 @@ class SimulatedLineOfSight(Sensor):
                     ),
                 ]
             ),
-            -self.angle, # make scan in direction of sensor
+            -self.angle,  # make scan in direction of sensor
             origin=(
                 self.ExteriorTheWorld[0].center[0],
                 self.ExteriorTheWorld[0].center[1],
             ),
         ).intersection(self.ExteriorTheWorld[0].outline)
-        x0, y0 = t.coords[1] # intersection of sensor and robot outline
-        # the intersection point is where the sensor is "mounted"
-        self.dist_to_hull = max(x0, y0)
+        # intersection of sensor and robot outline, this is where the sensor is "mounted"
+        x0, y0 = t.coords[1]
 
         self.outline = Polygon(
             [
@@ -73,14 +72,16 @@ class SimulatedLineOfSight(Sensor):
                 ),
             ]
         )
-        self.outline = rotate(
+        # make relative to a robot at 0,0 pointing north
+        self.outline = rotate(self.outline, -self.angle, origin=(x0, y0))
+        self.outline = translate(
             self.outline,
-            -angle,
-            origin=(
-                self.ExteriorTheWorld[0].center[0],
-                self.ExteriorTheWorld[0].center[1],
-            ),
+            -self.ExteriorTheWorld[0].center[0],
+            -self.ExteriorTheWorld[0].center[1],
         )
+        # sensor moutning location for 0,0 pointing north
+        self.x0 = self.outline.exterior.coords[0][0]
+        self.y0 = self.outline.exterior.coords[0][1]
 
     def do_scan(self):
         """return the nearest barrel or wall from TheExteriorWorld within the field of view"""
@@ -118,16 +119,16 @@ class SimulatedLineOfSight(Sensor):
                     closest = obj
                     closest_distance = dist
 
-        closest_distance += self.dist_to_hull
-
         # construct the wall the scanned object could be
         if closest != None:
             scanned_obj = WorldObject(
                 object_type=ObjectType.WALL,
-                x1=-closest_distance * math.tan(math.radians(self.FIELD_OF_VIEW / 2)),
-                y1=closest_distance,
-                x2=closest_distance * math.tan(math.radians(self.FIELD_OF_VIEW / 2)),
-                y2=closest_distance,
+                x1=self.x0
+                - closest_distance * math.tan(math.radians(self.FIELD_OF_VIEW / 2)),
+                y1=self.y0 + closest_distance,
+                x2=self.x0
+                + closest_distance * math.tan(math.radians(self.FIELD_OF_VIEW / 2)),
+                y2=self.y0 + closest_distance,
                 color="lightgray",
             )
 
@@ -136,7 +137,7 @@ class SimulatedLineOfSight(Sensor):
             scanned_obj.outline = rotate(
                 scanned_obj.outline,
                 -self.angle,
-                origin=(0, 0),  # in TheWorld robot is always 0,0
+                origin=(self.x0, self.y0),  # in TheWorld robot is always 0,0
             )
             scanned_obj._center = np.array(
                 [scanned_obj.outline.centroid.x, scanned_obj.outline.centroid.y]
