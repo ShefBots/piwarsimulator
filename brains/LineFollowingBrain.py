@@ -65,9 +65,15 @@ class LineFollowingBrain(RobotBrain):
             forward_vel = self.speed * speed_modifier
 
             # if a wall is to either side move away (for if we're horribly not square)
-            if not self.distance_left() is None and self.distance_left() < self.NEAR_WALL:
+            if (
+                not self.distance_left() is None
+                and self.distance_left() < self.NEAR_WALL
+            ):
                 side_vel = self.speed * speed_modifier
-            elif not self.distance_right() is None and self.distance_right() < self.NEAR_WALL:
+            elif (
+                not self.distance_right() is None
+                and self.distance_right() < self.NEAR_WALL
+            ):
                 side_vel = -self.speed * speed_modifier
         else:
             if far_end.x < 0:
