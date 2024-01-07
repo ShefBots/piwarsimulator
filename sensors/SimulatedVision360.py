@@ -142,7 +142,8 @@ class SimulatedVision360(Sensor):
                         )
                         for u in u2.geoms:
                             if (
-                                u.coords[0][1] >= (self.ExteriorTheWorld[0].height / 2 - 0.01)
+                                u.coords[0][1]
+                                >= (self.ExteriorTheWorld[0].height / 2 - 0.01)
                                 and u.coords[1][1]
                                 >= self.ExteriorTheWorld[0].height / 2
                             ):
