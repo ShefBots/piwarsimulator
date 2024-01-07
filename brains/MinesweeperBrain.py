@@ -16,7 +16,7 @@ class MinesweeperBrain(RobotBrain):
 
     def __init__(self, **kwargs):
         super(MinesweeperBrain, self).__init__(**kwargs)
-        self.state = ExecutionState.PROGRAM_CONTROL
+        self.state = ExecutionState.PROGRAM_INIT
 
     def process(self):
         """do the basic brain stuff then do specific minesweeper things"""
@@ -25,6 +25,21 @@ class MinesweeperBrain(RobotBrain):
         super().process()
         # don't do anything if the manual override is triggered
         if self.sensor_measurements["manual_control"]:
+            return
+
+        if self.state == ExecutionState.PROGRAM_INIT:
+            self.state = ExecutionState.SQUARING_UP
+            if not self.distance_forward() is None:
+                self.square_up_heading = 0
+            elif not self.distance_right() is None:
+                self.square_up_heading = 90
+            elif not self.distance_left() is None:
+                self.square_up_heading = -90
+            else:
+                self.state = ExecutionState.PROGRAM_CONTROL
+            print(self.square_up_heading)
+        elif self.state == ExecutionState.SQUARING_UP:
+            # nothing smart to do while squaring up
             return
 
         # find something to move towards

@@ -8,12 +8,13 @@ class ExecutionState(Enum):
     STOPPED = 0  # finished program
     NO_CONTROL = 1  # nothing smart started
     SQUARING_UP = 2  # aligning to wall
-    PROGRAM_CONTROL = 3  # generic something smart is happening
+    PROGRAM_INIT = 3  # something to take of before control
+    PROGRAM_CONTROL = 4  # do something smart
 
     # states for other brains
-    MOVE_LEFT = 5
-    MOVE_FORWARD = 6
-    MOVE_RIGHT = 7
+    MOVE_LEFT = 10
+    MOVE_FORWARD = 11
+    MOVE_RIGHT = 12
 
     def __str__(self):
         """Return a string representation of the ExecutionState"""

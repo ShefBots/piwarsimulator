@@ -35,7 +35,9 @@ class RobotBrain:
         # anything we're transporting (exterior world objects when simulating)
         self.holding = []
 
+        # what we're doing (roughly)
         self.state = ExecutionState.NO_CONTROL
+        self.square_up_heading = 180  # when squaring trying to align to this
 
         # for sensor output
         self.sensors = []  # any sensors
@@ -94,6 +96,9 @@ class RobotBrain:
             self.controller.set_angular_velocity(
                 self.sensor_measurements["angular_vel"]
             )
+
+        if self.state == ExecutionState.SQUARING_UP:
+            self.square_up()
 
     def find_goal(self):
         """default brain has no goal"""
@@ -181,7 +186,14 @@ class RobotBrain:
         """return the distance to left wall"""
         return self.distances[self.SENSOR_HEADINGS.index(90)]
 
-    def square_up(self, heading):
+    def square_up(self):
         """make sure we're parallel to a wall in a direction"""
         # TODO squaring up routine
-        pass
+        # move side to side checking forward and side sensors distance change
+        # use angle of that to rotate a specified amount
+        # then move backwards some to ensure distance to walls > WALL_STOP_DISTANCE
+
+        # if no reading in alignment direction return
+
+        # return control to the brain
+        self.state = ExecutionState.PROGRAM_CONTROL

@@ -12,12 +12,11 @@ class MazeBrain(RobotBrain):
     # how close to get to walls before moving to next program stage
     WALL_STOP_DISTANCE = 0.15
 
-    state = ExecutionState.SQUARING_UP
-
     def __init__(self, **kwargs):
         super(MazeBrain, self).__init__(**kwargs)
-        # start by squaring up
+        # start by squaring up (making sure we're aligned with the walls)
         self.state = ExecutionState.SQUARING_UP
+        self.square_up_heading = 0  # align to wall in front
         self.last_reading = time()
 
     def process(self):
@@ -34,12 +33,8 @@ class MazeBrain(RobotBrain):
             return
 
         # make sure we're parallel to a wall
-        if self.state == ExecutionState.SQUARING_UP:
-            # TODO wall alignment routine
-            self.square_up(0)
-            # move side to side checking forward and side sensors distance change
-            # use angle of that to rotate a specified amount
-            # then move backwards some to ensure distance to walls > WALL_STOP_DISTANCE
+        if self.state == ExecutionState.PROGRAM_CONTROL:
+            # entry into solving routine
             self.state = ExecutionState.MOVE_LEFT
             self.controller.set_plane_velocity([-self.speed, 0])
 
@@ -83,7 +78,7 @@ class MazeBrain(RobotBrain):
             if time() - self.last_reading > (0.03 / self.speed):
                 # stop if no walls have been seen for X seconds (30 cm distance equiv)
                 self.controller.stop()
-                self.state = self.STOPPED
+                self.state = ExecutionState.STOPPED
 
         elif self.state == ExecutionState.MOVE_RIGHT:
             if (

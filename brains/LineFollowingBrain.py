@@ -33,6 +33,7 @@ class LineFollowingBrain(RobotBrain):
             # otherwise just stop
             if time() - self.last_goal > (0.4 / self.speed) and self.controller.moving:
                 self.controller.stop()
+                self.state = ExecutionState.STOPPED
             return
         self.last_goal = time()
 
