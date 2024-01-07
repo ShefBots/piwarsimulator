@@ -23,8 +23,9 @@ class MinesweeperBrain(RobotBrain):
 
         # find something to move towards
         (goal, goal_distance) = self.find_goal()
-        if goal == None:
-            self.controller.stop()
+        if goal == None and self.controller.moving:
+            if self.controller.moving:
+                self.controller.stop()
             return
 
         # slow down as we approach the mine
