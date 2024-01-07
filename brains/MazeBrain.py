@@ -8,7 +8,6 @@ from brains.RobotBrain import RobotBrain
 class MazeBrain(RobotBrain):
     """logic for the escape route challenge"""
 
-    SENSOR_HEADINGS = [-90, 0, 90]
     # how close to get to walls before moving to next program stage
     WALL_STOP_DISTANCE = 0.15
 
@@ -47,22 +46,35 @@ class MazeBrain(RobotBrain):
             self.CURRENT_MODE = self.MOVE_LEFT
             self.controller.set_plane_velocity([-self.speed, 0])
 
-        # get the distances to walls in each heading
-        distances = self.find_distances()
+        # check we're in range of some wall still
+        if any(d is not None for d in self.distances):
+            self.last_reading = time()
 
         # move in directions with space after getting close-ish to a wall
         if self.CURRENT_MODE == self.MOVE_LEFT:
-            if not distances[0] == None and distances[0] < self.WALL_STOP_DISTANCE:
+            if (
+                not self.distance_left() == None
+                and self.distance_left() < self.WALL_STOP_DISTANCE
+            ):
                 self.controller.set_plane_velocity([0, self.speed])
                 self.CURRENT_MODE = self.MOVE_FORWARD
 
         elif self.CURRENT_MODE == self.MOVE_FORWARD:
-            if not distances[1] == None and distances[1] < self.WALL_STOP_DISTANCE:
-                if distances[2] == None or distances[2] > self.WALL_STOP_DISTANCE:
+            if (
+                not self.distance_forward() == None
+                and self.distance_forward() < self.WALL_STOP_DISTANCE
+            ):
+                if (
+                    self.distance_right() == None
+                    or self.distance_right() > self.WALL_STOP_DISTANCE
+                ):
                     # there's space on the right, go that way
                     self.controller.set_plane_velocity([self.speed, 0])
                     self.CURRENT_MODE = self.MOVE_RIGHT
-                elif distances[0] == None or distances[0] > self.WALL_STOP_DISTANCE:
+                elif (
+                    self.distance_left() == None
+                    or self.distance_left() > self.WALL_STOP_DISTANCE
+                ):
                     # there's space on the left, go that way
                     self.controller.set_plane_velocity([-self.speed, 0])
                     self.CURRENT_MODE = self.MOVE_LEFT
@@ -77,22 +89,9 @@ class MazeBrain(RobotBrain):
                 self.CURRENT_MODE = self.STOPPED
 
         elif self.CURRENT_MODE == self.MOVE_RIGHT:
-            if not distances[2] == None and distances[2] < self.WALL_STOP_DISTANCE:
+            if (
+                not self.distance_right() == None
+                and self.distance_right() < self.WALL_STOP_DISTANCE
+            ):
                 self.controller.set_plane_velocity([0, self.speed])
                 self.CURRENT_MODE = self.MOVE_FORWARD
-
-    def find_distances(self):
-        """find the walls in each direction"""
-
-        distances = [None] * len(self.SENSOR_HEADINGS)
-
-        for k, _ in enumerate(distances):
-            for obj in self.TheWorld[1:]:
-                if obj.object_type != ObjectType.WALL:
-                    continue
-                if obj.heading == self.SENSOR_HEADINGS[k]:
-                    distances[k] = self.TheWorld[0].get_distance(obj)
-                    self.last_reading = time()
-                    break
-
-        return distances

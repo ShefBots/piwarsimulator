@@ -7,7 +7,13 @@ from world.ObjectType import *
 
 
 class RobotBrain:
-    """the basics of every brain"""
+    """
+    the basics of every brain
+    includes some common logic
+    """
+
+    # where time of flight sensors are installed pointing
+    SENSOR_HEADINGS = [-90, 0, 90]
 
     def __init__(self, **kwargs):
         self.robot = kwargs.get("robot", None)
@@ -32,6 +38,9 @@ class RobotBrain:
         self.sensor_measurements = {
             "manual_control": False
         }  # direct sensor measurements
+
+        # distances to the nearest wall in dirction of TOF sensors
+        self.distances = [None] * len(self.SENSOR_HEADINGS)
 
     def add_sensor(self, sensor):
         self.sensors.append(sensor)
@@ -59,6 +68,8 @@ class RobotBrain:
     def process(self):
         """basic logic is to just not hit anything & respond to control input"""
         self.poll_sensors()
+        self.find_distances()
+
         # TODO do we always want to check for collisions?
         if self.check_for_collision():
             self.controller.stop()
@@ -95,3 +106,30 @@ class RobotBrain:
                 print("Yikes! Something's a bit close!")
                 return True
         return False
+
+    def find_distances(self):
+        """find the walls reported by sensors in each heading direction"""
+
+        # reset distances
+        self.distances = [None] * len(self.SENSOR_HEADINGS)
+
+        # for each sensor find if there's a wall in that direction
+        for k, _ in enumerate(self.SENSOR_HEADINGS):
+            for obj in self.TheWorld[1:]:
+                if obj.object_type != ObjectType.WALL:
+                    continue
+                if obj.heading == self.SENSOR_HEADINGS[k]:
+                    self.distances[k] = self.TheWorld[0].get_distance(obj)
+                    break
+
+    def distance_forward(self):
+        """return the distance to ahead wall"""
+        return self.distances[self.SENSOR_HEADINGS.index(0)]
+
+    def distance_left(self):
+        """return the distance to left wall"""
+        return self.distances[self.SENSOR_HEADINGS.index(-90)]
+
+    def distance_right(self):
+        """return the distance to left wall"""
+        return self.distances[self.SENSOR_HEADINGS.index(90)]
