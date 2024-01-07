@@ -9,6 +9,7 @@ class LineFollowingBrain(RobotBrain):
     """logic for the line following challenge"""
 
     ANGLE_TOLERANCE = 2  # try and be pointing towards the line
+    NEAR_WALL = 0.1
 
     def __init__(self, **kwargs):
         super(LineFollowingBrain, self).__init__(**kwargs)
@@ -43,8 +44,6 @@ class LineFollowingBrain(RobotBrain):
         else:
             self.controller.set_angular_velocity(0)
 
-        # TODO if a wall is to either move away
-
         # find the far end of the detected line
         far_end = Point(0, 0)
         for i in goal.outline.coords:
@@ -56,6 +55,12 @@ class LineFollowingBrain(RobotBrain):
 
         if far_end.y > self.robot.height / 2:
             forward_vel = self.speed * speed_modifier
+
+            # if a wall is to either side move away (for if we're horribly not square)
+            if not self.distance_left() is None and self.distance_left() < self.NEAR_WALL:
+                side_vel = self.speed * speed_modifier
+            elif not self.distance_right() is None and self.distance_right() < self.NEAR_WALL:
+                side_vel = -self.speed * speed_modifier
         else:
             if far_end.x < 0:
                 side_vel = self.speed * speed_modifier
