@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import numpy as np
+from shapely.geometry import LineString
 
 
 def sqr_magnitude_of(vector):
@@ -14,3 +15,11 @@ def rotate_by(vector, angle):
     T = np.array([[cos_angle, -sin_angle], [sin_angle, cos_angle]])
 
     return np.matmul(T, vector)
+
+
+def outline_xy(outline):
+    """return the xy coordinates of the outline"""
+    if isinstance(outline, LineString):
+        return outline.xy
+    else:
+        return outline.exterior.xy

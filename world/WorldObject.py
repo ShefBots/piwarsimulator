@@ -147,13 +147,6 @@ class WorldObject:
         else:
             raise Exception("unknown distance comparison method")
 
-    def xy(self):
-        """return the xy coordinates of the outline"""
-        if isinstance(self.outline, LineString):
-            return self.outline.xy
-        else:
-            return self.outline.exterior.xy
-
     def __str__(self):
         return "%s centered at %0.3f, %0.3f rotated %0.3f degrees" % (
             self.object_type,

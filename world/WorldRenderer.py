@@ -4,6 +4,7 @@ import time
 import numpy as np
 from pygame import Color
 from world.ObjectType import *
+from util import outline_xy
 
 
 class WorldRenderer:
@@ -62,10 +63,10 @@ class WorldRenderer:
             zerozero_yoffset_pixels = 0
             if self.auto_scale:
                 # thanks ChatGPT for making this a bit shorter
-                xmin = min(np.min(obj.xy()[0]) for obj in TheWorld)
-                xmax = max(np.max(obj.xy()[0]) for obj in TheWorld)
-                ymin = min(np.min(obj.xy()[1]) for obj in TheWorld)
-                ymax = max(np.max(obj.xy()[1]) for obj in TheWorld)
+                xmin = min(np.min(outline_xy(obj.outline)[0]) for obj in TheWorld)
+                xmax = max(np.max(outline_xy(obj.outline)[0]) for obj in TheWorld)
+                ymin = min(np.min(outline_xy(obj.outline)[1]) for obj in TheWorld)
+                ymax = max(np.max(outline_xy(obj.outline)[1]) for obj in TheWorld)
                 m = max(xmax - xmin, ymax - ymin)
                 if m > self.VERTICAL_VIEW:
                     world_scale = self.y_res / (m + 0.5)
@@ -78,25 +79,16 @@ class WorldRenderer:
 
             for obj in reversed(TheWorld):
                 # iterate through backwards so that the robot is always rendered last (on top)
-                # get the coordinates of the outline (also draws line type objects)
-                x, y = obj.xy()
-                x = (
-                    self.transform_horizontal(np.array(x), world_scale)
-                    + world_at * self.x_res
-                    + zerozero_xoffset_pixels
-                )
-                y = (
-                    self.transform_vertical(np.array(y), world_scale)
-                    + zerozero_yoffset_pixels
-                )
-                pnts = np.column_stack((x, y))
 
-                # draw the outline/line & fill if outline
-                if len(x) > 2:
-                    pygame.draw.polygon(self.screen, obj.color, pnts)
-                pygame.draw.aalines(self.screen, obj.color, True, pnts)
-                # TODO is there a way to draw a thicker antialiased line?
-                # render at a higher resolution with thick regular lines and resize to the dispaly res? (via @ZodiusInfuser)
+                # draw object outline
+                self.plot_outline(
+                    obj.outline,
+                    obj.color,
+                    world_scale,
+                    world_at,
+                    zerozero_xoffset_pixels,
+                    zerozero_yoffset_pixels,
+                )
 
                 # coordinates of center
                 i = (
@@ -150,3 +142,30 @@ class WorldRenderer:
         self.frame += 1
 
         # TODO would be nice if we could display log output on the screen
+
+    def plot_outline(
+        self,
+        outline,
+        color,
+        world_scale,
+        world_at,
+        zerozero_xoffset_pixels,
+        zerozero_yoffset_pixels,
+        fill=True,
+    ):
+        # get the coordinates of the outline (also draws line type objects)
+        x, y = outline_xy(outline)
+        x = (
+            self.transform_horizontal(np.array(x), world_scale)
+            + world_at * self.x_res
+            + zerozero_xoffset_pixels
+        )
+        y = self.transform_vertical(np.array(y), world_scale) + zerozero_yoffset_pixels
+        pnts = np.column_stack((x, y))
+
+        # draw the outline/line & fill if outline
+        if len(x) > 2 and fill == True:
+            pygame.draw.polygon(self.screen, color, pnts)
+        pygame.draw.aalines(self.screen, color, True, pnts)
+        # TODO is there a way to draw a thicker antialiased line?
+        # render at a higher resolution with thick regular lines and resize to the dispaly res? (via @ZodiusInfuser)
