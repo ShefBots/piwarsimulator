@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-import math
-import copy
-
 from world.WorldObject import *
 from world.ObjectType import *
 from brains.RobotBrain import RobotBrain

@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-import math
-import copy
 from time import time
 
 from world.WorldObject import *
