@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import numpy as np
-from shapely.geometry import LineString
 
 
 def sqr_magnitude_of(vector):
@@ -19,7 +18,8 @@ def rotate_by(vector, angle):
 
 def outline_xy(outline):
     """return the xy coordinates of the outline"""
-    if isinstance(outline, LineString):
+    # if isinstance(outline, LineString):
+    if outline.geom_type == "LineString" or outline.geom_type == "Point":
         return outline.xy
     else:
         return outline.exterior.xy
