@@ -141,10 +141,16 @@ while running:
 
     if args.rendering == "true":
         if args.mode == "control":
-            renderer.update(robot_brain.TheWorld)  # see the world as the robot sees it
+            renderer.update(
+                Worlds=robot_brain.TheWorld
+            )  # see the world as the robot sees it
         else:
             renderer.update(
-                ExteriorTheWorld, robot_brain.TheWorld
+                Worlds=[ExteriorTheWorld, robot_brain.TheWorld],
+                Sensors=[
+                    [s.fov for s in robot_brain.sensors],
+                    [s.outline for s in robot_brain.sensors],
+                ],
             )  # see the world as it is and as the robot sees it
 
         if renderer.running == False:

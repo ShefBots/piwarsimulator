@@ -94,9 +94,11 @@ class SimulatedLineOfSight(Sensor):
 
         # need to move the field of view outline to the robots locations and rotation
         # rotate first to take advantage of center (-ve because coordiante system)
-        fov = rotate(self.outline, -self.ExteriorTheWorld[0].angle, origin=(0, 0))
-        fov = translate(
-            fov, self.ExteriorTheWorld[0].center[0], self.ExteriorTheWorld[0].center[1]
+        self.fov = rotate(self.outline, -self.ExteriorTheWorld[0].angle, origin=(0, 0))
+        self.fov = translate(
+            self.fov,
+            self.ExteriorTheWorld[0].center[0],
+            self.ExteriorTheWorld[0].center[1],
         )
 
         closest = None
@@ -112,8 +114,8 @@ class SimulatedLineOfSight(Sensor):
             ):
                 continue  # skip non-barrels, non-walls and things being held
 
-            if fov.intersects(obj.outline):
-                u = fov.intersection(obj.outline)
+            if self.fov.intersects(obj.outline):
+                u = self.fov.intersection(obj.outline)
                 dist = self.ExteriorTheWorld[0].outline.distance(u)
                 if dist < closest_distance:
                     closest = obj

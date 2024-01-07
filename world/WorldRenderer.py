@@ -42,7 +42,7 @@ class WorldRenderer:
         """transform vertical coordiant to pixels (flipping so y = 0 is bottom )"""
         return np.round(-c * scale + self.screen.get_height() - self.y_res / 2)
 
-    def update(self, *Worlds):
+    def update(self, Worlds=[], Sensors=[]):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 print("Quit requested!")
@@ -52,7 +52,7 @@ class WorldRenderer:
         self.screen.fill(Color("black"))
 
         world_at = 0
-        for TheWorld in Worlds:
+        for k, TheWorld in enumerate(Worlds):
             # render each world
 
             # the default scale works out so that about 2 m is shown
@@ -76,6 +76,19 @@ class WorldRenderer:
                 zerozero_yoffset_pixels = np.round(
                     world_scale * (ymax - (ymax - ymin) / 2)
                 )
+
+            for s in Sensors[k]:
+                if not s == None:
+                    # draw sensor outline
+                    self.plot_outline(
+                        s,
+                        Color("azure"),
+                        world_scale,
+                        world_at,
+                        zerozero_xoffset_pixels,
+                        zerozero_yoffset_pixels,
+                        fill=False,
+                    )
 
             for obj in reversed(TheWorld):
                 # iterate through backwards so that the robot is always rendered last (on top)

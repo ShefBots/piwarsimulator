@@ -80,9 +80,11 @@ class SimulatedVision360(Sensor):
         """
 
         # from SimulatedLineOfSight
-        fov = rotate(self.outline, -self.ExteriorTheWorld[0].angle, origin=(0, 0))
-        fov = translate(
-            fov, self.ExteriorTheWorld[0].center[0], self.ExteriorTheWorld[0].center[1]
+        self.fov = rotate(self.outline, -self.ExteriorTheWorld[0].angle, origin=(0, 0))
+        self.fov = translate(
+            self.fov,
+            self.ExteriorTheWorld[0].center[0],
+            self.ExteriorTheWorld[0].center[1],
         )
 
         scan_result = []
@@ -106,10 +108,10 @@ class SimulatedVision360(Sensor):
                 if (
                     obj.object_type == ObjectType.LINE
                     and obj.color == Color("white")
-                    and fov.intersects(obj.outline)
+                    and self.fov.intersects(obj.outline)
                 ):
                     # from SimulatedLineOfSight
-                    u = fov.intersection(obj.outline)
+                    u = self.fov.intersection(obj.outline)
                     if u.geom_type == "LineString":
                         dist = self.ExteriorTheWorld[0].outline.distance(u)
                         if dist < closest_distance:
