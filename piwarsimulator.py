@@ -71,8 +71,9 @@ if args.mode == "simulation":
     from sensors.SimulatedLineOfSight import SimulatedLineOfSight
     from sensors.SimulatedVision360 import SimulatedVision360
 elif args.mode == "sensor_simulation":
-    # TODO real hardware, simulated sensors
-    pass
+    # TODO real hardware
+    from sensors.SimulatedLineOfSight import SimulatedLineOfSight
+    from sensors.SimulatedVision360 import SimulatedVision360
 elif args.mode == "control":
     # TODO real hardware
     pass
