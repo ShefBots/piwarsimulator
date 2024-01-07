@@ -18,6 +18,7 @@ class SimulatedLineOfSight(Sensor):
     MAX_RANGE = 1.3  # metres
 
     def __init__(self, ExteriorTheWorld, angle):
+        super().__init__()
         self.ExteriorTheWorld = ExteriorTheWorld
         assert ExteriorTheWorld[0].object_type == ObjectType.ROBOT
         print(f"Activating simulated time of flight sensor, pointing at {angle}'")
