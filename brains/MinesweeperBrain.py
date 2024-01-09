@@ -54,7 +54,7 @@ class MinesweeperBrain(RobotBrain):
             overlap_outline = self.TheWorld[0].outline.intersection(goal.outline)
             overlap = overlap_outline.area / self.TheWorld[0].outline.area
             # print(f"Overlapping mine by {overlap*100:.2f}% (vs {self.OVERLAP_TARGET*100:0.2f}%)")
-            speed_modifier = 0.5
+            speed_modifier = 0.75
         else:
             speed_modifier = 1
             overlap = 0
@@ -71,17 +71,22 @@ class MinesweeperBrain(RobotBrain):
                 else:
                     self.controller.set_angular_velocity(0)
 
-            # move sideways towards
-            if goal.center[0] > self.TheWorld[0].center[0]:
-                side_vel = self.speed * speed_modifier
-            else:
-                side_vel = -self.speed * speed_modifier
+                # move sideways towards
+                if goal.center[0] > self.TheWorld[0].center[0]:
+                    side_vel = self.speed * speed_modifier
+                else:
+                    side_vel = -self.speed * speed_modifier
 
-            # move forwards towards
-            if goal.center[1] > self.TheWorld[0].center[1]:
-                forward_vel = self.speed * speed_modifier
+                # move forwards towards
+                if goal.center[1] > self.TheWorld[0].center[1]:
+                    forward_vel = self.speed * speed_modifier
+                else:
+                    forward_vel = -self.speed * speed_modifier
+
             else:
-                forward_vel = -self.speed * speed_modifier
+                # go directly at angle to the target
+                forward_vel = self.speed * speed_modifier * math.cos(math.radians(goal.heading))
+                side_vel = self.speed * speed_modifier * math.sin(math.radians(goal.heading))
 
             # handle walls so that we zig-zag off them
             if (
