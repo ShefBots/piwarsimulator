@@ -57,15 +57,14 @@ class EcoDisasterBrain(RobotBrain):
             ],
         )
 
-        self.gripper_closed = half_gripper_closed.union(
+        self.gripper_closed_outline = half_gripper_closed.union(
             scale(half_gripper_closed, xfact=-1, origin=(0, 0))
         )
-        self.gripper_open = half_gripper_open.union(
+        self.gripper_open_outline = half_gripper_open.union(
             scale(half_gripper_open, xfact=-1, origin=(0, 0))
         )
 
-        self.attachment_outline = self.gripper_closed
-        self.gripper_state = self.GRIPPER_CLOSED
+        self.close_gripper()
 
     def process(self):
         """do the basic brain stuff then do specific ecodisaster things"""
@@ -131,3 +130,13 @@ class EcoDisasterBrain(RobotBrain):
             return self.find_closest(ObjectType.BARREL)
         else:
             return (None, 9e99)
+
+    def open_gripper(self):
+        # TODO real hardware
+        self.gripper_state = self.GRIPPER_OPEN
+        self.attachment_outline = self.gripper_open_outline
+
+    def close_gripper(self):
+        # TODO real hardware
+        self.gripper_state = self.GRIPPER_CLOSED
+        self.attachment_outline = self.gripper_closed_outline
