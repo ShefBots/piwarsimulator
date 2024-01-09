@@ -19,9 +19,12 @@ class EcoDisasterBrain(RobotBrain):
     GRIPPER_ANGLE_TOLERANCE = 2  # degree
     GRIPPER_TOLERANCE = 0.01  # m
 
+    GRIPPER_CLOSED = 0
+    GRIPPER_OPEN = 1
+
     def __init__(self, **kwargs):
         super(EcoDisasterBrain, self).__init__(**kwargs)
-        self.state = ExecutionState.PROGRAM_CONTROL
+        self.state = ExecutionState.MOVE_TO_BARREL
         self.do_collision_detection = False  # let the logic here handle it
 
         half_gripper_closed = Polygon(
@@ -62,6 +65,7 @@ class EcoDisasterBrain(RobotBrain):
         )
 
         self.attachment_outline = self.gripper_closed
+        self.gripper_state = self.GRIPPER_CLOSED
 
     def process(self):
         """do the basic brain stuff then do specific ecodisaster things"""
@@ -79,49 +83,51 @@ class EcoDisasterBrain(RobotBrain):
         if goal is None:
             return
 
-        # print(goal_distance)
-        # print(self.radius() + self.GRIPPER_TOLERANCE)
+        if self.state == ExecutionState.MOVE_TO_BARREL:
 
-        # if in range of target
-        if goal_distance < self.GRIPPER_TOLERANCE:
-            print("In range of goal!")
-            self.controller.stop()
-        else:
-            # turn towards target
-            if goal.heading > self.GRIPPER_ANGLE_TOLERANCE:
-                self.controller.set_angular_velocity(self.turning_speed)
-                if math.fabs(goal.heading) > 10:
-                    self.controller.set_plane_velocity([0, 0])
-            elif goal.heading < -self.GRIPPER_ANGLE_TOLERANCE:
-                self.controller.set_angular_velocity(-self.turning_speed)
+            # if in range of target
+            if goal_distance < self.GRIPPER_TOLERANCE:
+                print("In range of goal!")
+                self.controller.stop()
             else:
-                self.controller.set_angular_velocity(0)
-                self.controller.set_plane_velocity([0, self.speed])
+                # turn towards target
+                if goal.heading > self.GRIPPER_ANGLE_TOLERANCE:
+                    self.controller.set_angular_velocity(self.turning_speed)
+                    if math.fabs(goal.heading) > 10:
+                        self.controller.set_plane_velocity([0, 0])
+                elif goal.heading < -self.GRIPPER_ANGLE_TOLERANCE:
+                    self.controller.set_angular_velocity(-self.turning_speed)
+                else:
+                    self.controller.set_angular_velocity(0)
+                    self.controller.set_plane_velocity([0, self.speed])
 
-        # TODO if the angles don't match, backup rotate, try to grab again
+            # TODO if the angles don't match, backup rotate, try to grab again
+                    
+            # if a barrel pick it up
+            if goal.object_type == ObjectType.BARREL:
+                pass
+                # print("Grabbing barrel")
+                # self.holding.append(goal)
+                # goal.exterior.is_held = True  # this is a simulation thing
 
-        # if a barrel pick it up
-        if goal.object_type == ObjectType.BARREL:
-            pass
-            # print("Grabbing barrel")
-            # self.holding.append(goal)
-            # goal.exterior.is_held = True  # this is a simulation thing
 
-        # if a zone drop the barrel off
-        if goal.object_type == ObjectType.ZONE:
-            pass
-            # print("Dropping off barrel")
-            # self.holding.pop(0)
+        if self.state == ExecutionState.MOVE_TO_ZONE:
+
+            # if a zone drop the barrel off
+            if goal.object_type == ObjectType.ZONE:
+                pass
+                # print("Dropping off barrel")
+                # self.holding.pop(0)
 
     def find_goal(self):
-        """find the closest TARGET or ZONE"""
-        # TODO need to ignore barrels in zones
-        if len(self.holding) > 0:
-            # otherwise find the zone that matches the held item colour
+        """find the closest TARGET or ZONE depending on execution state"""
+
+        if self.state == ExecutionState.MOVE_TO_ZONE:
+            # TODO need to ignore barrels in/near zones
             return self.find_closest(
-                ObjectType.BARREL, color=self.GOAL_MAPPING[self.holding[0].color]
+                ObjectType.ZONE, color=self.GOAL_MAPPING[self.holding[0].color]
             )
-        else:
+        elif self.state == ExecutionState.MOVE_TO_BARREL:
             return self.find_closest(ObjectType.BARREL)
         else:
             return (None, 9e99)
