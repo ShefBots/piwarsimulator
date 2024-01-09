@@ -120,7 +120,7 @@ class RobotBrain:
 
     def find_goal(self):
         """default brain has no goal"""
-        pass
+        return (None, 9e99)
 
     def check_for_collision(self):
         for obj in self.TheWorld[1:]:  # ignore the robot in 0

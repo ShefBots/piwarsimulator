@@ -123,3 +123,5 @@ class EcoDisasterBrain(RobotBrain):
             )
         else:
             return self.find_closest(ObjectType.BARREL)
+        else:
+            return (None, 9e99)
