@@ -63,6 +63,10 @@ class RobotBrain:
         # distances to the nearest wall in dirction of TOF sensors
         self.distances = [None] * len(self.SENSOR_HEADINGS)
 
+        # anything attached to us affecting our shape
+        # only used in TheWorld so only needs to be relative to pointing north unrotated
+        self.attachment_outline = []
+
     def add_sensor(self, sensor):
         self.sensors.append(sensor)
 
@@ -80,6 +84,9 @@ class RobotBrain:
                 angle=0,
             )
         ]
+        self.TheWorld[-1].outline = self.TheWorld[-1].outline.union(
+            self.attachment_outline
+        )
         for s in self.sensors:
             objects, readings = s.do_scan()
             self.TheWorld += objects

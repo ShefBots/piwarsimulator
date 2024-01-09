@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import math
+from shapely.affinity import scale
+from shapely.geometry import Polygon
 from brains.ExecutionState import ExecutionState
 from brains.RobotBrain import RobotBrain
 from world.WorldObject import *
@@ -21,6 +23,45 @@ class EcoDisasterBrain(RobotBrain):
         super(EcoDisasterBrain, self).__init__(**kwargs)
         self.state = ExecutionState.PROGRAM_CONTROL
         self.do_collision_detection = False  # let the logic here handle it
+
+        half_gripper_closed = Polygon(
+            [
+                (
+                    -self.robot.width / 2,
+                    self.robot.height / 2 - 0.002,  # minus a bit so geometry sticks
+                ),
+                (
+                    -0.002,  # minus a bit so that there's always a hole
+                    self.robot.height / 2 + 0.1,
+                ),
+                (
+                    -0.002,
+                    self.robot.height / 2 + 0.08,
+                ),
+                (
+                    -self.robot.width / 2 + 0.02,
+                    self.robot.height / 2 - 0.002,
+                ),
+            ]
+        )
+
+        half_gripper_open = rotate(
+            half_gripper_closed,
+            45,
+            origin=[
+                -self.robot.width / 2,
+                self.robot.height / 2,
+            ],
+        )
+
+        self.gripper_closed = half_gripper_closed.union(
+            scale(half_gripper_closed, xfact=-1, origin=(0, 0))
+        )
+        self.gripper_open = half_gripper_open.union(
+            scale(half_gripper_open, xfact=-1, origin=(0, 0))
+        )
+
+        self.attachment_outline = self.gripper_closed
 
     def process(self):
         """do the basic brain stuff then do specific ecodisaster things"""
