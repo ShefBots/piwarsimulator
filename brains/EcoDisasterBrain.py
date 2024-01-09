@@ -123,8 +123,12 @@ class EcoDisasterBrain(RobotBrain):
 
         if self.state == ExecutionState.MOVE_TO_ZONE:
             # TODO need to ignore barrels in/near zones
+            if self.holding[0].color == Color('darkgreen'):
+                holding_color = 'darkgreen'
+            elif self.holding[0].color == Color('red'):
+                holding_color = 'red'
             return self.find_closest(
-                ObjectType.ZONE, color=self.GOAL_MAPPING[self.holding[0].color]
+                ObjectType.ZONE, color=self.GOAL_MAPPING[holding_color]
             )
         elif self.state == ExecutionState.MOVE_TO_BARREL:
             return self.find_closest(ObjectType.BARREL)
