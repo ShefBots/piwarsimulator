@@ -160,7 +160,11 @@ class RobotBrain:
         return False
 
     def find_closest(self, object_type, color="", exclude=[]):
-        """find the closest object_type"""
+        """
+        find the closest object_type
+        note color should be a pygame.color.Color
+        exclude a list of WorldObjects
+        """
         closest = None
         closest_distance = 9e99
         for obj in self.TheWorld[1:]:  # skip the robot and check everything else

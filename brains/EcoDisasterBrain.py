@@ -8,13 +8,14 @@ from world.WorldObject import *
 from world.ObjectType import *
 
 
+# TODO: logic...
 class EcoDisasterBrain(RobotBrain):
     """logic for the ecodisaster challenge"""
 
     # will need to account for gripper in collisions, this'll probably need a constructor
     # will need to account for zones in collisions
 
-    GOAL_MAPPING = {"darkgreen": "blue", "red": "yellow"}
+    GOAL_MAPPING = {"darkgreen": Color("blue"), "red": Color("yellow")}
 
     GRIPPER_ANGLE_TOLERANCE = 2  # degree
     GRIPPER_TOLERANCE = 0.01  # m
