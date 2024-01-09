@@ -209,7 +209,7 @@ class RobotBrain:
         speed = -self.speed / 4
         if self.square_up_heading == 0:
             alignment_vector = np.array([speed, 0])
-        elif abs(self.square_up_heading) == 90:
+        elif math.fabs(self.square_up_heading) == 90:
             # note, not super tested aligning to side walls
             alignment_vector = np.array([0, speed])
         else:

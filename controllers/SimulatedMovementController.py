@@ -56,7 +56,7 @@ class SimulatedMovementController(Controller, Thread):
                 # Code from @ZodiusInfuser
                 # NOTE I think something is funny here, needs to be -rotation in rotate_by to work
 
-                if abs(rotation) > self.ROTATION_THRESHOLD:
+                if np.abs(rotation) > self.ROTATION_THRESHOLD:
                     # Has Rotation?
                     if np.linalg.norm(translation) > self.TRANSLATION_THRESHOLD:
                         # Has Translation? Then calculate the instantaneous centre of rotation
