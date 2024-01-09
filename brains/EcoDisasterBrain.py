@@ -15,7 +15,7 @@ class EcoDisasterBrain(RobotBrain):
     GOAL_MAPPING = {"darkgreen": "blue", "red": "yellow"}
 
     GRIPPER_ANGLE_TOLERANCE = 2  # degree
-    GRIPPER_TOLERANCE = 0.02  # m
+    GRIPPER_TOLERANCE = 0.01  # m
 
     def __init__(self, **kwargs):
         super(EcoDisasterBrain, self).__init__(**kwargs)
@@ -49,6 +49,8 @@ class EcoDisasterBrain(RobotBrain):
             # turn towards target
             if goal.heading > self.GRIPPER_ANGLE_TOLERANCE:
                 self.controller.set_angular_velocity(self.turning_speed)
+                if math.fabs(goal.heading) > 10:
+                    self.controller.set_plane_velocity([0, 0])
             elif goal.heading < -self.GRIPPER_ANGLE_TOLERANCE:
                 self.controller.set_angular_velocity(-self.turning_speed)
             else:
