@@ -58,6 +58,7 @@ class RobotBrain:
 
         # are we close to colliding with something?
         self.collision = None
+        self.do_collision_detection = True
 
         # distances to the nearest wall in dirction of TOF sensors
         self.distances = [None] * len(self.SENSOR_HEADINGS)
@@ -92,7 +93,7 @@ class RobotBrain:
         self.find_distances()
 
         # TODO do we always want to try and stop on collisions? return?
-        if not self.collision is None:
+        if self.do_collision_detection == True and not self.collision is None:
             self.controller.stop()
 
         # print(self.sensor_measurements)

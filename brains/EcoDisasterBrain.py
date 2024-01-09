@@ -20,6 +20,7 @@ class EcoDisasterBrain(RobotBrain):
     def __init__(self, **kwargs):
         super(EcoDisasterBrain, self).__init__(**kwargs)
         self.state = ExecutionState.PROGRAM_CONTROL
+        self.do_collision_detection = False  # let the logic here handle it
 
     def process(self):
         """do the basic brain stuff then do specific ecodisaster things"""
