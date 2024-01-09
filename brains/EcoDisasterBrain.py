@@ -83,38 +83,43 @@ class EcoDisasterBrain(RobotBrain):
             return
 
         if self.state == ExecutionState.MOVE_TO_BARREL:
+            if goal_distance < 0.2:
+                self.open_gripper()
 
-            # if in range of target
+            # if in range of barrel
             if goal_distance < self.GRIPPER_TOLERANCE:
-                print("In range of goal!")
+                print("Grabbing barrel")
                 self.controller.stop()
+                self.close_gripper()
+                self.holding.append(goal)
+                self.state = ExecutionState.MOVE_TO_ZONE
+
             else:
-                # turn towards target
+                # turn towards barrel
                 if goal.heading > self.GRIPPER_ANGLE_TOLERANCE:
                     self.controller.set_angular_velocity(self.turning_speed)
-                    if math.fabs(goal.heading) > 10:
-                        self.controller.set_plane_velocity([0, 0])
                 elif goal.heading < -self.GRIPPER_ANGLE_TOLERANCE:
                     self.controller.set_angular_velocity(-self.turning_speed)
                 else:
                     self.controller.set_angular_velocity(0)
+
+                if math.fabs(goal.heading) > 10:
+                    # so far off we probably need to just turn in place
+                    self.controller.set_plane_velocity([0, 0])
+                else:
+                    # move towards goal
                     self.controller.set_plane_velocity([0, self.speed])
 
             # TODO if the angles don't match, backup rotate, try to grab again
-                    
-            # if a barrel pick it up
-            if goal.object_type == ObjectType.BARREL:
-                pass
-                # print("Grabbing barrel")
-                # self.holding.append(goal)
-                # goal.exterior.is_held = True  # this is a simulation thing
 
-
-        if self.state == ExecutionState.MOVE_TO_ZONE:
+        elif self.state == ExecutionState.MOVE_TO_ZONE:
+            # wait for the gripper to close
+            if self.gripper_state == self.GRIPPER_OPEN:
+                return
 
             # if a zone drop the barrel off
             if goal.object_type == ObjectType.ZONE:
-                pass
+                self.controller.stop()
                 # print("Dropping off barrel")
                 # self.holding.pop(0)
 
