@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 import time
 import numpy as np
+from shapely.affinity import rotate
 from threading import Thread
-from controllers.Controller import Controller
 import util
+from controllers.Controller import Controller
 from world.ObjectType import *
 
 
@@ -28,6 +29,8 @@ class SimulatedMovementController(Controller, Thread):
         self.running = False
         self.moving = False
 
+        self.holding = []  # items to move along with robot
+
         self.start()
 
     def set_angular_velocity(self, theta):
@@ -48,18 +51,24 @@ class SimulatedMovementController(Controller, Thread):
 
             if self.moving:
                 # TODO handle any objects the robot is holding
+                # if len(self.holding) > 0:
+                # print(self.holding)
 
                 rotation = self.theta_vel * self.UPDATE_RATE
                 translation = self.vel * self.UPDATE_RATE
 
                 # Need to account for when translating and rotating the x,y coordinate is no longer the centre of rotation
                 # Code from @ZodiusInfuser
-                # NOTE I think something is funny here, needs to be -rotation in rotate_by to work
+                # needs to be -rotation in rotate_by to work, I think because of navigational rotation is reversed from mathematical rotation
 
+                # Has rotation?
                 if np.abs(rotation) > self.ROTATION_THRESHOLD:
-                    # Has Rotation?
+                    # For held item rotation
+                    relative_position = self.robot.center
+
+                    # Has translation?
                     if np.linalg.norm(translation) > self.TRANSLATION_THRESHOLD:
-                        # Has Translation? Then calculate the instantaneous centre of rotation
+                        # Then calculate the instantaneous centre of rotation
 
                         # This takes the vector perpendicular to the translation and scales it by
                         # a factor inversely proportional to the rotation. The result is a position
@@ -83,18 +92,53 @@ class SimulatedMovementController(Controller, Thread):
                             + self.robot.center
                         )
 
-                        # Rotate the robot position around the centre of rotation
+                        # Translation step of robot rotatation around the centre of rotation
                         relative_position = self.robot.center - world_centre_of_rotation
                         rotated_position = util.rotate_by(relative_position, -rotation)
                         self.robot.center = rotated_position + world_centre_of_rotation
 
+                        # Translation step of held item rotatation around the centre of rotation
+                        for obj in self.holding:
+                            relative_position = (
+                                obj.exterior.center - world_centre_of_rotation
+                            )
+                            rotated_position = util.rotate_by(
+                                relative_position, -rotation
+                            )
+                            obj.exterior.center = (
+                                rotated_position + world_centre_of_rotation
+                            )
+                            # Change the held item's heading
+                            obj.exterior.angle = obj.exterior.angle + rotation
+
+                    else:
+                        # Change held items rotation (rotating about robot's center of rotation)
+                        for obj in self.holding:
+                            obj.exterior.outline = rotate(
+                                obj.exterior.outline,
+                                -rotation,  # reversed rotation from coordinate system
+                                # origin=relative_position.tolist(),
+                                origin=self.robot.outline.centroid,
+                            )
+                            obj.exterior._angle = obj.exterior._angle + rotation
+                            obj.exterior._center = np.array(
+                                [
+                                    obj.exterior.outline.centroid.x,
+                                    obj.exterior.outline.centroid.y,
+                                ]
+                            )
+
                     # Change the robot's heading
-                    self.robot.angle += rotation
+                    self.robot.angle = self.robot.angle + rotation
 
                 else:
                     # Translate the robot position in its local frame
                     world_translation = util.rotate_by(translation, -self.robot.angle)
                     self.robot.center = world_translation + self.robot.center
+
+                    # Translate held items
+                    for obj in self.holding:
+                        obj.exterior.center = obj.exterior.center + world_translation
 
             to_sleep = self.UPDATE_RATE - (time.time() - now)
             if to_sleep > 0:

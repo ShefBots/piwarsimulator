@@ -102,6 +102,7 @@ class WorldObject:
             raise Exception("unknown object type")
 
         self.is_held = kwargs.get("is_held", False)
+        self.exterior = None  # exterior world version when simulation
         self.heading = 0  # angle relative to the robot (for sensor output)
 
     @property

@@ -9,8 +9,8 @@ from world.ObjectType import ObjectType
 from world.WorldObject import WorldObject
 
 
+# TODO render attachment_outline in ExteriorTheWorld view
 # TODO brains: ecodisaster
-# TODO held items
 # TODO classes for real hardware
 # TODO sensor_simulation (real control only) mode and control mode (all real)
 
@@ -121,6 +121,9 @@ print(f"Loading {args.brain}...")
 brain = getattr(importlib.import_module("brains." + args.brain), args.brain)
 # robot_brain = brain(robot=robot, controller=controller, speed=0.05, turning_speed=10)
 robot_brain = brain(robot=robot, controller=controller, speed=0.3, turning_speed=60)
+if args.mode == "simulation" or args.mode == "sensor_simulation":
+    # this works because lists are references
+    controller.holding = robot_brain.holding
 
 print("Attaching sensors...")
 if args.mode == "simulation" or args.mode == "sensor_simulation":

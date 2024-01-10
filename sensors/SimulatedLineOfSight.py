@@ -148,7 +148,8 @@ class SimulatedLineOfSight(Sensor):
 
             # because the sensor is always pointing one direction we know it's always has that heading
             scanned_obj.heading = self.angle
-
+            
+            scanned_obj.exterior = obj
             scan_result.append(scanned_obj)
 
         return scan_result, {}

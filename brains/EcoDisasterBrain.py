@@ -143,6 +143,7 @@ class EcoDisasterBrain(RobotBrain):
                 self.controller.set_angular_velocity(-self.turning_speed)
             else:
                 self.controller.set_angular_velocity(0)
+                self.controller.set_plane_velocity([0, 0.3])
 
             # if a zone drop the barrel off
             # if goal.object_type == ObjectType.ZONE:
