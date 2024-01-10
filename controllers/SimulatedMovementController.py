@@ -50,10 +50,6 @@ class SimulatedMovementController(Controller, Thread):
             now = time.time()
 
             if self.moving:
-                # TODO handle any objects the robot is holding
-                # if len(self.holding) > 0:
-                # print(self.holding)
-
                 rotation = self.theta_vel * self.UPDATE_RATE
                 translation = self.vel * self.UPDATE_RATE
 
