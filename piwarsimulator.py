@@ -88,8 +88,7 @@ elif args.mode == "control":
     # TODO real hardware
     pass
 
-# the order this is constructed in is also the rendering order...
-ExteriorTheWorld = []
+# provides robot geometry
 robot = WorldObject(
     object_type=ObjectType.ROBOT,
     x=0,
@@ -99,10 +98,14 @@ robot = WorldObject(
     angle=0
     # object_type=ObjectType.ROBOT, x=0.1, y=-0.3, w=0.18, h=0.235, angle=20
 )  # units metres and degress
-ExteriorTheWorld.append(robot)  # this should always be index 0!
 
-# import the map
 if args.mode == "simulation" or args.mode == "sensor_simulation":
+    # objects for rendering
+    # the order this is constructed in is also the rendering order...
+    ExteriorTheWorld = []
+    ExteriorTheWorld.append(robot)  # this should always be index 0!
+
+    # import the map
     print(f"Loading map {args.map}...")
     map = getattr(importlib.import_module("world." + args.map), args.map)
     map(ExteriorTheWorld)
