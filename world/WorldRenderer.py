@@ -3,6 +3,8 @@ import pygame
 import time
 import numpy as np
 from pygame import Color
+from shapely.affinity import rotate
+from shapely.affinity import translate
 from world.ObjectType import *
 from util import outline_xy
 
@@ -102,6 +104,29 @@ class WorldRenderer:
                     zerozero_xoffset_pixels,
                     zerozero_yoffset_pixels,
                 )
+
+                if (
+                    obj.object_type == ObjectType.ROBOT
+                    and hasattr(obj, "brain")
+                    and hasattr(obj.brain, "attachment_outline")
+                ):
+                    ao = rotate(
+                        translate(
+                            obj.brain.attachment_outline, obj.center[0], obj.center[1]
+                        ),
+                        -obj.angle,
+                        origin=(obj.center[0], obj.center[1]),
+                    )
+
+                    for o in ao.geoms:
+                        self.plot_outline(
+                            o,
+                            obj.color,
+                            world_scale,
+                            world_at,
+                            zerozero_xoffset_pixels,
+                            zerozero_yoffset_pixels,
+                        )
 
                 # coordinates of center
                 i = (

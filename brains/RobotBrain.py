@@ -32,6 +32,7 @@ class RobotBrain:
         self.turning_speed = kwargs.get("turning_speed", 1)  # 1 degrees/s
         assert isinstance(self.robot, WorldObject)
         assert self.robot.object_type == ObjectType.ROBOT
+        self.robot.brain = self
 
         # the long term goal - we get this from a scan result and
         # use it to cross verify with subsequent scan results
@@ -85,6 +86,7 @@ class RobotBrain:
                 angle=0,
             )
         ]
+        # self.TheWorld[-1].brain = self
         self.TheWorld[-1].outline = self.TheWorld[-1].outline.union(
             self.attachment_outline
         )

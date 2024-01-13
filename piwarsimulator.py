@@ -9,7 +9,6 @@ from world.ObjectType import ObjectType
 from world.WorldObject import WorldObject
 
 
-# TODO render attachment_outline in ExteriorTheWorld view
 # TODO brains: ecodisaster
 # TODO classes for real hardware
 # TODO sensor_simulation (real control only) mode and control mode (all real)
