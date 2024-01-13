@@ -89,10 +89,6 @@ class SimulatedLineOfSight(Sensor):
 
         scan_result = []
 
-        # if holding something a forward facing sensor won't see anything
-        if len(self.robot_brain.holding) > 0 and self.angle == 0:
-            return scan_result, {}
-
         # need to move the field of view outline to the robots locations and rotation
         # rotate first to take advantage of center (-ve because coordiante system)
         self.fov = rotate(self.outline, -self.ExteriorTheWorld[0].angle, origin=(0, 0))
@@ -101,6 +97,11 @@ class SimulatedLineOfSight(Sensor):
             self.ExteriorTheWorld[0].center[0],
             self.ExteriorTheWorld[0].center[1],
         )
+
+        # if holding something a forward facing sensor won't see anything
+        if len(self.robot_brain.holding) > 0 and self.angle == 0:
+            # could return unknown object type instead?
+            return scan_result, {}
 
         closest = None
         closest_distance = 9e99
