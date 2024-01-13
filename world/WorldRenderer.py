@@ -13,6 +13,7 @@ class WorldRenderer:
     """Render the world so we can see what the robot is doing"""
 
     VERTICAL_VIEW = 3.0  # number of metres shown
+    AA_THICK_LINES = 0  # set to 1 for smooth thick lines for a performance penalty
 
     def __init__(self, **kwargs):
         print("Initialising renderer...")
@@ -27,6 +28,12 @@ class WorldRenderer:
         self.screen = pygame.display.set_mode(
             (self.x_res * self.num_worlds, self.y_res)
         )
+        if self.AA_THICK_LINES == 1:
+            self.highres_screen = pygame.Surface(
+                [self.screen.get_width() * 2, self.screen.get_height() * 2],
+                pygame.SRCALPHA,
+                32,
+            )
         self.world_scale = kwargs.get("world_scale", self.y_res / self.VERTICAL_VIEW)
         self.auto_scale = kwargs.get("auto_scale", True)
         self.font = pygame.font.Font(None, self.y_res // 32)  # default font
@@ -52,6 +59,8 @@ class WorldRenderer:
 
         # reset the canvas
         self.screen.fill(Color("black"))
+        if self.AA_THICK_LINES == 1:
+            self.highres_screen.fill((0, 0, 0, 0))
 
         world_at = 0
         for k, TheWorld in enumerate(Worlds):
@@ -171,15 +180,19 @@ class WorldRenderer:
         if self.fps_at == len(self.fps):
             self.fps_at = 0
 
+        if self.AA_THICK_LINES == 1:
+            self.screen.blit(
+                pygame.transform.smoothscale_by(self.highres_screen, 0.5),
+                (0, 0),
+            )
+
         # uncomment to save each frame to make a video
         # pygame.image.save(self.screen, "frames/image%08d.bmp" % self.frame)
         # ffmpeg -framerate 60 -i frames/image%08d.bmp -r 60 -vcodec libx265 -preset medium -crf 28 test.mp4
         # ffmpeg -framerate 60 -i frames/image%08d.bmp -r 60 -vcodec libx264 -crf 28 -pix_fmt yuv420p test.mp4
 
-        pygame.display.flip()
+        pygame.display.update()  # update is faster than flip
         self.frame += 1
-
-        # TODO would be nice if we could display log output on the screen
 
     def plot_outline(
         self,
@@ -204,6 +217,10 @@ class WorldRenderer:
         # draw the outline/line & fill if outline
         if len(x) > 2 and fill == True:
             pygame.draw.polygon(self.screen, color, pnts)
-        pygame.draw.aalines(self.screen, color, True, pnts)
-        # TODO is there a way to draw a thicker antialiased line?
-        # render at a higher resolution with thick regular lines and resize to the dispaly res? (via @ZodiusInfuser)
+            if self.AA_THICK_LINES == 1:
+                pygame.draw.aalines(self.screen, color, True, pnts)
+        else:
+            if self.AA_THICK_LINES == 1:
+                pygame.draw.lines(self.highres_screen, color, True, pnts * 2, width=4)
+            else:
+                pygame.draw.aalines(self.screen, color, True, pnts)
