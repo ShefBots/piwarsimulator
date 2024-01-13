@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import math
 import numpy as np
+from shapely.geometry import Polygon
 from time import time
 from brains.ExecutionState import ExecutionState
 from world.WorldObject import *
@@ -65,7 +66,7 @@ class RobotBrain:
 
         # anything attached to us affecting our shape
         # only used in TheWorld so only needs to be relative to pointing north unrotated
-        self.attachment_outline = []
+        self.attachment_outline = Polygon()
 
     def add_sensor(self, sensor):
         self.sensors.append(sensor)
