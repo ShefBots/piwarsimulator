@@ -26,6 +26,7 @@ class SimulatedLineOfSight(Sensor):
 
         # construct a triangle reprsenting the sensor field of view
         # this is relative to the robot's center
+        assert angle == 0 or angle == 90 or angle == -90
         self.angle = angle
 
         # need to get mounting position on the chassis
