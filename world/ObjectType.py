@@ -12,8 +12,6 @@ class ObjectType(Enum):
     LINE = 5
     WALL = 6
     MINE = 7
-    GRIPPER_CLOSED = 8
-    GRIPPER_OPEN = 9
 
     def __str__(self):
         """Return a string representation of the ObjectType"""
@@ -26,6 +24,4 @@ class ObjectType(Enum):
             self.LINE: "L",
             self.WALL: "W",
             self.MINE: "M",
-            self.GRIPPER_CLOSED: "GC",
-            self.GRIPPER_OPEN: "GO",
         }[self]
