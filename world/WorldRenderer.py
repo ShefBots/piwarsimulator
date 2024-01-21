@@ -118,6 +118,7 @@ class WorldRenderer:
                     obj.object_type == ObjectType.ROBOT
                     and hasattr(obj, "brain")
                     and hasattr(obj.brain, "attachment_outline")
+                    and not obj.brain.attachment_outline.is_empty
                 ):
                     ao = rotate(
                         translate(
