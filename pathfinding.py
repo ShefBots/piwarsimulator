@@ -1,5 +1,14 @@
 #!/usr/bin/env
+import copy
 import numpy as np
+from itertools import compress
+from time import sleep as pause
+
+
+# keep track of visited/dead ends as obstacles?
+
+
+# keep track of last move and use that to increse momentum (encourge keep going in the same direction)
 
 
 class Pathfinding:
@@ -16,7 +25,7 @@ class Pathfinding:
 
     def __init__(self, obstacle_map):
         self.obstacle_map = obstacle_map
-        self.map = np.zeros_like(self.obstacle_map)
+        # self.map = np.zeros_like(self.obstacle_map)
 
         # get the i j coordinates of the goal
         (goal_ii, goal_jj) = np.where(self.obstacle_map == Pathfinding.GOAL)
@@ -25,11 +34,6 @@ class Pathfinding:
         assert len(goal_jj) == 1
         self.goal_ii = goal_ii[0]
         self.goal_jj = goal_jj[0]
-
-        # move me off obstacle map to the local map
-        (ii, jj) = Pathfinding.find_me(self.obstacle_map)
-        self.obstacle_map[ii, jj] = Pathfinding.EMPTY
-        self.map[ii, jj] = Pathfinding.ME
 
     def print_map(self, map=None):
         if map is None:
@@ -47,10 +51,11 @@ class Pathfinding:
         return (ii[0], jj[0])
 
     def move(self, map, xdir=0, ydir=0):
-        (ii, jj) = np.where(map == Pathfinding.ME)
+        map = copy.deepcopy(map)  # backgracking does not work with references
+        (ii, jj) = Pathfinding.find_me(map)
         if (
             self.obstacle_map[ii + ydir, jj + xdir] == Pathfinding.OBSTACLE
-            or map[ii - 1, jj] == Pathfinding.VISITED
+            or map[ii + ydir, jj + xdir] == Pathfinding.VISITED
         ):
             return (map, Pathfinding.BLOCKED)
         print("Success")
@@ -75,6 +80,67 @@ class Pathfinding:
         print("Trying to move right")
         return self.move(map, xdir=1)
 
+    def nextmove2(self, map):
+        map = copy.deepcopy(map)  # backgracking does not work with references
+
+        state = Pathfinding.OK
+
+        # ii-1 is up
+        # ii+1 is up
+        # jj-1 is left
+        # jj+1 is right
+
+        (ii, jj) = Pathfinding.find_me(map)
+        print(f"At {ii}, {jj}")
+
+        if ii == self.goal_ii and jj == self.goal_jj:
+            print("AT GOAL YAY!!!")
+            return (map, Pathfinding.ARRIVED)
+
+        self.print_map(map)
+        pause(0.1)
+
+        # try a movement in each direction
+        # sort possible new locations by distance
+        # try those first
+        funs = [
+            self.move_up,
+            self.move_down,
+            self.move_right,  # SWAPPED
+            self.move_left,  # SWAPPED
+        ]  # x = lambda: self.doTheThing() ?
+        newmaps = [None] * len(funs)
+        states = np.zeros_like(funs)
+        dists = np.ones_like(funs) * 9e99
+        for cc, fun in enumerate(funs):
+            (newmaps[cc], states[cc]) = fun(map)
+            if not states[cc] == Pathfinding.BLOCKED:
+                (iis, jjs) = Pathfinding.find_me(newmaps[cc])
+                dists[cc] = (self.goal_ii - iis) ** 2 + (self.goal_jj - jjs) ** 2
+
+        # remove BLOCKED options
+        k = states != Pathfinding.BLOCKED
+        funs = list(compress(funs, k))  # logical selection by k
+        newmaps = list(compress(newmaps, k))  # logical selection by k
+        dists = dists[k]
+
+        # try nearest possible move first
+        k = np.argsort(dists)
+        funs[:] = [funs[i] for i in k]  # reorder by index order in k
+        newmaps[:] = [newmaps[i] for i in k]  # reorder by index order in k
+        dists = dists[k]
+
+        for cc, _newmap in enumerate(newmaps):
+            (newmap, state) = self.nextmove2(_newmap)
+            if state == Pathfinding.ARRIVED:
+                return (newmap, state)
+
+        if len(funs) == 0 or state == Pathfinding.BLOCKED:
+            print("Backtracking!")
+            newmap = map
+
+        return (newmap, state)
+
 
 if __name__ == "__main__":
     print("Running in testing mode")
@@ -87,9 +153,13 @@ if __name__ == "__main__":
 
     obstacle_map[4, 0:6] = Pathfinding.OBSTACLE  # to get around
     obstacle_map[1, 1] = Pathfinding.GOAL  # where to get to
-    obstacle_map[9, 3] = Pathfinding.ME  # starting location
+
+    map = np.zeros_like(obstacle_map)
+    map[9, 3] = Pathfinding.ME  # starting location
 
     pf = Pathfinding(obstacle_map)
-    pf.print_map()
-    (map, sate) = pf.move_right(pf.map)
-    pf.print_map(map)
+    # pf.print_map(map)
+    # (map2, state) = pf.move_right(map)
+    # pf.print_map(map2)
+
+    newmap = pf.nextmove2(map)
