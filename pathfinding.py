@@ -2,8 +2,7 @@
 import copy
 import numpy as np
 from itertools import compress
-from time import sleep as pause
-import time
+from time import sleep
 
 # could keep track of visited/dead ends as obstacles?
 
@@ -110,7 +109,7 @@ class Pathfinding:
 
         self.print_map(map)
         if self.DO_PRINT:
-            pause(0.1)
+            sleep(0.1)
 
         # try a movement in each direction
         # sort possible new locations by distance
@@ -174,8 +173,5 @@ if __name__ == "__main__":
     map[9, 3] = Pathfinding.ME  # starting location
 
     pf = Pathfinding(obstacle_map)
-    # pf.print_map(map)
-    # (map2, state) = pf.move_right(map)
-    # pf.print_map(map2)
 
     newmap = pf.nextmove2(map, last_move=pf.move_up)
