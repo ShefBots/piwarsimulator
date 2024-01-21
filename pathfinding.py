@@ -3,12 +3,9 @@ import copy
 import numpy as np
 from itertools import compress
 from time import sleep as pause
+import time
 
-
-# keep track of visited/dead ends as obstacles?
-
-
-# keep track of last move and use that to increse momentum (encourge keep going in the same direction)
+# could keep track of visited/dead ends as obstacles?
 
 
 class Pathfinding:
@@ -26,6 +23,9 @@ class Pathfinding:
     OK = 10
     BLOCKED = 11
     ARRIVED = 12
+
+    # perceived distance benefit to continue going in the same direction
+    MOMENTUM_WEIGHT = 10
 
     def __init__(self, obstacle_map):
         self.obstacle_map = obstacle_map
@@ -84,7 +84,7 @@ class Pathfinding:
         print("Trying to move right")
         return self.move(map, xdir=1)
 
-    def nextmove2(self, map):
+    def nextmove2(self, map, last_move=None):
         map = copy.deepcopy(map)  # backtracking does not work with references
 
         state = Pathfinding.OK
@@ -121,6 +121,8 @@ class Pathfinding:
             if not states[cc] == Pathfinding.BLOCKED:
                 (iis, jjs) = Pathfinding.find_me(newmaps[cc])
                 dists[cc] = (self.goal_ii - iis) ** 2 + (self.goal_jj - jjs) ** 2
+                if not last_move is None and fun == last_move:
+                    dists[cc] -= self.MOMENTUM_WEIGHT  # momentum effect
 
         # remove BLOCKED options
         k = states != Pathfinding.BLOCKED
@@ -135,7 +137,9 @@ class Pathfinding:
         dists = dists[k]
 
         for cc, _newmap in enumerate(newmaps):
-            (newmap, state) = self.nextmove2(_newmap)
+            if not last_move is None:
+                last_move = funs[cc]
+            (newmap, state) = self.nextmove2(_newmap, last_move)
             if state == Pathfinding.ARRIVED:
                 return (newmap, state)
 
@@ -166,4 +170,4 @@ if __name__ == "__main__":
     # (map2, state) = pf.move_right(map)
     # pf.print_map(map2)
 
-    newmap = pf.nextmove2(map)
+    newmap = pf.nextmove2(map, last_move=pf.move_up)
