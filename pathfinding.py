@@ -13,6 +13,9 @@ class Pathfinding:
     Nagivate a 2D numpy array of obstacles to a goal
     """
 
+    # debug print output?
+    DO_PRINT = 0
+
     # constants for different types of map locations
     EMPTY = 0
     GOAL = 1
@@ -42,7 +45,11 @@ class Pathfinding:
     def print_map(self, map=None):
         if map is None:
             map = self.map
-        print(self.obstacle_map + map)
+        self.print(self.obstacle_map + map)
+
+    def print(self, text):
+        if self.DO_PRINT:
+            print(text)
 
     @staticmethod
     def find_me(map):
@@ -62,26 +69,26 @@ class Pathfinding:
             or map[ii + ydir, jj + xdir] == Pathfinding.VISITED
         ):
             return (map, Pathfinding.BLOCKED)
-        print("Success")
+        self.print("Success")
 
         map[ii, jj] = Pathfinding.VISITED
         map[ii + ydir, jj + xdir] = Pathfinding.ME
         return (map, Pathfinding.OK)
 
     def move_up(self, map):
-        print("Trying to move up")
+        self.print("Trying to move up")
         return self.move(map, ydir=-1)
 
     def move_down(self, map):
-        print("Trying to move down")
+        self.print("Trying to move down")
         return self.move(map, ydir=1)
 
     def move_left(self, map):
-        print("Trying to move left")
+        self.print("Trying to move left")
         return self.move(map, xdir=-1)
 
     def move_right(self, map):
-        print("Trying to move right")
+        self.print("Trying to move right")
         return self.move(map, xdir=1)
 
     def nextmove2(self, map, last_move=None):
@@ -95,14 +102,15 @@ class Pathfinding:
         # jj+1 is right
 
         (ii, jj) = Pathfinding.find_me(map)
-        print(f"At {ii}, {jj}")
+        self.print(f"At {ii}, {jj}")
 
         if ii == self.goal_ii and jj == self.goal_jj:
-            print("AT GOAL YAY!!!")
+            self.print("AT GOAL YAY!!!")
             return (map, Pathfinding.ARRIVED)
 
         self.print_map(map)
-        pause(0.1)
+        if self.DO_PRINT:
+            pause(0.1)
 
         # try a movement in each direction
         # sort possible new locations by distance
@@ -144,7 +152,7 @@ class Pathfinding:
                 return (newmap, state)
 
         if len(funs) == 0 or state == Pathfinding.BLOCKED:
-            print("Backtracking!")
+            self.print("Backtracking!")
             newmap = map
 
         return (newmap, state)
