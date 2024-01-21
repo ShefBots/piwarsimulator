@@ -48,7 +48,6 @@ class Pathfinding:
 
     def move(self, map, xdir=0, ydir=0):
         (ii, jj) = np.where(map == Pathfinding.ME)
-        print("Trying to move up")
         if (
             self.obstacle_map[ii + ydir, jj + xdir] == Pathfinding.OBSTACLE
             or map[ii - 1, jj] == Pathfinding.VISITED
@@ -61,15 +60,19 @@ class Pathfinding:
         return (map, Pathfinding.OK)
 
     def move_up(self, map):
+        print("Trying to move up")
         return self.move(map, ydir=-1)
 
     def move_down(self, map):
+        print("Trying to move down")
         return self.move(map, ydir=1)
 
     def move_left(self, map):
+        print("Trying to move left")
         return self.move(map, xdir=-1)
 
     def move_right(self, map):
+        print("Trying to move right")
         return self.move(map, xdir=1)
 
 
