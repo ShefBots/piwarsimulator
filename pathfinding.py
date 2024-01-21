@@ -12,7 +12,11 @@ from time import sleep as pause
 
 
 class Pathfinding:
-    # constants for map locations
+    """
+    Nagivate a 2D numpy array of obstacles to a goal
+    """
+
+    # constants for different types of map locations
     EMPTY = 0
     GOAL = 1
     OBSTACLE = 2
@@ -51,7 +55,7 @@ class Pathfinding:
         return (ii[0], jj[0])
 
     def move(self, map, xdir=0, ydir=0):
-        map = copy.deepcopy(map)  # backgracking does not work with references
+        map = copy.deepcopy(map)  # backtracking does not work with references
         (ii, jj) = Pathfinding.find_me(map)
         if (
             self.obstacle_map[ii + ydir, jj + xdir] == Pathfinding.OBSTACLE
@@ -81,7 +85,7 @@ class Pathfinding:
         return self.move(map, xdir=1)
 
     def nextmove2(self, map):
-        map = copy.deepcopy(map)  # backgracking does not work with references
+        map = copy.deepcopy(map)  # backtracking does not work with references
 
         state = Pathfinding.OK
 
