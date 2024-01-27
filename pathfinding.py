@@ -4,7 +4,7 @@ import numpy as np
 from itertools import compress
 from time import sleep
 
-# could keep track of visited/dead ends as obstacles?
+# TODO split out algorithmic bits from base pathfinding-related things
 
 
 class Pathfinding:
@@ -45,7 +45,6 @@ class Pathfinding:
 
     def __init__(self, obstacle_map, momentum_weight=MOMENTUM_WEIGHT):
         self.obstacle_map = obstacle_map
-        # self.map = np.zeros_like(self.obstacle_map)
 
         # get the i j coordinates of the goal
         (goal_ii, goal_jj) = np.where(self.obstacle_map == Pathfinding.GOAL)
@@ -57,7 +56,7 @@ class Pathfinding:
 
         self.momentum_weight = momentum_weight
 
-        # moves made when calculating nextmove2
+        # moves made when calculating the newmap
         self.move_record = []
 
     def print_map(self, map=None, basic=False):
@@ -225,6 +224,5 @@ if __name__ == "__main__":
     newmap, _ = pf.nextmove2(map)
 
     # pf.print_map(newmap, basic=True)
+    print("Path found:", pf.move_record)
     pf.print_map(newmap)
-
-    print(pf.move_record)
