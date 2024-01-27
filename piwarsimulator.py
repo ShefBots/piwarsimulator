@@ -9,9 +9,13 @@ from world.ObjectType import ObjectType
 from world.WorldObject import WorldObject
 
 
-# TODO brains: ecodisaster
+# TODO brains: ecodisaster - gets stuck oscillating between options
 # TODO classes for real hardware
 # TODO sensor_simulation (real control only) mode and control mode (all real)
+# TODO update readme
+
+# note this runs about 6 times slower on the Pi under Python 3.7?
+# FPS to TPS for thoughts per second ? :)
 
 running = True  # state of simulator
 ctrlc_count = 0  # if hitting 3 try and sys.exit
@@ -45,7 +49,8 @@ parser.add_argument(
     # default="RobotBrain",
     # default="MinesweeperBrain",
     # default="MazeBrain",
-    default="LineFollowingBrain",
+    # default="LineFollowingBrain",
+    default="EcoDisasterBrain",
     choices=brains,
 )
 parser.add_argument(
@@ -54,7 +59,8 @@ parser.add_argument(
     # default=maps[0],
     # default="MinesweeperMap",
     # default="EscapeRouteMap",
-    default="LavaPalavaMap",
+    # default="LavaPalavaMap",
+    default="SimpleEcoDisasterMap",
     choices=maps
     # "--map", help=f"map (default {maps[0]})", default="LavaPalavaMap", choices=maps
 )
@@ -91,11 +97,13 @@ elif args.mode == "control":
 robot = WorldObject(
     object_type=ObjectType.ROBOT,
     x=0,
-    y=0,
+    y=-0.7,
     w=0.18,
     h=0.235,
     angle=0
     # object_type=ObjectType.ROBOT, x=0.1, y=-0.3, w=0.18, h=0.235, angle=20
+    # object_type=ObjectType.ROBOT, x=0.1, y=-0.3, w=0.18, h=0.235, angle=20
+    # object_type=ObjectType.ROBOT, x=0, y=0, w=0.18, h=0.235, angle=1
 )  # units metres and degress
 
 if args.mode == "simulation" or args.mode == "sensor_simulation":
@@ -119,7 +127,7 @@ else:
 print(f"Loading {args.brain}...")
 brain = getattr(importlib.import_module("brains." + args.brain), args.brain)
 # robot_brain = brain(robot=robot, controller=controller, speed=0.05, turning_speed=10)
-robot_brain = brain(robot=robot, controller=controller, speed=0.3, turning_speed=60)
+robot_brain = brain(robot=robot, controller=controller, speed=0.3, turning_speed=30)
 if args.mode == "simulation" or args.mode == "sensor_simulation":
     # this works because lists are references
     controller.holding = robot_brain.holding
@@ -158,7 +166,6 @@ while running:
     now = time.time()
 
     robot_brain.process()
-    # robot_brain.simulate(dt)
 
     if args.rendering == "true":
         if args.mode == "control":
