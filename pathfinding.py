@@ -37,8 +37,8 @@ class Pathfinding:
     # contants for directions (ii, jj)
     UP = (1, 0)
     DOWN = (-1, 0)
-    LEFT = (0, 1)
-    RIGHT = (0, -1)
+    LEFT = (0, -1)
+    RIGHT = (0, 1)
 
     # perceived distance benefit to continue going in the same direction
     MOMENTUM_WEIGHT = 2
@@ -114,7 +114,6 @@ class Pathfinding:
                 self.print("Trying to move left")
             elif xydir == Pathfinding.RIGHT:
                 self.print("Trying to move right")
-            pass
         (ii, jj) = Pathfinding.find_me(map)
         if (
             self.obstacle_map[ii + ydir, jj + xdir] == Pathfinding.OBSTACLE
@@ -170,7 +169,8 @@ class Pathfinding:
             if not states[cc] == Pathfinding.BLOCKED:
                 (iis, jjs) = Pathfinding.find_me(newmaps[cc])
                 dists[cc] = (self.goal_ii - iis) ** 2 + (self.goal_jj - jjs) ** 2
-                if direction == last_move:
+                if direction == last_move and dists[cc] > self.momentum_weight + 2:
+                    # momentum gets problematic as we get closer, maybe use proportional?
                     dists[cc] -= self.momentum_weight  # momentum effect
 
         # remove BLOCKED options
