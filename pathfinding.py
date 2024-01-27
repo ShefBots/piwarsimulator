@@ -44,7 +44,7 @@ class Pathfinding:
     def print_map(self, map=None):
         if map is None:
             map = self.map
-        self.print(self.obstacle_map + map)
+        print(self.obstacle_map + map)
 
     def print(self, text):
         if self.DO_PRINT:
@@ -107,8 +107,8 @@ class Pathfinding:
             self.print("AT GOAL YAY!!!")
             return (map, Pathfinding.ARRIVED)
 
-        self.print_map(map)
         if self.DO_PRINT:
+            self.print_map(map)
             sleep(0.1)
 
         # try a movement in each direction
@@ -167,6 +167,7 @@ if __name__ == "__main__":
     obstacle_map[:, -1] = Pathfinding.OBSTACLE  # right wall
 
     obstacle_map[4, 0:6] = Pathfinding.OBSTACLE  # to get around
+    # obstacle_map[0:3, 2] = Pathfinding.OBSTACLE
     obstacle_map[1, 1] = Pathfinding.GOAL  # where to get to
 
     map = np.zeros_like(obstacle_map)
@@ -174,4 +175,6 @@ if __name__ == "__main__":
 
     pf = Pathfinding(obstacle_map)
 
-    newmap = pf.nextmove2(map, last_move=pf.move_up)
+    newmap, _ = pf.nextmove2(map, last_move=pf.move_up)
+
+    pf.print_map(newmap)
