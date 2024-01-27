@@ -19,12 +19,12 @@ class Pathfinding:
     EMPTY = 0
     GOAL = 1
     OBSTACLE = 2
-    VISITED = 3
-    ME = 4
+    VISITED = 4
+    ME = 8
 
-    OK = 10
-    BLOCKED = 11
-    ARRIVED = 12
+    OK = 16
+    BLOCKED = 32
+    ARRIVED = 64
 
     # perceived distance benefit to continue going in the same direction
     MOMENTUM_WEIGHT = 10
@@ -41,10 +41,32 @@ class Pathfinding:
         self.goal_ii = goal_ii[0]
         self.goal_jj = goal_jj[0]
 
-    def print_map(self, map=None):
+    def print_map(self, map=None, basic=False):
         if map is None:
             map = self.map
-        print(self.obstacle_map + map)
+
+        # top left in 0,0
+        t = self.obstacle_map + map
+        if basic:
+            print(np.flipud(t))
+        else:
+            for ii in np.arange(t.shape[0] - 1, -1, -1):
+                for jj in np.arange(0, t.shape[1]):
+                    if t[ii, jj] == Pathfinding.EMPTY:
+                        print("  ", end="")
+                    elif t[ii, jj] == Pathfinding.GOAL:
+                        print("G ", end="")
+                    elif t[ii, jj] == Pathfinding.OBSTACLE:
+                        print("O ", end="")
+                    elif t[ii, jj] == Pathfinding.VISITED:
+                        print("V ", end="")
+                    elif t[ii, jj] == Pathfinding.ME:
+                        print("M ", end="")
+                    elif t[ii, jj] == Pathfinding.ME + Pathfinding.GOAL:
+                        print("A ", end="")
+                    else:
+                        print("U ", end="")
+                print("")
 
     def print(self, text):
         if self.DO_PRINT:
@@ -76,11 +98,11 @@ class Pathfinding:
 
     def move_up(self, map):
         self.print("Trying to move up")
-        return self.move(map, ydir=-1)
+        return self.move(map, ydir=1)
 
     def move_down(self, map):
         self.print("Trying to move down")
-        return self.move(map, ydir=1)
+        return self.move(map, ydir=-1)
 
     def move_left(self, map):
         self.print("Trying to move left")
@@ -95,8 +117,8 @@ class Pathfinding:
 
         state = Pathfinding.OK
 
-        # ii-1 is up
         # ii+1 is up
+        # ii-1 is up
         # jj-1 is left
         # jj+1 is right
 
@@ -166,15 +188,16 @@ if __name__ == "__main__":
     obstacle_map[:, 0] = Pathfinding.OBSTACLE  # left wall
     obstacle_map[:, -1] = Pathfinding.OBSTACLE  # right wall
 
-    obstacle_map[4, 0:6] = Pathfinding.OBSTACLE  # to get around
+    obstacle_map[6, 0:6] = Pathfinding.OBSTACLE  # to get around
     # obstacle_map[0:3, 2] = Pathfinding.OBSTACLE
-    obstacle_map[1, 1] = Pathfinding.GOAL  # where to get to
+    obstacle_map[9, 1] = Pathfinding.GOAL  # where to get to
 
     map = np.zeros_like(obstacle_map)
-    map[9, 3] = Pathfinding.ME  # starting location
+    map[1, 3] = Pathfinding.ME  # starting location
 
     pf = Pathfinding(obstacle_map)
 
     newmap, _ = pf.nextmove2(map, last_move=pf.move_up)
 
+    # pf.print_map(newmap, basic=True)
     pf.print_map(newmap)
