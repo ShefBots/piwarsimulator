@@ -15,7 +15,13 @@ class AStar(Pathfinding):
     represents the goal location to get to. A value of 8 represents the starting
     location. A value of 2 indicates an obstacle to be avoided. Can you write a
     class that uses the Astar path finding algorithm with this data to determine
-    the path from the starting location to the goal?
+    the path from the starting location to the goal?"
+
+    Only two mistakes in ChatGPT's code. A KeyError fixed with some () around
+    the `not in cost_so_far` bit of code, and indexes being flipped in the
+    `is_passable` function for `obstacle_map`. Obviously a fair bit has been
+    tweaked since the initial output to make it consistent with how code here
+    expects pathfinding results to be.
     """
 
     # debug print output?
