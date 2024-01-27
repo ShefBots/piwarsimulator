@@ -61,11 +61,12 @@ class Pathfinding:
         self.move_record = []
 
     def print_map(self, map=None, basic=False):
-        if map is None:
-            map = self.map
-
         # top left in 0,0
-        t = self.obstacle_map + map
+        if not map is None:
+            t = self.obstacle_map + map
+        else:
+            t = self.obstacle_map
+
         if basic:
             print(np.flipud(t))
         else:
@@ -92,14 +93,19 @@ class Pathfinding:
             print(text)
 
     @staticmethod
-    def find_me(map):
-        (ii, jj) = np.where(map == Pathfinding.ME)
+    def find(map, thing, num_of=1):
+        (ii, jj) = np.where(map == thing)
 
         # only one me
-        assert len(ii) == 1
-        assert len(jj) == 1
+        if num_of == 1:
+            assert len(ii) == 1
+            assert len(jj) == 1
 
         return (ii[0], jj[0])
+
+    @staticmethod
+    def find_me(map):
+        return Pathfinding.find(map, Pathfinding.ME)
 
     def move(self, map, xydir):
         xdir = xydir[1]
