@@ -27,9 +27,9 @@ class Pathfinding:
     ARRIVED = 64
 
     # perceived distance benefit to continue going in the same direction
-    MOMENTUM_WEIGHT = 10
+    MOMENTUM_WEIGHT = 2
 
-    def __init__(self, obstacle_map):
+    def __init__(self, obstacle_map, momentum_weight=MOMENTUM_WEIGHT):
         self.obstacle_map = obstacle_map
         # self.map = np.zeros_like(self.obstacle_map)
 
@@ -40,6 +40,8 @@ class Pathfinding:
         assert len(goal_jj) == 1
         self.goal_ii = goal_ii[0]
         self.goal_jj = goal_jj[0]
+
+        self.momentum_weight = momentum_weight
 
     def print_map(self, map=None, basic=False):
         if map is None:
@@ -151,7 +153,7 @@ class Pathfinding:
                 (iis, jjs) = Pathfinding.find_me(newmaps[cc])
                 dists[cc] = (self.goal_ii - iis) ** 2 + (self.goal_jj - jjs) ** 2
                 if not last_move is None and fun == last_move:
-                    dists[cc] -= self.MOMENTUM_WEIGHT  # momentum effect
+                    dists[cc] -= self.momentum_weight  # momentum effect
 
         # remove BLOCKED options
         k = states != Pathfinding.BLOCKED
