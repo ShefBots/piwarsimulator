@@ -10,6 +10,14 @@ from time import sleep
 class Pathfinding:
     """
     Nagivate a 2D numpy array of obstacles to a goal
+
+    Create with an obstacle_map
+    Call nextmove2 with a map, returns new map
+    Stores internally move list
+
+    Will need to reset move list before new calls to nextmove2
+
+    Create with momentum weight = 0 to not do that
     """
 
     # debug print output?
@@ -42,6 +50,9 @@ class Pathfinding:
         self.goal_jj = goal_jj[0]
 
         self.momentum_weight = momentum_weight
+
+        # moves made when calculating nextmove2
+        self.move_record = []
 
     def print_map(self, map=None, basic=False):
         if map is None:
@@ -117,6 +128,9 @@ class Pathfinding:
     def nextmove2(self, map, last_move=None):
         map = copy.deepcopy(map)  # backtracking does not work with references
 
+        if last_move is None:
+            last_move = self.move_up
+
         state = Pathfinding.OK
 
         # ii+1 is up
@@ -129,6 +143,7 @@ class Pathfinding:
 
         if ii == self.goal_ii and jj == self.goal_jj:
             self.print("AT GOAL YAY!!!")
+            self.move_record.append(last_move)
             return (map, Pathfinding.ARRIVED)
 
         if self.DO_PRINT:
@@ -172,6 +187,7 @@ class Pathfinding:
                 last_move = funs[cc]
             (newmap, state) = self.nextmove2(_newmap, last_move)
             if state == Pathfinding.ARRIVED:
+                self.move_record.append(last_move)
                 return (newmap, state)
 
         if len(funs) == 0 or state == Pathfinding.BLOCKED:
@@ -199,7 +215,9 @@ if __name__ == "__main__":
 
     pf = Pathfinding(obstacle_map)
 
-    newmap, _ = pf.nextmove2(map, last_move=pf.move_up)
+    newmap, _ = pf.nextmove2(map)
 
     # pf.print_map(newmap, basic=True)
     pf.print_map(newmap)
+
+    print(pf.move_record)
