@@ -34,6 +34,12 @@ class Pathfinding:
     BLOCKED = 32
     ARRIVED = 64
 
+    # contants for directions (ii, jj)
+    UP = (1, 0)
+    DOWN = (-1, 0)
+    LEFT = (0, 1)
+    RIGHT = (0, -1)
+
     # perceived distance benefit to continue going in the same direction
     MOMENTUM_WEIGHT = 2
 
@@ -95,8 +101,20 @@ class Pathfinding:
 
         return (ii[0], jj[0])
 
-    def move(self, map, xdir=0, ydir=0):
+    def move(self, map, xydir):
+        xdir = xydir[1]
+        ydir = xydir[0]
         map = copy.deepcopy(map)  # backtracking does not work with references
+        if self.DO_PRINT == 1:
+            if xydir == Pathfinding.UP:
+                self.print("Trying to move up")
+            elif xydir == Pathfinding.DOWN:
+                self.print("Trying to move down")
+            elif xydir == Pathfinding.LEFT:
+                self.print("Trying to move left")
+            elif xydir == Pathfinding.RIGHT:
+                self.print("Trying to move right")
+            pass
         (ii, jj) = Pathfinding.find_me(map)
         if (
             self.obstacle_map[ii + ydir, jj + xdir] == Pathfinding.OBSTACLE
@@ -109,27 +127,11 @@ class Pathfinding:
         map[ii + ydir, jj + xdir] = Pathfinding.ME
         return (map, Pathfinding.OK)
 
-    def move_up(self, map):
-        self.print("Trying to move up")
-        return self.move(map, ydir=1)
-
-    def move_down(self, map):
-        self.print("Trying to move down")
-        return self.move(map, ydir=-1)
-
-    def move_left(self, map):
-        self.print("Trying to move left")
-        return self.move(map, xdir=-1)
-
-    def move_right(self, map):
-        self.print("Trying to move right")
-        return self.move(map, xdir=1)
-
     def nextmove2(self, map, last_move=None):
         map = copy.deepcopy(map)  # backtracking does not work with references
 
         if last_move is None:
-            last_move = self.move_up
+            last_move = Pathfinding.UP
 
         state = Pathfinding.OK
 
@@ -153,44 +155,44 @@ class Pathfinding:
         # try a movement in each direction
         # sort possible new locations by distance
         # try those first
-        funs = [
-            self.move_up,
-            self.move_down,
-            self.move_right,  # SWAPPED
-            self.move_left,  # SWAPPED
-        ]  # x = lambda: self.doTheThing() ?
-        newmaps = [None] * len(funs)
-        states = np.zeros_like(funs)
-        dists = np.ones_like(funs) * 9e99
-        for cc, fun in enumerate(funs):
-            (newmaps[cc], states[cc]) = fun(map)
+        directions = [
+            # (ii, jj)
+            Pathfinding.UP,
+            Pathfinding.DOWN,
+            Pathfinding.LEFT,
+            Pathfinding.RIGHT,
+        ]
+        newmaps = [None] * len(directions)
+        states = np.zeros_like(newmaps)
+        dists = np.ones_like(newmaps) * 9e99
+        for cc, direction in enumerate(directions):
+            (newmaps[cc], states[cc]) = self.move(map, xydir=direction)
             if not states[cc] == Pathfinding.BLOCKED:
                 (iis, jjs) = Pathfinding.find_me(newmaps[cc])
                 dists[cc] = (self.goal_ii - iis) ** 2 + (self.goal_jj - jjs) ** 2
-                if not last_move is None and fun == last_move:
+                if direction == last_move:
                     dists[cc] -= self.momentum_weight  # momentum effect
 
         # remove BLOCKED options
         k = states != Pathfinding.BLOCKED
-        funs = list(compress(funs, k))  # logical selection by k
+        directions = list(compress(directions, k))  # logical selection by k
         newmaps = list(compress(newmaps, k))  # logical selection by k
         dists = dists[k]
 
         # try nearest possible move first
         k = np.argsort(dists)
-        funs[:] = [funs[i] for i in k]  # reorder by index order in k
+        directions[:] = [directions[i] for i in k]  # reorder by index order in k
         newmaps[:] = [newmaps[i] for i in k]  # reorder by index order in k
         dists = dists[k]
 
         for cc, _newmap in enumerate(newmaps):
-            if not last_move is None:
-                last_move = funs[cc]
+            last_move = directions[cc]
             (newmap, state) = self.nextmove2(_newmap, last_move)
             if state == Pathfinding.ARRIVED:
                 self.move_record.append(last_move)
                 return (newmap, state)
 
-        if len(funs) == 0 or state == Pathfinding.BLOCKED:
+        if len(directions) == 0 or state == Pathfinding.BLOCKED:
             self.print("Backtracking!")
             newmap = map
 
@@ -207,7 +209,6 @@ if __name__ == "__main__":
     obstacle_map[:, -1] = Pathfinding.OBSTACLE  # right wall
 
     obstacle_map[6, 0:6] = Pathfinding.OBSTACLE  # to get around
-    # obstacle_map[0:3, 2] = Pathfinding.OBSTACLE
     obstacle_map[9, 1] = Pathfinding.GOAL  # where to get to
 
     map = np.zeros_like(obstacle_map)
