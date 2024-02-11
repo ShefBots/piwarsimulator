@@ -5,7 +5,7 @@ from shapely.affinity import scale
 from shapely.geometry import Polygon
 from brains.ExecutionState import ExecutionState
 from brains.RobotBrain import RobotBrain
-from pathfinding import Pathfinding
+from algorithms.pathfinding_astar import AStar as Pathfinding
 from world.WorldObject import *
 from world.ObjectType import *
 
@@ -168,7 +168,7 @@ class EcoDisasterBrain(RobotBrain):
 
             # create grid (2d matrix of possible/impossible movement locations) for pathfinding
             scale_factor = 0.1  # each grid space size (in metres)
-            grid_half_size = 20  # how far out in distance to plan for in grid spaces, ideally this is big enough to always get to goal
+            grid_half_size = 15  # how far out in distance to plan for in grid spaces, ideally this is big enough to always get to goal
             grid_size = grid_half_size * 2 + 1  # MUST BE ODD (centered around 0)
             obstacle_map = np.zeros((grid_size, grid_size))
             # dummy walls to keep pathfinding from breaking
@@ -198,9 +198,8 @@ class EcoDisasterBrain(RobotBrain):
             map[grid_half_size, grid_half_size] = Pathfinding.ME  # starting location
 
             # do the pathfinding and store the route in newmap
-            # momentum_weight is to encourage going in the same direction
-            pf = Pathfinding(obstacle_map, momentum_weight=10)
-            newmap, state = pf.nextmove2(map)
+            pf = Pathfinding(obstacle_map)
+            newmap, state = pf.execute(map)
             print(f"STATE: {state}")
 
             if state == Pathfinding.ARRIVED:

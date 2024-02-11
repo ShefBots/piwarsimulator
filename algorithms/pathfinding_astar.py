@@ -2,7 +2,11 @@
 import copy
 import numpy as np
 from heapq import heappop, heappush
-from pathfinding import Pathfinding
+
+if __name__ == "__main__":
+    from pathfinding import Pathfinding
+else:
+    from algorithms.pathfinding import Pathfinding
 
 
 class AStar(Pathfinding):
@@ -28,11 +32,10 @@ class AStar(Pathfinding):
     DO_PRINT = 0
 
     def __init__(self, obstacle_map):
-        self.obstacle_map = obstacle_map
+        super(AStar, self).__init__(obstacle_map)
+
         self.width = len(obstacle_map[0])
         self.height = len(obstacle_map)
-
-        self.goal = Pathfinding.find(obstacle_map, Pathfinding.GOAL)  # Goal position
 
         self.actions = [
             Pathfinding.UP,
@@ -40,9 +43,6 @@ class AStar(Pathfinding):
             Pathfinding.LEFT,
             Pathfinding.RIGHT,
         ]
-
-        # moves made when calculating the newmap
-        self.move_record = []
 
     def heuristic(self, a, b):
         # Manhattan distance heuristic
@@ -52,7 +52,7 @@ class AStar(Pathfinding):
         return 0 <= x < self.width and 0 <= y < self.height
 
     def is_passable(self, x, y):
-        return self.is_valid(x, y) and self.obstacle_map[x][y] != AStar.OBSTACLE
+        return self.is_valid(x, y) and self.obstacle_map[x][y] != Pathfinding.OBSTACLE
 
     def reconstruct_path(self, came_from):
         current = self.goal
@@ -62,8 +62,8 @@ class AStar(Pathfinding):
             path.append(current)
         return path[::-1]
 
-    def astar(self, map):
-        newmap = copy.deepcopy(map)
+    def execute(self, map):
+        newmap, state = super().execute(map)
 
         start = Pathfinding.find(map, Pathfinding.ME)  # Starting position
 
@@ -78,7 +78,8 @@ class AStar(Pathfinding):
             if current == self.goal:
                 path = self.reconstruct_path(came_from)
                 for x in path:
-                    newmap[x[0], x[1]] = AStar.VISITED
+                    newmap[x[0], x[1]] = Pathfinding.VISITED
+                newmap[current] = Pathfinding.ME
                 # self.move_record = path
 
                 # this is a wonk way to get movement direction, matching pathfinding output
@@ -91,7 +92,7 @@ class AStar(Pathfinding):
                     )
                 self.move_record.reverse()
 
-                return newmap
+                return newmap, Pathfinding.ARRIVED
 
             for dx, dy in self.actions:
                 next_x, next_y = current[0] + dx, current[1] + dy
@@ -106,7 +107,7 @@ class AStar(Pathfinding):
                     heappush(frontier, (priority, (next_x, next_y)))
                     came_from[(next_x, next_y)] = current
 
-        return map  # No path found
+        return map, state  # No path found
 
 
 if __name__ == "__main__":
@@ -126,9 +127,10 @@ if __name__ == "__main__":
 
     pf = AStar(obstacle_map)
 
-    newmap = pf.astar(map)
+    newmap, state = pf.execute(map)
 
-    if not len(pf.move_record) == 0:
+    # if not len(pf.move_record) == 0:
+    if state == Pathfinding.ARRIVED:
         print("Path found:", pf.move_record)
         pf.print_map(newmap)
     else:

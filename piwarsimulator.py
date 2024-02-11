@@ -9,7 +9,7 @@ from world.ObjectType import ObjectType
 from world.WorldObject import WorldObject
 
 
-# TODO brains: ecodisaster - gets stuck oscillating between options
+# TODO brains: ecodisaster - gets stuck when arriving at zone
 # TODO classes for real hardware
 # TODO sensor_simulation (real control only) mode and control mode (all real)
 # TODO update readme

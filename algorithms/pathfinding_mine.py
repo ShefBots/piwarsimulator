@@ -4,18 +4,21 @@ import numpy as np
 from itertools import compress
 from time import sleep
 
-# TODO split out algorithmic bits from base pathfinding-related things
+if __name__ == "__main__":
+    from pathfinding import Pathfinding
+else:
+    from algorithms.pathfinding import Pathfinding
 
 
-class Pathfinding:
+class FredsPathfinding(Pathfinding):
     """
     Nagivate a 2D numpy array of obstacles to a goal
 
     Create with an obstacle_map
-    Call nextmove2 with a map, returns new map
+    Call execute with a map, returns new map
     Stores internally move list
 
-    Will need to reset move list before new calls to nextmove2
+    Will need to reset move list before new calls to execute
 
     Create with momentum weight = 0 to not do that
     """
@@ -23,88 +26,16 @@ class Pathfinding:
     # debug print output?
     DO_PRINT = 0
 
-    # constants for different types of map locations
-    EMPTY = 0
-    GOAL = 1
-    OBSTACLE = 2
-    VISITED = 4
-    ME = 8
-
-    OK = 16
-    BLOCKED = 32
-    ARRIVED = 64
-
-    # contants for directions (ii, jj)
-    UP = (1, 0)
-    DOWN = (-1, 0)
-    LEFT = (0, -1)
-    RIGHT = (0, 1)
-
     # perceived distance benefit to continue going in the same direction
-    MOMENTUM_WEIGHT = 2
+    MOMENTUM_WEIGHT = 7
 
     def __init__(self, obstacle_map, momentum_weight=MOMENTUM_WEIGHT):
-        self.obstacle_map = obstacle_map
+        super(FredsPathfinding, self).__init__(obstacle_map)
 
         # get the i j coordinates of the goal
-        (goal_ii, goal_jj) = np.where(self.obstacle_map == Pathfinding.GOAL)
-        # only one goal
-        assert len(goal_ii) == 1
-        assert len(goal_jj) == 1
-        self.goal_ii = goal_ii[0]
-        self.goal_jj = goal_jj[0]
+        self.goal_ii, self.goal_jj = self.goal
 
         self.momentum_weight = momentum_weight
-
-        # moves made when calculating the newmap
-        self.move_record = []
-
-    def print_map(self, map=None, basic=False):
-        # top left in 0,0
-        if not map is None:
-            t = self.obstacle_map + map
-        else:
-            t = self.obstacle_map
-
-        if basic:
-            print(np.flipud(t))
-        else:
-            for ii in np.arange(t.shape[0] - 1, -1, -1):
-                for jj in np.arange(0, t.shape[1]):
-                    if t[ii, jj] == Pathfinding.EMPTY:
-                        print("  ", end="")
-                    elif t[ii, jj] == Pathfinding.GOAL:
-                        print("G ", end="")
-                    elif t[ii, jj] == Pathfinding.OBSTACLE:
-                        print("O ", end="")
-                    elif t[ii, jj] == Pathfinding.VISITED:
-                        print("V ", end="")
-                    elif t[ii, jj] == Pathfinding.ME:
-                        print("M ", end="")
-                    elif t[ii, jj] == Pathfinding.ME + Pathfinding.GOAL:
-                        print("A ", end="")
-                    else:
-                        print("U ", end="")
-                print("")
-
-    def print(self, text):
-        if self.DO_PRINT:
-            print(text)
-
-    @staticmethod
-    def find(map, thing, num_of=1):
-        (ii, jj) = np.where(map == thing)
-
-        # only one me
-        if num_of == 1:
-            assert len(ii) == 1
-            assert len(jj) == 1
-
-        return (ii[0], jj[0])
-
-    @staticmethod
-    def find_me(map):
-        return Pathfinding.find(map, Pathfinding.ME)
 
     def move(self, map, xydir):
         xdir = xydir[1]
@@ -119,20 +50,20 @@ class Pathfinding:
                 self.print("Trying to move left")
             elif xydir == Pathfinding.RIGHT:
                 self.print("Trying to move right")
-        (ii, jj) = Pathfinding.find_me(map)
+        ii, jj = Pathfinding.find_me(map)
         if (
             self.obstacle_map[ii + ydir, jj + xdir] == Pathfinding.OBSTACLE
             or map[ii + ydir, jj + xdir] == Pathfinding.VISITED
         ):
-            return (map, Pathfinding.BLOCKED)
+            return map, Pathfinding.BLOCKED
         self.print("Success")
 
         map[ii, jj] = Pathfinding.VISITED
         map[ii + ydir, jj + xdir] = Pathfinding.ME
-        return (map, Pathfinding.OK)
+        return map, Pathfinding.OK
 
-    def nextmove2(self, map, last_move=None):
-        map = copy.deepcopy(map)  # backtracking does not work with references
+    def execute(self, map, last_move=None):
+        map, state = super().execute(map)
 
         if last_move is None:
             last_move = Pathfinding.UP
@@ -144,13 +75,13 @@ class Pathfinding:
         # jj-1 is left
         # jj+1 is right
 
-        (ii, jj) = Pathfinding.find_me(map)
+        ii, jj = Pathfinding.find_me(map)
         self.print(f"At {ii}, {jj}")
 
         if ii == self.goal_ii and jj == self.goal_jj:
             self.print("AT GOAL YAY!!!")
             self.move_record.append(last_move)
-            return (map, Pathfinding.ARRIVED)
+            return map, Pathfinding.ARRIVED
 
         if self.DO_PRINT:
             self.print_map(map)
@@ -170,9 +101,9 @@ class Pathfinding:
         states = np.zeros_like(newmaps)
         dists = np.ones_like(newmaps) * 9e99
         for cc, direction in enumerate(directions):
-            (newmaps[cc], states[cc]) = self.move(map, xydir=direction)
+            newmaps[cc], states[cc] = self.move(map, xydir=direction)
             if not states[cc] == Pathfinding.BLOCKED:
-                (iis, jjs) = Pathfinding.find_me(newmaps[cc])
+                iis, jjs = Pathfinding.find_me(newmaps[cc])
                 dists[cc] = (self.goal_ii - iis) ** 2 + (self.goal_jj - jjs) ** 2
                 if direction == last_move and dists[cc] > self.momentum_weight + 2:
                     # momentum gets problematic as we get closer, maybe use proportional?
@@ -192,16 +123,16 @@ class Pathfinding:
 
         for cc, _newmap in enumerate(newmaps):
             last_move = directions[cc]
-            (newmap, state) = self.nextmove2(_newmap, last_move)
+            newmap, state = self.execute(_newmap, last_move)
             if state == Pathfinding.ARRIVED:
                 self.move_record.append(last_move)
-                return (newmap, state)
+                return newmap, state
 
         if len(directions) == 0 or state == Pathfinding.BLOCKED:
             self.print("Backtracking!")
             newmap = map
 
-        return (newmap, state)
+        return newmap, state
 
 
 if __name__ == "__main__":
@@ -219,10 +150,12 @@ if __name__ == "__main__":
     map = np.zeros_like(obstacle_map)
     map[1, 3] = Pathfinding.ME  # starting location
 
-    pf = Pathfinding(obstacle_map)
+    pf = FredsPathfinding(obstacle_map)
 
-    newmap, _ = pf.nextmove2(map)
+    newmap, state = pf.execute(map)
 
-    # pf.print_map(newmap, basic=True)
-    print("Path found:", pf.move_record)
-    pf.print_map(newmap)
+    if state == Pathfinding.ARRIVED:
+        print("Path found:", pf.move_record)
+        pf.print_map(newmap)
+    else:
+        print("No path found")
