@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import pygame
 import numpy as np
-from pygame import Color
 from shapely.affinity import rotate
 from shapely.affinity import translate
 from time import monotonic
@@ -58,7 +57,7 @@ class WorldRenderer:
                 self.running = False
 
         # reset the canvas
-        self.screen.fill(Color("black"))
+        self.screen.fill(pygame.Color("black"))
         if self.AA_THICK_LINES == 1:
             self.highres_screen.fill((0, 0, 0, 0))
 
@@ -93,7 +92,7 @@ class WorldRenderer:
                     # draw sensor outline
                     self.plot_outline(
                         s,
-                        Color("azure"),
+                        pygame.Color("azure"),
                         world_scale,
                         world_at,
                         zerozero_xoffset_pixels,
@@ -153,7 +152,7 @@ class WorldRenderer:
                 font = self.font
                 if obj.object_type == ObjectType.BARREL:
                     font = self.small_font
-                text = font.render(str(obj.object_type), True, Color("orange"))
+                text = font.render(str(obj.object_type), True, pygame.Color("orange"))
                 text2 = pygame.transform.rotate(text, -obj.angle)
                 self.screen.blit(
                     text2,
@@ -174,7 +173,7 @@ class WorldRenderer:
         frame_time = now - self.last_time
         self.fps[self.fps_at] = 1 / frame_time
         fps = np.mean(self.fps)
-        text = self.small_font.render(f"{fps:.0f} FPS", True, Color("gray"))
+        text = self.small_font.render(f"{fps:.0f} FPS", True, pygame.Color("gray"))
         self.screen.blit(text, (10, 10))
         self.last_time = now
         self.fps_at += 1
