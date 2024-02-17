@@ -73,10 +73,14 @@ class WorldRenderer:
             zerozero_yoffset_pixels = 0
             if self.auto_scale:
                 # thanks ChatGPT for making this a bit shorter
-                xmin = min(np.min(outline_xy(obj.outline)[0]) for obj in TheWorld)
-                xmax = max(np.max(outline_xy(obj.outline)[0]) for obj in TheWorld)
-                ymin = min(np.min(outline_xy(obj.outline)[1]) for obj in TheWorld)
-                ymax = max(np.max(outline_xy(obj.outline)[1]) for obj in TheWorld)
+                # and again for pulling out the common bit
+                outlines = [outline_xy(obj.outline) for obj in TheWorld]
+                x_coordinates = [outline[0] for outline in outlines]
+                y_coordinates = [outline[1] for outline in outlines]
+                xmin = min(np.min(x) for x in x_coordinates)
+                xmax = max(np.max(x) for x in x_coordinates)
+                ymin = min(np.min(y) for y in y_coordinates)
+                ymax = max(np.max(y) for y in y_coordinates)
                 m = max(xmax - xmin, ymax - ymin)
                 if m > self.VERTICAL_VIEW:
                     world_scale = self.y_res / (m + 0.5)
