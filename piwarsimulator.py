@@ -109,8 +109,7 @@ robot = WorldObject(
 if args.mode == "simulation" or args.mode == "sensor_simulation":
     # objects for rendering
     # the order this is constructed in is also the rendering order...
-    ExteriorTheWorld = []
-    ExteriorTheWorld.append(robot)  # this should always be index 0!
+    ExteriorTheWorld = [robot]  # robot should always be index 0!
 
     # import the map
     print(f"Loading map {args.map}...")
