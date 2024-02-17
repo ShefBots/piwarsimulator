@@ -4,11 +4,10 @@ import math
 from pygame import Color
 from shapely.geometry import Polygon
 from shapely.affinity import rotate
-from shapely.affinity import translate
 from sensors.Sensor import Sensor
 from world.ObjectType import *
 from world.WorldObject import *
-from util import rotate_by
+from util import rotate_by,fast_translate
 
 
 class SimulatedVision360(Sensor):
@@ -66,7 +65,7 @@ class SimulatedVision360(Sensor):
             ),
         )
         # make relative to a robot at 0,0 pointing north
-        self.outline = translate(
+        self.outline = fast_translate(
             self.outline,
             -self.ExteriorTheWorld[0].center[0],
             -self.ExteriorTheWorld[0].center[1],
@@ -81,7 +80,7 @@ class SimulatedVision360(Sensor):
 
         # from SimulatedLineOfSight
         self.fov = rotate(self.outline, -self.ExteriorTheWorld[0].angle, origin=(0, 0))
-        self.fov = translate(
+        self.fov = fast_translate(
             self.fov,
             self.ExteriorTheWorld[0].center[0],
             self.ExteriorTheWorld[0].center[1],
@@ -118,7 +117,7 @@ class SimulatedVision360(Sensor):
                             closest = obj
                             closest_distance = dist
                             closest_line = rotate(
-                                translate(
+                                fast_translate(
                                     u,
                                     -self.ExteriorTheWorld[0].center[0],  # inversed
                                     -self.ExteriorTheWorld[0].center[1],  # inversed
@@ -132,7 +131,7 @@ class SimulatedVision360(Sensor):
                         # easiest way to do this is to put the lines back in the robot's
                         # frame of reference and pick something straight ahead
                         u2 = rotate(
-                            translate(
+                            fast_translate(
                                 u,
                                 -self.ExteriorTheWorld[0].center[0],  # inversed
                                 -self.ExteriorTheWorld[0].center[1],  # inversed

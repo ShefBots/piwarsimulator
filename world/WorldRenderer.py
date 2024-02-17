@@ -2,10 +2,9 @@
 import pygame
 import numpy as np
 from shapely.affinity import rotate
-from shapely.affinity import translate
 from time import monotonic
 from world.ObjectType import *
-from util import outline_xy
+from util import outline_xy,fast_translate
 
 
 class WorldRenderer:
@@ -124,7 +123,7 @@ class WorldRenderer:
                     and not obj.brain.attachment_outline.is_empty
                 ):
                     ao = rotate(
-                        translate(
+                        fast_translate(
                             obj.brain.attachment_outline, obj.center[0], obj.center[1]
                         ),
                         -obj.angle,

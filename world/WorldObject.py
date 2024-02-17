@@ -4,8 +4,8 @@ import numpy as np
 from pygame import Color
 from shapely.geometry import LineString, Point, Polygon
 from shapely.affinity import rotate
-from shapely.affinity import translate
 from world.ObjectType import ObjectType
+from util import fast_translate
 
 
 class WorldObject:
@@ -112,7 +112,7 @@ class WorldObject:
     @center.setter
     def center(self, pos):
         d_pos = pos - self._center
-        self.outline = translate(self.outline, d_pos[0], d_pos[1])
+        self.outline = fast_translate(self.outline, d_pos[0], d_pos[1])
         self._center = pos
 
     @property

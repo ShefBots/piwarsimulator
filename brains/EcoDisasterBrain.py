@@ -6,6 +6,7 @@ from shapely.geometry import Polygon
 from brains.ExecutionState import ExecutionState
 from brains.RobotBrain import RobotBrain
 from algorithms.pathfinding_astar import AStar as Pathfinding
+from util import fast_translate
 from world.WorldObject import *
 from world.ObjectType import *
 
@@ -180,7 +181,7 @@ class EcoDisasterBrain(RobotBrain):
             # for each spot in the grid would the robot hit anything
             for ii in np.arange(-grid_half_size, grid_half_size + 1):
                 for jj in np.arange(-grid_half_size, grid_half_size + 1):
-                    tro = translate(robot_outline, ii * scale_factor, jj * scale_factor)
+                    tro = fast_translate(robot_outline, ii * scale_factor, jj * scale_factor)
                     if tro.intersects(obstacle_outline):
                         obstacle_map[
                             jj + grid_half_size,

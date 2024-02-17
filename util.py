@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import numpy as np
+from shapely import transform
+# from shapely.affinity import affine_transform
 
 
 def sqr_magnitude_of(vector):
@@ -23,3 +25,18 @@ def outline_xy(outline):
         return outline.xy
     else:
         return outline.exterior.xy
+
+
+# a lot of overheads in shapely, slim it back some
+def fast_translate(geom, xoff, yoff):
+    # matrix = (1.0, 0.0, 0.0, 1.0, xoff, yoff)
+    # return affine_transform(geom, matrix)
+
+    a, b, d, e = 1.0, 0.0, 0.0, 1.0
+    A = np.array([[a, b], [d, e]], dtype=float)
+    off = np.array([xoff, yoff], dtype=float)
+
+    def _affine_coords(coords):
+        return np.matmul(A, coords.T).T + off
+
+    return transform(geom, _affine_coords, include_z=False)

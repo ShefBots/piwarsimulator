@@ -3,11 +3,10 @@ import copy
 import math
 from shapely.geometry import LineString, Polygon
 from shapely.affinity import rotate
-from shapely.affinity import translate
 from sensors.Sensor import Sensor
 from world.ObjectType import *
 from world.WorldObject import *
-from util import rotate_by
+from util import fast_translate
 
 
 class SimulatedLineOfSight(Sensor):
@@ -75,7 +74,7 @@ class SimulatedLineOfSight(Sensor):
         )
         # make relative to a robot at 0,0 pointing north
         self.outline = rotate(self.outline, -self.angle, origin=(x0, y0))
-        self.outline = translate(
+        self.outline = fast_translate(
             self.outline,
             -self.ExteriorTheWorld[0].center[0],
             -self.ExteriorTheWorld[0].center[1],
@@ -92,7 +91,7 @@ class SimulatedLineOfSight(Sensor):
         # need to move the field of view outline to the robots locations and rotation
         # rotate first to take advantage of center (-ve because coordiante system)
         self.fov = rotate(self.outline, -self.ExteriorTheWorld[0].angle, origin=(0, 0))
-        self.fov = translate(
+        self.fov = fast_translate(
             self.fov,
             self.ExteriorTheWorld[0].center[0],
             self.ExteriorTheWorld[0].center[1],
