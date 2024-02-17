@@ -20,6 +20,9 @@ from world.WorldObject import WorldObject
 # to profile:
 # python -m cProfile -o out.prof piwarsimulator.py
 # python -m snakeviz out.prof
+# from line_profiler import profile
+# @profile
+# python -m kernprof -lvr piwarsimulator.py
 
 running = True  # state of simulator
 ctrlc_count = 0  # if hitting 3 try and sys.exit
