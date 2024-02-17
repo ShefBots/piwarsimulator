@@ -1,5 +1,4 @@
 #!/usr/bin/env
-import copy
 import numpy as np
 from heapq import heappop, heappush
 
@@ -39,20 +38,21 @@ class AStar(Pathfinding):
 
         self.actions = [
             Pathfinding.UP,
-            Pathfinding.DOWN,
             Pathfinding.LEFT,
             Pathfinding.RIGHT,
+            Pathfinding.DOWN,  # marginally faster to try going down last?
         ]
 
-    def heuristic(self, a, b):
-        # Manhattan distance heuristic
-        return abs(a[0] - b[0]) + abs(a[1] - b[1])
+    # def heuristic(self, a, b):
+        # return abs(a[0] - b[0]) + abs(a[1] - b[1])  # Manhattan distance heuristic
+        # return (a[0] - b[0])*(a[0] - b[0]) + (a[1] - b[1])*(a[1] - b[1])  # makes things diagonal
 
-    def is_valid(self, x, y):
-        return 0 <= x < self.width and 0 <= y < self.height
+    # def is_valid(self, x, y):
+        # return 0 <= x < self.width and 0 <= y < self.height
 
-    def is_passable(self, x, y):
-        return self.is_valid(x, y) and self.obstacle_map[x][y] != Pathfinding.OBSTACLE
+    # def is_passable(self, x, y):
+        # return self.is_valid(x, y) and self.obstacle_map[x][y] != Pathfinding.OBSTACLE
+        # return 0 <= x < self.width and 0 <= y < self.height and self.obstacle_map[x][y] != Pathfinding.OBSTACLE
 
     def reconstruct_path(self, came_from):
         current = self.goal
@@ -67,6 +67,14 @@ class AStar(Pathfinding):
 
         start = Pathfinding.find(map, Pathfinding.ME)  # Starting position
 
+        # local scope is marginally faster
+        goal = self.goal
+        actions = self.actions
+        width = self.width
+        height = self.height
+        obstacle_map = self.obstacle_map
+        OBSTACLE = Pathfinding.OBSTACLE
+
         frontier = []
         heappush(frontier, (0, start))
         came_from = {}
@@ -75,12 +83,12 @@ class AStar(Pathfinding):
         while frontier:
             _, current = heappop(frontier)
 
-            if current == self.goal:
+            # if current == self.goal:
+            if current == goal:
                 path = self.reconstruct_path(came_from)
                 for x in path:
                     newmap[x[0], x[1]] = Pathfinding.VISITED
                 newmap[current] = Pathfinding.ME
-                # self.move_record = path
 
                 # this is a wonk way to get movement direction, matching pathfinding output
                 for c in range(0, len(path) - 1):
@@ -94,16 +102,20 @@ class AStar(Pathfinding):
 
                 return newmap, Pathfinding.ARRIVED
 
-            for dx, dy in self.actions:
+            # for dx, dy in self.actions:
+            for dx, dy in actions:
                 next_x, next_y = current[0] + dx, current[1] + dy
                 new_cost = cost_so_far[current] + 1
 
-                if self.is_passable(next_x, next_y) and (
+                # if self.is_passable(next_x, next_y) and (
+                # if 0 <= next_x < self.width and 0 <= next_y < self.height and self.obstacle_map[next_x][next_y] != Pathfinding.OBSTACLE and (
+                if 0 <= next_x < width and 0 <= next_y < height and obstacle_map[next_x][next_y] != OBSTACLE and (
                     (next_x, next_y) not in cost_so_far
                     or new_cost < cost_so_far[(next_x, next_y)]
                 ):
                     cost_so_far[(next_x, next_y)] = new_cost
-                    priority = new_cost + self.heuristic(self.goal, (next_x, next_y))
+                    # priority = new_cost + self.heuristic(self.goal, (next_x, next_y))
+                    priority = new_cost + abs(self.goal[0] - next_x) + abs(self.goal[1] - next_y)
                     heappush(frontier, (priority, (next_x, next_y)))
                     came_from[(next_x, next_y)] = current
 
