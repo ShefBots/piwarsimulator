@@ -93,4 +93,5 @@ class Pathfinding:
     def execute(self, map):
         map = copy.deepcopy(map)
         state = Pathfinding.BLOCKED
+        self.move_record = []  # reset move record
         return map, state
