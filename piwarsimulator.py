@@ -163,7 +163,7 @@ time.sleep(1)  # wait for things to settle
 
 print("Running...")
 while running:
-    now = time.time()
+    now = time.monotonic()
 
     robot_brain.process()
 
@@ -184,7 +184,7 @@ while running:
         if renderer.running == False:
             running = False
 
-    to_sleep = target_frame_time - (time.time() - now)
+    to_sleep = target_frame_time - (time.monotonic() - now)
     if to_sleep > 0:
         time.sleep(to_sleep)
 

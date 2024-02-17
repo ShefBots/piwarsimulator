@@ -2,7 +2,7 @@
 import math
 import numpy as np
 from shapely.geometry import Polygon
-from time import time
+from time import monotonic
 from brains.ExecutionState import ExecutionState
 from world.WorldObject import *
 from world.ObjectType import *
@@ -240,11 +240,11 @@ class RobotBrain:
             self.square_up_cancel()
             return
 
-        time_at = time() - self.square_time
+        time_at = monotonic() - self.square_time
 
         if self.square_time == 0:
             # routine start
-            self.square_time = time()
+            self.square_time = monotonic()
             self.square_distance = dist
             self.square_rotate_time = 0
             self.controller.set_plane_velocity(alignment_vector)

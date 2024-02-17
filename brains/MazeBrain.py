@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from time import time
+from time import monotonic
 from brains.ExecutionState import ExecutionState
 from brains.RobotBrain import RobotBrain
 from world.WorldObject import *
@@ -17,7 +17,7 @@ class MazeBrain(RobotBrain):
         # start by squaring up (making sure we're aligned with the walls)
         self.state = ExecutionState.SQUARING_UP
         self.square_up_heading = 0  # align to wall in front
-        self.last_reading = time()
+        self.last_reading = monotonic()
 
     def process(self):
         """do the basic brain stuff then do specific escape route things"""
@@ -40,7 +40,7 @@ class MazeBrain(RobotBrain):
 
         # check we're in range of some wall still
         if any(d is not None for d in self.distances):
-            self.last_reading = time()
+            self.last_reading = monotonic()
 
         # move in directions with space after getting close-ish to a wall
         if self.state == ExecutionState.MOVE_LEFT:
@@ -75,7 +75,7 @@ class MazeBrain(RobotBrain):
                     self.controller.stop()
                     self.state == ExecutionState.SQUARING_UP
 
-            if time() - self.last_reading > (0.03 / self.speed):
+            if monotonic() - self.last_reading > (0.03 / self.speed):
                 # stop if no walls have been seen for X seconds (30 cm distance equiv)
                 self.controller.stop()
                 self.state = ExecutionState.STOPPED

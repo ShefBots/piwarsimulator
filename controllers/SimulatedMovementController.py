@@ -47,7 +47,7 @@ class SimulatedMovementController(Controller, Thread):
         print("Starting simulated movement thread...")
         self.running = True
         while self.running == True:
-            now = time.time()
+            now = time.monotonic()
 
             if self.moving:
                 rotation = self.theta_vel * self.UPDATE_RATE
@@ -136,7 +136,7 @@ class SimulatedMovementController(Controller, Thread):
                     for obj in self.holding:
                         obj.exterior.center = obj.exterior.center + world_translation
 
-            to_sleep = self.UPDATE_RATE - (time.time() - now)
+            to_sleep = self.UPDATE_RATE - (time.monotonic() - now)
             if to_sleep > 0:
                 time.sleep(to_sleep)
 

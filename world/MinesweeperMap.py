@@ -111,8 +111,8 @@ class MinesweeperMap(Thread):
                 > self.OVERLAP_TARGET
             ):
                 if self.mine_touched_time == 0:
-                    self.mine_touched_time = time.time()
-                on_for = time.time() - self.mine_touched_time
+                    self.mine_touched_time = time.monotonic()
+                on_for = time.monotonic() - self.mine_touched_time
                 if on_for > 1:  # 1 second nominally?
                     self.activate_mine()
             else:

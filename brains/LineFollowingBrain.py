@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from time import time
+from time import monotonic
 from brains.ExecutionState import ExecutionState
 from brains.RobotBrain import RobotBrain
 from world.WorldObject import *
@@ -15,7 +15,7 @@ class LineFollowingBrain(RobotBrain):
     def __init__(self, **kwargs):
         super(LineFollowingBrain, self).__init__(**kwargs)
         self.state = ExecutionState.PROGRAM_CONTROL
-        self.last_goal = time()
+        self.last_goal = monotonic()
 
     def process(self):
         """do the basic brain stuff then do specific line following things"""
@@ -31,11 +31,11 @@ class LineFollowingBrain(RobotBrain):
         if goal is None:
             # keep moving for a little bit in hopes of reacquiring line/passing goal
             # otherwise just stop
-            if time() - self.last_goal > (0.4 / self.speed) and self.controller.moving:
+            if monotonic() - self.last_goal > (0.4 / self.speed) and self.controller.moving:
                 self.controller.stop()
                 self.state = ExecutionState.STOPPED
             return
-        self.last_goal = time()
+        self.last_goal = monotonic()
 
         # if a wall is ahead do everything more slowly
         if self.distance_forward() is None or self.distance_forward() > 0.5:

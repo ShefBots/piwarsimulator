@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 import pygame
-import time
 import numpy as np
 from pygame import Color
 from shapely.affinity import rotate
 from shapely.affinity import translate
+from time import monotonic
 from world.ObjectType import *
 from util import outline_xy
 
@@ -38,7 +38,7 @@ class WorldRenderer:
         self.auto_scale = kwargs.get("auto_scale", True)
         self.font = pygame.font.Font(None, self.y_res // 32)  # default font
         self.small_font = pygame.font.Font(None, self.y_res // 42)  # smaller font
-        self.last_time = time.time()
+        self.last_time = monotonic()
         self.fps = np.ones(30) * (1 / 60)
         self.fps_at = 0
         self.frame = 0
@@ -170,7 +170,7 @@ class WorldRenderer:
             )
 
         # calculate fps
-        now = time.time()
+        now = monotonic()
         frame_time = now - self.last_time
         self.fps[self.fps_at] = 1 / frame_time
         fps = np.mean(self.fps)
