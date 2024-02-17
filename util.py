@@ -19,11 +19,15 @@ def rotate_by(vector, angle):
 
 def outline_xy(outline):
     """return the xy coordinates of the outline"""
-    # if isinstance(outline, LineString):
-    if outline.geom_type == "LineString" or outline.geom_type == "Point":
-        return outline.xy
+    if isinstance(outline, shapely.LineString) or isinstance(outline, shapely.Point):
+        # return outline.xy
+        # xy = outline.coords._coords
+        xy = shapely.get_coordinates(outline)
     else:
-        return outline.exterior.xy
+        # return outline.exterior.xy
+        # xy = outline.exterior.coords._coords
+        xy = shapely.get_coordinates(outline.exterior)
+    return xy[:, 0], xy[:, 1]
 
 
 # a lot of overheads in shapely, slim it back some
