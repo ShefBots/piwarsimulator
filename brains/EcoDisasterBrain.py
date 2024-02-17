@@ -3,6 +3,7 @@ import copy
 import math
 from shapely.affinity import scale
 from shapely.geometry import Polygon
+from shapely import lib as shapely_lib
 from brains.ExecutionState import ExecutionState
 from brains.RobotBrain import RobotBrain
 from algorithms.pathfinding_astar import AStar as Pathfinding
@@ -165,7 +166,9 @@ class EcoDisasterBrain(RobotBrain):
                     or obj.object_type == ObjectType.WALL
                 ) and not self.is_holding(obj):
                     # could add a buffer around objets here
-                    obstacle_outline = obstacle_outline.union(obj.outline)
+                    # obstacle_outline = obstacle_outline.union(obj.outline)
+                    # marginally faster to call shapely's c library directly
+                    obstacle_outline = shapely_lib.union(obstacle_outline, obj.outline)
 
             # create grid (2d matrix of possible/impossible movement locations) for pathfinding
             scale_factor = 0.1  # each grid space size (in metres)
@@ -181,8 +184,12 @@ class EcoDisasterBrain(RobotBrain):
             # for each spot in the grid would the robot hit anything
             for ii in np.arange(-grid_half_size, grid_half_size + 1):
                 for jj in np.arange(-grid_half_size, grid_half_size + 1):
-                    tro = fast_translate(robot_outline, ii * scale_factor, jj * scale_factor)
-                    if tro.intersects(obstacle_outline):
+                    translated_robot = fast_translate(
+                        robot_outline, ii * scale_factor, jj * scale_factor
+                    )
+                    # if translated_robot.intersects(obstacle_outline):
+                    # marginally faster to call shapely's c library directly
+                    if shapely_lib.intersects(translated_robot, obstacle_outline):
                         obstacle_map[
                             jj + grid_half_size,
                             ii
