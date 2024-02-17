@@ -17,6 +17,10 @@ from world.WorldObject import WorldObject
 # note this runs about 6 times slower on the Pi under Python 3.7?
 # FPS to TPS for thoughts per second ? :)
 
+# to profile:
+# python -m cProfile -o out.prof piwarsimulator.py
+# python -m snakeviz out.prof
+
 running = True  # state of simulator
 ctrlc_count = 0  # if hitting 3 try and sys.exit
 target_frame_time = 1 / 60.0  # aim for 60 fps simulation/processing
