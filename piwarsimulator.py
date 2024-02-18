@@ -132,7 +132,7 @@ if (
 robot = WorldObject(
     object_type=ObjectType.ROBOT,
     x=0,
-    y=-0.7,
+    y=0,
     w=0.18,
     h=0.235,
     angle=0,
@@ -148,8 +148,10 @@ if args.mode == "simulation" or args.mode == "sensor_simulation":
 
     # import the map
     print(f"Loading map {args.map}...")
-    map = getattr(importlib.import_module("world." + args.map), args.map)
-    map(ExteriorTheWorld)
+    map = importlib.import_module("world." + args.map)
+    map_func = getattr(map, args.map)
+    map_func(ExteriorTheWorld)
+    robot.center = map.START_LOCATION
 
 # logic for the robot
 print("Loading robot controller...")

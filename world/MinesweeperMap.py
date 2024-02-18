@@ -4,6 +4,8 @@ from random import randint
 from threading import Thread
 from world.WorldObject import *
 
+START_LOCATION = (0, 0)
+
 
 class MinesweeperMap(Thread):
     """

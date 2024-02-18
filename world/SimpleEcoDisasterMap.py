@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from world.WorldObject import *
 
+START_LOCATION = (0, -0.7)
+
 
 def SimpleEcoDisasterMap(ExteriorTheWorld):
     # for walls x and y are the center of the wall and they are extended by radius

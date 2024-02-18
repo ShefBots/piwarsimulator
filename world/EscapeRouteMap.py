@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from world.WorldObject import *
 
+START_LOCATION = (0, 0)
+
 
 def EscapeRouteMap(ExteriorTheWorld):
     """
