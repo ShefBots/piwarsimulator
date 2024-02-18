@@ -40,6 +40,13 @@ class SimulatedMovementController(Controller, Thread):
         if not self.mirror is None:
             self.mirror.set_plane_velocity(vel)
 
+    def ping(self):
+        """tell the hardware we're still using it and check if it's still there"""
+        flag = super().ping()
+        if not self.mirror is None:
+            flag = flag and self.mirror.ping()
+        return flag
+
     def run(self):
         print("Starting simulated movement thread...")
         self.running = True

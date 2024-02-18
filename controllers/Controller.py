@@ -23,6 +23,10 @@ class Controller:
         self.vel = np.array(vel)
         self.moving = True
 
+    def ping(self):
+        """tell the hardware we're still using it and check if it's still there"""
+        return True  # default assume "this is fine"
+
     def stop(self, exiting=False):
         """stop moving"""
         print("Stopping moving")
