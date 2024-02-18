@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import time
+from pygame import Color
 from random import randint
 from threading import Thread
 from world.WorldObject import *
@@ -81,7 +82,7 @@ class MinesweeperMap(Thread):
                         y=j * 0.4 - 0.6,
                         w=0.38,
                         h=0.38,
-                        color=Color("gray80"),
+                        color="gray80",
                     )
                 )
         self.active_mine = 0
@@ -100,6 +101,9 @@ class MinesweeperMap(Thread):
         self.mines[self.active_mine].color = Color("gray80")
         self.active_mine = new_mine
         self.mines[self.active_mine].color = Color("red")
+        # note this function uses Color() only the world object constructor converts string to tupple
+        # we need to use the constructed version comparison
+        # and then the constructed version to set a new color
 
     def run(self):
         self.running = True
