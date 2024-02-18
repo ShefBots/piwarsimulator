@@ -29,7 +29,7 @@ class MovementController(Controller):
     def set_plane_velocity(self, vel):
         """velocity aligned to the robot (sideways, forwards)"""
         super().set_plane_velocity(vel)
-        self.motor_driver.set_linear_velocities(vel[0, vel[1]])
+        self.motor_driver.set_linear_velocities(vel[1], vel[0])
 
     def stop(self, exiting=False):
         """stop moving"""
