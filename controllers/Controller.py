@@ -7,3 +7,6 @@ class Controller:
     def stop(self, exiting=False):
         """stop moving"""
         pass
+
+    def __del__(self):
+        self.stop(exiting=True)

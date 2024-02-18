@@ -8,14 +8,17 @@ from controllers.Controller import Controller
 from world.ObjectType import *
 
 
+# TODO move out common bits to Controller and call via __super__
+
+
 class SimulatedMovementController(Controller, Thread):
-    """controllers are things that move the robot"""
+    """move the robot in the exterior the world"""
 
     UPDATE_RATE = 1 / 120.0
     TRANSLATION_THRESHOLD = 0.0001  # m
     ROTATION_THRESHOLD = 0.001  # degrees
 
-    def __init__(self, robot):
+    def __init__(self, robot, secondary_controller=None):
         print("Initialising SimulatedMovementController...")
         # https://stackoverflow.com/questions/13380819/multiple-inheritance-along-with-threading-in-python
         super(SimulatedMovementController, self).__init__()
@@ -25,21 +28,25 @@ class SimulatedMovementController(Controller, Thread):
         # default don't move
         self.vel = np.array([0, 0])
         self.theta_vel = 0  # angular velocity
-
-        self.running = False
         self.moving = False
 
+        # special stuff for simulation
+        self.running = False
         self.holding = []  # items to move along with robot
-
+        self.mirror = secondary_controller
         self.start()
 
     def set_angular_velocity(self, theta):
         """set angular velocity in degrees per second"""
+        if not self.mirror is None:
+            self.mirror.set_angular_velocity(theta)
         self.theta_vel = theta
         self.moving = True
 
     def set_plane_velocity(self, vel):
         """velocity aligned to the robot (sideways, forwards)"""
+        if not self.mirror is None:
+            self.mirror.set_plane_velocity(vel)
         self.vel = np.array(vel)
         self.moving = True
 
@@ -145,6 +152,8 @@ class SimulatedMovementController(Controller, Thread):
     def stop(self, exiting=False):
         """stop moving"""
         print("Stopping moving")
+        if not self.mirror is None:
+            self.mirror.stop_moving()
         self.vel = np.array([0, 0])
         self.theta_vel = 0
         self.moving = False

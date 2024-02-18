@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 import numpy as np
 import shapely
+from glob import glob
+from serial import SerialException
+from comms.serial import SerialComms
+from devices import DEVICE_ID_LIST as SERIAL_DEVICE_ID_LIST
 
 
 def sqr_magnitude_of(vector):
@@ -44,3 +48,30 @@ def fast_translate(geom, xoff, yoff):
         return coords + off
 
     return shapely.transform(geom, _affine_coords, include_z=False)
+
+
+def find_serial_ports(pattern="/dev/ttyACM*"):
+    return glob(pattern)
+
+
+def create_serial_instances(port_list):
+    serial_instances = {}
+    for port in port_list:
+        try:
+            ser = SerialComms(port)
+            print(f"Serial port {port} opened successfully.")
+            try:
+                identity = ser.identify()
+                if identity in SERIAL_DEVICE_ID_LIST:
+                    print(
+                        f"Found device: {hex(identity)} ({SERIAL_DEVICE_ID_LIST[identity]})"
+                    )
+                else:
+                    print(f"Found unknown device: {hex(identity)}")
+                serial_instances[identity] = ser
+            except ValueError:
+                raise Exception("Not a recognised serial device")
+
+        except SerialException as e:
+            raise Exception(f"Error opening serial port {port}: {e}")
+    return serial_instances

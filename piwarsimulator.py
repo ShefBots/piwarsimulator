@@ -5,6 +5,11 @@ import time
 import numpy as np
 from os import listdir
 from signal import signal, SIGINT
+
+# I hate altering paths, but without this piwarsengine dies
+importlib.import_module("sys").path.append("../piwarsengine")
+
+import util
 from world.ObjectType import ObjectType
 from world.WorldObject import WorldObject
 
@@ -18,6 +23,7 @@ from world.WorldObject import WorldObject
 # FPS to TPS for thoughts per second ? :)
 
 # to profile:
+# pip install line-profiler[all] snakeviz
 # python -m cProfile -o out.prof piwarsimulator.py
 # python -m snakeviz out.prof
 # from line_profiler import profile
@@ -27,6 +33,7 @@ from world.WorldObject import WorldObject
 running = True  # state of simulator
 ctrlc_count = 0  # if hitting 3 try and sys.exit
 target_frame_time = 1 / 60.0  # aim for 60 fps simulation/processing
+serial_pattern = "/dev/ttyACM*"  # serial ports to scan for hardware
 
 
 def sigint_handler(signal_received, frame):
@@ -53,11 +60,11 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--brain",
     help="robot brain/challenge (default RobotBrain)",
-    # default="RobotBrain",
+    default="RobotBrain",
     # default="MinesweeperBrain",
     # default="MazeBrain",
     # default="LineFollowingBrain",
-    default="EcoDisasterBrain",
+    # default="EcoDisasterBrain",
     choices=brains,
 )
 parser.add_argument(
@@ -65,10 +72,10 @@ parser.add_argument(
     help=f"map (default {maps[0]})",
     # default=maps[0],
     # default="MinesweeperMap",
-    # default="EscapeRouteMap",
+    default="EscapeRouteMap",
     # default="LavaPalavaMap",
-    default="SimpleEcoDisasterMap",
-    choices=maps
+    # default="SimpleEcoDisasterMap",
+    choices=maps,
     # "--map", help=f"map (default {maps[0]})", default="LavaPalavaMap", choices=maps
 )
 parser.add_argument(
@@ -85,20 +92,41 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
+# imports for hardware etc based on settings
 if args.rendering == "true":
     from sensors.Keyboard import Keyboard
-
 if args.mode == "simulation":
     from controllers.SimulatedMovementController import SimulatedMovementController
     from sensors.SimulatedLineOfSight import SimulatedLineOfSight
     from sensors.SimulatedVision360 import SimulatedVision360
 elif args.mode == "sensor_simulation":
-    # TODO real hardware
+    from controllers.SimulatedMovementController import SimulatedMovementController
+    from controllers.MovementController import MovementController
     from sensors.SimulatedLineOfSight import SimulatedLineOfSight
     from sensors.SimulatedVision360 import SimulatedVision360
 elif args.mode == "control":
-    # TODO real hardware
-    pass
+    from controllers.MovementController import MovementController
+
+    # TODO real hardware (sensors)
+
+# do serial stuff if needed
+if (
+    args.rendering == "true" and args.mode == "simulation"
+) or not args.mode == "simulation":
+    print("Preparing serial comms...")
+    # want controller input even if simulating
+    # or otherwise it's someting with hardware and will want serial
+
+    # Find serial ports matching the pattern
+    port_list = util.find_serial_ports(serial_pattern)
+
+    if not port_list:
+        print(f"No serial ports found matching the pattern '{serial_pattern}'.")
+        serial_instances = {}
+    else:
+        # Create instances for each serial port
+        serial_instances = util.create_serial_instances(port_list)
+
 
 # provides robot geometry
 robot = WorldObject(
@@ -107,7 +135,7 @@ robot = WorldObject(
     y=-0.7,
     w=0.18,
     h=0.235,
-    angle=0
+    angle=0,
     # object_type=ObjectType.ROBOT, x=0.1, y=-0.3, w=0.18, h=0.235, angle=20
     # object_type=ObjectType.ROBOT, x=0.1, y=-0.3, w=0.18, h=0.235, angle=20
     # object_type=ObjectType.ROBOT, x=0, y=0, w=0.18, h=0.235, angle=1
@@ -127,6 +155,11 @@ if args.mode == "simulation" or args.mode == "sensor_simulation":
 print("Loading robot controller...")
 if args.mode == "simulation":
     controller = SimulatedMovementController(robot)
+elif args.mode == "sensor_simulation":
+    real_controller = MovementController(serial_instances)
+    controller = SimulatedMovementController(
+        robot, secondary_controller=real_controller
+    )
 else:
     raise Exception("No real hardware controller yet")
 
