@@ -8,9 +8,6 @@ from controllers.Controller import Controller
 from world.ObjectType import *
 
 
-# TODO move out common bits to Controller and call via __super__
-
-
 class SimulatedMovementController(Controller, Thread):
     """move the robot in the exterior the world"""
 
@@ -22,33 +19,26 @@ class SimulatedMovementController(Controller, Thread):
         print("Initialising SimulatedMovementController...")
         # https://stackoverflow.com/questions/13380819/multiple-inheritance-along-with-threading-in-python
         super(SimulatedMovementController, self).__init__()
-        assert robot.object_type == ObjectType.ROBOT
-        self.robot = robot
-
-        # default don't move
-        self.vel = np.array([0, 0])
-        self.theta_vel = 0  # angular velocity
-        self.moving = False
 
         # special stuff for simulation
-        self.running = False
+        assert robot.object_type == ObjectType.ROBOT
+        self.robot = robot
         self.holding = []  # items to move along with robot
-        self.mirror = secondary_controller
+        self.mirror = secondary_controller  # for sensor_simulation mode
+        self.running = False
         self.start()
 
     def set_angular_velocity(self, theta):
         """set angular velocity in degrees per second"""
+        super().set_angular_velocity(theta)
         if not self.mirror is None:
             self.mirror.set_angular_velocity(theta)
-        self.theta_vel = theta
-        self.moving = True
 
     def set_plane_velocity(self, vel):
         """velocity aligned to the robot (sideways, forwards)"""
+        super().set_plane_velocity(vel)
         if not self.mirror is None:
             self.mirror.set_plane_velocity(vel)
-        self.vel = np.array(vel)
-        self.moving = True
 
     def run(self):
         print("Starting simulated movement thread...")
@@ -152,11 +142,9 @@ class SimulatedMovementController(Controller, Thread):
     def stop(self, exiting=False):
         """stop moving"""
         print("Stopping moving")
+        super().stop(exiting)
         if not self.mirror is None:
             self.mirror.stop_moving()
-        self.vel = np.array([0, 0])
-        self.theta_vel = 0
-        self.moving = False
 
         if exiting:
             self.running = False
