@@ -53,8 +53,8 @@ class Pathfinding:
         if basic:
             print(np.flipud(t))
         else:
-            for ii in np.arange(t.shape[0] - 1, -1, -1):
-                for jj in np.arange(0, t.shape[1]):
+            for ii in range(t.shape[0] - 1, -1, -1):
+                for jj in range(0, t.shape[1]):
                     if t[ii, jj] == Pathfinding.EMPTY:
                         print("  ", end="")
                     elif t[ii, jj] == Pathfinding.GOAL:
