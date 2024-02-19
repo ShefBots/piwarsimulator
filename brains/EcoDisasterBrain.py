@@ -77,8 +77,52 @@ class EcoDisasterBrain(RobotBrain):
         self.gripper_open_outline = half_gripper_open.union(
             scale(half_gripper_open, xfact=-1, origin=(0, 0))
         )
-
         self.close_gripper()
+
+        # for pathfinding, we need to find out if a potential location we move
+        # the robot to would intersect with any objects. to do this, we need to
+        # translate the location of the robot to each grid location and then to
+        # check the intersection with every near-by world object that sensors
+        # have deteted. nearby being +- 1 grid spacing distance or so.
+
+        # pathfinding grid geometry
+        self.pfgrid_scale_factor = 0.1  # each grid space size (in metres)
+        # how far out in distance to plan for in grid spaces, ideally this is big enough to always get to goal
+        self.pfgrid_size_half = 15
+        # over all the grid size MUST BE ODD (centered around 0)
+        self.pfgrid_size = self.pfgrid_size_half * 2 + 1
+
+        # for each possible spot on the grid, pre-compute the robot translation with both the closed and open gripper
+        self.pfgrid_geometry_closed = np.zeros(
+            (self.pfgrid_size, self.pfgrid_size), dtype=object
+        )
+        self.pfgrid_geometry_open = np.zeros(
+            (self.pfgrid_size, self.pfgrid_size), dtype=object
+        )
+        temp_robot = WorldObject(
+            object_type=ObjectType.ROBOT,
+            x=0,
+            y=0,
+            w=self.robot.width,
+            h=self.robot.height,
+        )  # temporary robot at 0,0 for pre-computation
+        temp_robot_outline_clsd = temp_robot.outline.union(self.gripper_closed_outline)
+        temp_robot_outline_open = temp_robot.outline.union(self.gripper_open_outline)
+        # store the center coordinates of each grid location
+        self.pfgrid_centers = np.zeros_like(self.pfgrid_geometry_closed, dtype=object)
+        # translate the robot for each grid location
+        for ii in range(-self.pfgrid_size_half, self.pfgrid_size_half + 1):
+            for jj in range(-self.pfgrid_size_half, self.pfgrid_size_half + 1):
+                center = (ii * self.pfgrid_scale_factor, jj * self.pfgrid_scale_factor)
+                ii2 = ii + self.pfgrid_size_half
+                jj2 = jj + self.pfgrid_size_half
+                self.pfgrid_centers[ii2, jj2] = center
+                self.pfgrid_geometry_closed[ii2, jj2] = fast_translate(
+                    temp_robot_outline_clsd, center[0], center[1]
+                )
+                self.pfgrid_geometry_open[ii2, jj2] = fast_translate(
+                    temp_robot_outline_open, center[0], center[1]
+                )
 
         # last calculated pathfinding path
         self.last_path = []
@@ -149,61 +193,60 @@ class EcoDisasterBrain(RobotBrain):
             #     self.controller.set_angular_velocity(0)
 
             # PLAN ROUTE BACK TO ZONE
-            # general scheme is to break the world into grid
+            # general scheme is to break the world into grid (done in init)
             # for each grid space would we colide if we were in it
             # pass onto path finding library to determine a route to the goal
             # try to follow that route
 
-            # if self.path_refresh == 0: ## only update the path every X loops/time interval?
+            # pick up barrel, rotate to face destination zone, then go from there?
 
-            # thing we're trying to move
-            robot_outline = self.TheWorld[0].outline.union(self.attachment_outline)
-            # things we're trying to avoid
-            obstacle_outline = Polygon()
+            # things we're trying to avoid and where they are located
+            world_obstacles = []
             for obj in self.TheWorld[1:]:
                 if (
                     obj.object_type == ObjectType.BARREL
                     or obj.object_type == ObjectType.WALL
                 ) and not self.is_holding(obj):
-                    # could add a buffer around objets here
-                    # obstacle_outline = obstacle_outline.union(obj.outline)
-                    # marginally faster to call shapely's c library directly
-                    obstacle_outline = shapely_lib.union(obstacle_outline, obj.outline)
+                    # could add a buffer around objets here, obj.outline.buffer(0.02)
+                    world_obstacles.append((obj.outline, obj.center))
 
-            # create grid (2d matrix of possible/impossible movement locations) for pathfinding
-            scale_factor = 0.1  # each grid space size (in metres)
-            grid_half_size = 15  # how far out in distance to plan for in grid spaces, ideally this is big enough to always get to goal
-            grid_size = grid_half_size * 2 + 1  # MUST BE ODD (centered around 0)
-            obstacle_map = np.zeros((grid_size, grid_size))
-            # dummy walls to keep pathfinding from breaking
-            obstacle_map[0, :] = Pathfinding.OBSTACLE  # top wall
-            obstacle_map[-1, :] = Pathfinding.OBSTACLE  # bottom wall
-            obstacle_map[:, 0] = Pathfinding.OBSTACLE  # left wall
-            obstacle_map[:, -1] = Pathfinding.OBSTACLE  # right wall
+            # the pre-computed robot locations that we could be moving to on our way to the goal
+            if self.gripper_state == self.GRIPPER_CLOSED:
+                pfgrid_geometry = self.pfgrid_geometry_closed
+            else:
+                pfgrid_geometry = self.pfgrid_geometry_open
+            # slightly faster to work from local scope
+            pathfinding_centers = self.pfgrid_centers
 
-            # for each spot in the grid would the robot hit anything
-            for ii in np.arange(-grid_half_size, grid_half_size + 1):
-                for jj in np.arange(-grid_half_size, grid_half_size + 1):
-                    translated_robot = fast_translate(
-                        robot_outline, ii * scale_factor, jj * scale_factor
-                    )
-                    # if translated_robot.intersects(obstacle_outline):
-                    # marginally faster to call shapely's c library directly
-                    if shapely_lib.intersects(translated_robot, obstacle_outline):
-                        obstacle_map[
-                            jj + grid_half_size,
-                            ii
-                            + grid_half_size,  # ii and jj swapped for pathfinding library map output
-                        ] = Pathfinding.OBSTACLE
+            # map of invalid locations to move to
+            obstacle_map = np.zeros_like(pfgrid_geometry)
+            # check for obstacles within this distance of the grid location
+            # (i.e. with this distance of a spot we're looking at moving to)
+            check_distance = self.pfgrid_scale_factor * self.pfgrid_scale_factor * 4
+            for ii in range(0, self.pfgrid_size):
+                for jj in range(0, self.pfgrid_size):
+                    for obj, oc in world_obstacles:
+                        b = pathfinding_centers[ii, jj]
+                        # slightly annoying that writing it out long hand is faster than vectorisation
+                        if (oc[0] - b[0]) ** 2 + (oc[1] - b[1]) ** 2 < check_distance:
+                            # marginally faster to call shapely's c library directly
+                            if shapely_lib.intersects(pfgrid_geometry[ii, jj], obj):
+                                # ii and jj swapped for pathfinding library map output
+                                obstacle_map[jj, ii] = Pathfinding.OBSTACLE
+                                break
+
             # where the goal is on the grid, + grid_half_size turn from (0,0) to index
             goal_iijj = (
-                np.floor(goal.center / scale_factor).astype(int) + grid_half_size
+                np.floor(goal.center / self.pfgrid_scale_factor).astype(int)
+                + self.pfgrid_size_half
             )
             obstacle_map[goal_iijj[1], goal_iijj[0]] = Pathfinding.GOAL
 
-            # matrix holding our route to the goal (for visualisation)
+            # map holding our current location and that will have the path added to it pathfinding happens
+            # that return is useful for visualisation
             map = np.zeros_like(obstacle_map)
-            map[grid_half_size, grid_half_size] = Pathfinding.ME  # starting location
+            # starting location
+            map[self.pfgrid_size_half, self.pfgrid_size_half] = Pathfinding.ME
 
             # do the pathfinding and store the route in newmap
             pf = Pathfinding(obstacle_map)
@@ -216,7 +259,6 @@ class EcoDisasterBrain(RobotBrain):
                 # on first time store for oscillation detection
                 if len(self.last_path) == 0:
                     self.last_path = copy.deepcopy(pf.move_record)
-                    # self.last_path.reverse()
 
                 l_move = self.last_path[-1]  # last move
                 n_move = pf.move_record[-1]  # next move
