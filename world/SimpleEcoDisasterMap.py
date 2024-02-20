@@ -27,24 +27,31 @@ def SimpleEcoDisasterMap(ExteriorTheWorld):
         )
     )
 
-    # some barrels
+    # some barrels - keep in mind (0,0) is the middle of the map and (-1.1,-1.1) is a corner
     ExteriorTheWorld.append(
         WorldObject(
-            object_type=ObjectType.BARREL, x=0.0, y=-0.35, radius=0.025, color="red"
+            object_type=ObjectType.BARREL,
+            x=-0.5,
+            y=-0.5,
+            radius=0.025,
+            color="darkgreen",
         )
     )
     ExteriorTheWorld.append(
         WorldObject(
-            object_type=ObjectType.BARREL, x=0.0, y=0.7, radius=0.025, color="darkgreen"
+            object_type=ObjectType.BARREL, x=0.5, y=-0.5, radius=0.025, color="red"
         )
     )
-    # CREATE A BUNCH OF BARRELS TO SIMULATE A WALL TO GET AROUND
-    for x in range(-4, 11):
-        ExteriorTheWorld.append(
-            WorldObject(
-                object_type=ObjectType.BARREL, x=x/10, y=0.2, radius=0.025, color="darkgreen"
-            )
+    ExteriorTheWorld.append(
+        WorldObject(
+            object_type=ObjectType.BARREL, x=-0.5, y=0.5, radius=0.025, color="red"
         )
+    )
+    ExteriorTheWorld.append(
+        WorldObject(
+            object_type=ObjectType.BARREL, x=0.5, y=0.5, radius=0.025, color="darkgreen"
+        )
+    )
 
     # some zones
     ExteriorTheWorld.append(
