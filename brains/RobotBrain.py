@@ -105,7 +105,8 @@ class RobotBrain:
         self.check_for_collision()
         self.find_distances()
 
-        # TODO do we always want to try and stop on collisions? return?
+        # do we always want to try and stop on collisions?
+        # sometimes we'll let higher level logic take over
         if self.do_collision_detection == True and not self.collision is None:
             self.controller.stop()
 
