@@ -152,10 +152,11 @@ class EcoDisasterBrain(RobotBrain):
         (goal, goal_distance) = self.find_goal()
         if goal is None:
             return
-        # print(goal)  # why does the goal change when the grippers are opened?
-        # cause attachnemnt outline goes into scan result
 
         if self.state == ExecutionState.MOVE_TO_BARREL:
+            # try to get to the nearest barrel and grab it
+            # this assumes there's nothing between the robot and the barrel
+
             if goal_distance < 0.2:
                 self.open_gripper()
 
@@ -188,6 +189,13 @@ class EcoDisasterBrain(RobotBrain):
         elif self.state == ExecutionState.MOVE_TO_ZONE:
             # wait for the gripper to close
             if self.gripper_state == self.GRIPPER_OPEN:
+                return
+
+            # if we're close switch to a homing mode to drop off the barrel
+            if goal_distance < 0.1:
+                print("Close to target drop off zone, switching to drop off mode")
+                self.controller.stop()
+                self.state = ExecutionState.DROP_OFF_BARREL
                 return
 
             # turn towards zone
@@ -250,22 +258,14 @@ class EcoDisasterBrain(RobotBrain):
                                 obstacle_map[jj, ii] = Pathfinding.OBSTACLE
                                 break
 
-            # where the goal is on the grid, + grid_half_size turn from (0,0) to index
-            # goal_iijj = (
-            #     np.floor(goal.center / self.pfgrid_scale_factor).astype(int)
-            #     + self.pfgrid_size_half
-            # )
-            # obstacle_map[goal_iijj[1], goal_iijj[0]] = Pathfinding.GOAL
-
-            # map holding our current location and that will have the path added to it pathfinding happens
-            # that return is useful for visualisation
+            # map holding our current location, it will have the found path added to it
             map = np.zeros_like(obstacle_map)
             # starting location
             map[self.pfgrid_size_half, self.pfgrid_size_half] = Pathfinding.ME
 
             # do the pathfinding and store the route in newmap
             pf = Pathfinding(obstacle_map, one_goal=False)
-            newmap, state = pf.execute(map)
+            _, state = pf.execute(map)
             print(f"STATE: {state}")
 
             if state == Pathfinding.ARRIVED:
@@ -310,7 +310,7 @@ class EcoDisasterBrain(RobotBrain):
 
                 self.last_path = copy.deepcopy(pf.move_record)
 
-            pf.print_map(newmap)
+        elif self.state == ExecutionState.DROP_OFF_BARREL:
             pass
 
             # if a zone drop the barrel off

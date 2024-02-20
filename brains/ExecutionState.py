@@ -18,6 +18,7 @@ class ExecutionState(Enum):
 
     MOVE_TO_BARREL = 20
     MOVE_TO_ZONE = 21
+    DROP_OFF_BARREL = 22
 
     def __str__(self):
         """Return a string representation of the ExecutionState"""
