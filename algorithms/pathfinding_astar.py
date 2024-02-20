@@ -130,7 +130,7 @@ class AStar(Pathfinding):
                             abs(goal_x - next_x) + abs(goal_y - next_y)
                             for goal_x, goal_y in goal
                         ]
-                    )
+                    ) / len(goal)
 
                     heappush(frontier, (priority, (next_x, next_y)))
                     came_from[(next_x, next_y)] = current
