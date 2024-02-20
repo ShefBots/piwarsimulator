@@ -1,2 +1,7 @@
 __pycache__
 venv/
+.vscode
+out.prof
+pathfinding_astar.py.lprof
+piwarsimulator.py.lprof
+frames/
