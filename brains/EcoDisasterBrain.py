@@ -212,7 +212,7 @@ class EcoDisasterBrain(RobotBrain):
                     or obj.object_type == ObjectType.WALL
                 ) and not self.is_holding(obj):
                     # could add a buffer around objets here, obj.outline.buffer(0.02)
-                    world_obstacles.append((obj.outline, obj.center))
+                    world_obstacles.append((obj.outline.buffer(0.02), obj.center))
 
             # the pre-computed robot locations that we could be moving to on our way to the goal
             if self.gripper_state == self.GRIPPER_CLOSED:
