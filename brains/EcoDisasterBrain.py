@@ -2,6 +2,7 @@
 import copy
 import math
 from shapely.affinity import scale
+from shapely.geometry import Point
 from shapely.geometry import Polygon
 from shapely import lib as shapely_lib
 from brains.ExecutionState import ExecutionState
@@ -26,9 +27,7 @@ class EcoDisasterBrain(RobotBrain):
     rinse and repeat
     """
 
-    # will need to account for gripper in collisions, this'll probably need a constructor
-    # will need to account for zones in collisions
-
+    # if barrel is this colour aim for that colour zone
     GOAL_MAPPING = {"darkgreen": Color("blue"), "red": Color("yellow")}
 
     GRIPPER_ANGLE_TOLERANCE = 2  # degree
@@ -89,10 +88,11 @@ class EcoDisasterBrain(RobotBrain):
         # check the intersection with every near-by world object that sensors
         # have deteted. nearby being +- 1 grid spacing distance or so.
 
+        # TODO make these constants?
         # pathfinding grid geometry
         self.pfgrid_scale_factor = 0.1  # each grid space size (in metres)
         # how far out in distance to plan for in grid spaces, ideally this is big enough to always get to goal
-        self.pfgrid_size_half = 15
+        self.pfgrid_size_half = 25
         # over all the grid size MUST BE ODD (centered around 0)
         self.pfgrid_size = self.pfgrid_size_half * 2 + 1
 
@@ -152,6 +152,8 @@ class EcoDisasterBrain(RobotBrain):
         (goal, goal_distance) = self.find_goal()
         if goal is None:
             return
+        # print(goal)  # why does the goal change when the grippers are opened?
+        # cause attachnemnt outline goes into scan result
 
         if self.state == ExecutionState.MOVE_TO_BARREL:
             if goal_distance < 0.2:
@@ -224,11 +226,22 @@ class EcoDisasterBrain(RobotBrain):
             obstacle_map = np.zeros_like(pfgrid_geometry)
             # check for obstacles within this distance of the grid location
             # (i.e. with this distance of a spot we're looking at moving to)
-            check_distance = self.pfgrid_scale_factor * self.pfgrid_scale_factor * 4
+            check_distance = (self.pfgrid_scale_factor * 2) ** 2
+            goal_check_distance = (goal.width + goal.height) ** 2
             for ii in range(0, self.pfgrid_size):
                 for jj in range(0, self.pfgrid_size):
+                    b = pathfinding_centers[ii, jj]
+
+                    # check if this grid point sits within the goal first so that
+                    # obstacles can overwrite if need be
+                    # if goal.outline.contains(Point(b)):
+                    if (goal.center[0] - b[0]) ** 2 + (
+                        goal.center[1] - b[1]
+                    ) ** 2 < goal_check_distance:
+                        if shapely_lib.intersects(goal.outline, Point(b)):
+                            obstacle_map[jj, ii] = Pathfinding.GOAL
+
                     for obj, oc in world_obstacles:
-                        b = pathfinding_centers[ii, jj]
                         # slightly annoying that writing it out long hand is faster than vectorisation
                         if (oc[0] - b[0]) ** 2 + (oc[1] - b[1]) ** 2 < check_distance:
                             # marginally faster to call shapely's c library directly
@@ -238,11 +251,11 @@ class EcoDisasterBrain(RobotBrain):
                                 break
 
             # where the goal is on the grid, + grid_half_size turn from (0,0) to index
-            goal_iijj = (
-                np.floor(goal.center / self.pfgrid_scale_factor).astype(int)
-                + self.pfgrid_size_half
-            )
-            obstacle_map[goal_iijj[1], goal_iijj[0]] = Pathfinding.GOAL
+            # goal_iijj = (
+            #     np.floor(goal.center / self.pfgrid_scale_factor).astype(int)
+            #     + self.pfgrid_size_half
+            # )
+            # obstacle_map[goal_iijj[1], goal_iijj[0]] = Pathfinding.GOAL
 
             # map holding our current location and that will have the path added to it pathfinding happens
             # that return is useful for visualisation
@@ -251,7 +264,7 @@ class EcoDisasterBrain(RobotBrain):
             map[self.pfgrid_size_half, self.pfgrid_size_half] = Pathfinding.ME
 
             # do the pathfinding and store the route in newmap
-            pf = Pathfinding(obstacle_map)
+            pf = Pathfinding(obstacle_map, one_goal=False)
             newmap, state = pf.execute(map)
             print(f"STATE: {state}")
 
