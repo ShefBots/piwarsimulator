@@ -18,6 +18,7 @@ from world.WorldObject import WorldObject
 # TODO classes for real hardware
 # TODO sensor_simulation (real control only) mode and control mode (all real)
 # TODO update readme
+# TODO launcher control? radio control?
 
 # note this runs about 6 times slower on the Pi under Python 3.7?
 # FPS to TPS for thoughts per second ? :)
@@ -149,9 +150,9 @@ if args.mode == "simulation" or args.mode == "sensor_simulation":
     # import the map
     print(f"Loading map {args.map}...")
     map = importlib.import_module("world." + args.map)
+    robot.center = map.START_LOCATION
     map_func = getattr(map, args.map)
     map_func(ExteriorTheWorld)
-    robot.center = map.START_LOCATION
 
 # logic for the robot
 print("Loading robot controller...")

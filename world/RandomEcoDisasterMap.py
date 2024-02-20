@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-from world.WorldObject import *
 from random import random
+from shapely.geometry import Point
+from shapely.ops import unary_union
+from world.WorldObject import *
 
 START_LOCATION = (0, -0.7)
 
@@ -35,14 +37,17 @@ def RandomEcoDisasterMap(ExteriorTheWorld):
         else:
             c = "darkgreen"
 
-        # TODO check new barrel position doesn't overlap with any existing barrels
-
         # need to check if we have a valid barrel position
-        x = random() * 1.6 - 0.8
-        y = random() * 1.6 - 0.8
+        # start with a known bad position to kick off checks
+        x = START_LOCATION[0]
+        y = START_LOCATION[1]
         # regenerate barrel position if inside start box
         # (for the y limit, 2.2/2 = 1.1, 1.1 - 0.4 - 0.2 = 0.5)
-        while x > -0.225 / 2 and x < 0.225 / 2 and y < -0.5:
+        # check new barrel position doesn't overlap with any existing barrels
+        # use something like 150 mm clearance in any direction from anything in ExteriorTheWorld
+        while (x > -0.225 / 2 and x < 0.225 / 2 and y < -0.5) or unary_union(
+            [o.outline.buffer(0.15) for o in ExteriorTheWorld]
+        ).contains(Point(x, y)):
             x = random() * 1.6 - 0.8
             y = random() * 1.6 - 0.8
 
