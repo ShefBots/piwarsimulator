@@ -165,16 +165,17 @@ class RobotBrain:
                 return True
         return False
 
-    def find_closest(self, object_type, color="", exclude=[]):
+    def find_closest(self, object_type, color="", exclude=[], relative_to="outline"):
         """
         find the closest object_type
         note color should be a pygame.color.Color
         exclude a list of WorldObjects
+        if relative_to is a tuple or list, treat that as an offset from the center of the robot
         """
         closest = None
         closest_distance = 9e99
         for obj in self.TheWorld[1:]:  # skip the robot and check everything else
-            dist = self.TheWorld[0].get_distance(obj)
+            dist = self.TheWorld[0].get_distance(obj, relative_to=relative_to)
             if (
                 obj.object_type == object_type
                 and (color == "" or obj.color == color)

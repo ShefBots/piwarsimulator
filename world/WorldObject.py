@@ -146,6 +146,14 @@ class WorldObject:
                 return self.outline.distance(obj.outline)
             else:
                 return self.outline.distance(obj)
+        elif isinstance(relative_to, (tuple, list, np.ndarray)):
+            if obj is None:
+                # no idea what the behaivour here should be
+                return 0
+            assert isinstance(obj, WorldObject)
+            my_center = self._center + relative_to
+            # return obj.outline.distance(Point(my_center))
+            return np.linalg.norm(my_center - obj._center)
         else:
             raise Exception("unknown distance comparison method")
 

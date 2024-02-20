@@ -12,7 +12,11 @@ from world.WorldObject import *
 from world.ObjectType import *
 
 
-# TODO: logic...
+# TODO: let go of barrel
+# TODO: break up goal zone into multiple grid locations
+# TODO: what REALLY happens with walls?
+
+
 class EcoDisasterBrain(RobotBrain):
     """
     logic for the ecodisaster challenge
@@ -198,8 +202,6 @@ class EcoDisasterBrain(RobotBrain):
             # pass onto path finding library to determine a route to the goal
             # try to follow that route
 
-            # pick up barrel, rotate to face destination zone, then go from there?
-
             # things we're trying to avoid and where they are located
             world_obstacles = []
             for obj in self.TheWorld[1:]:
@@ -321,7 +323,10 @@ class EcoDisasterBrain(RobotBrain):
                 ObjectType.ZONE, color=self.GOAL_MAPPING[holding_color]
             )
         elif self.state == ExecutionState.MOVE_TO_BARREL:
-            return self.find_closest(ObjectType.BARREL)
+            # find barrel closest to the front of the robot, 0.025 = barrel radius
+            return self.find_closest(
+                ObjectType.BARREL, relative_to=(0, self.robot.height / 2 + 0.025)
+            )
             # find the closest barrel that's in a straight unobstructed line?
         else:
             return (None, 9e99)
