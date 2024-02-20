@@ -33,12 +33,12 @@ class Pathfinding:
     LEFT = (0, -1)
     RIGHT = (0, 1)
 
-    def __init__(self, obstacle_map):
+    def __init__(self, obstacle_map, one_goal=True):
         # the obstacles to avoid and the goal to get to
         self.obstacle_map = obstacle_map
 
         # goal location
-        self.goal = Pathfinding.find(obstacle_map, Pathfinding.GOAL)
+        self.goal = Pathfinding.find(obstacle_map, Pathfinding.GOAL, one_of=one_goal)
 
         # moves made when calculating the newmap
         self.move_record = []
@@ -76,19 +76,22 @@ class Pathfinding:
             print(text)
 
     @staticmethod
-    def find(map, thing, num_of=1):
+    def find(map, thing, one_of=True):
+        '''find one (or more) of something in a map'''
         ii, jj = np.where(map == thing)
 
-        # only one me
-        if num_of == 1:
+        # only one thing
+        if one_of:
             assert len(ii) == 1
             assert len(jj) == 1
+            # return ii[0], jj[0]
 
-        return ii[0], jj[0]
+        return list(zip(ii, jj))
 
     @staticmethod
     def find_me(map):
-        return Pathfinding.find(map, Pathfinding.ME)
+        """always return the one location we're at"""
+        return Pathfinding.find(map, Pathfinding.ME)[0]
 
     def execute(self, map):
         map = copy.deepcopy(map)

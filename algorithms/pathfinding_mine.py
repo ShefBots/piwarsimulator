@@ -33,7 +33,8 @@ class FredsPathfinding(Pathfinding):
         super(FredsPathfinding, self).__init__(obstacle_map)
 
         # get the i j coordinates of the goal
-        self.goal_ii, self.goal_jj = self.goal
+        assert len(self.goal) == 1
+        self.goal_ii, self.goal_jj = self.goal[0]
 
         self.momentum_weight = momentum_weight
 

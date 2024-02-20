@@ -30,8 +30,12 @@ class AStar(Pathfinding):
     # debug print output?
     DO_PRINT = 0
 
-    def __init__(self, obstacle_map):
-        super(AStar, self).__init__(obstacle_map)
+    def __init__(self, obstacle_map, one_goal=True):
+        # if len(np.where(obstacle_map == Pathfinding.GOAL)) == 1:
+        #     one_goal = True
+        # else:
+        #     one_goal = False
+        super(AStar, self).__init__(obstacle_map, one_goal)
 
         self.width = len(obstacle_map[0])
         self.height = len(obstacle_map)
@@ -44,18 +48,18 @@ class AStar(Pathfinding):
         ]
 
     # def heuristic(self, a, b):
-        # return abs(a[0] - b[0]) + abs(a[1] - b[1])  # Manhattan distance heuristic
-        # return (a[0] - b[0])*(a[0] - b[0]) + (a[1] - b[1])*(a[1] - b[1])  # makes things diagonal
+    #     return abs(a[0] - b[0]) + abs(a[1] - b[1])  # Manhattan distance heuristic
+    #     return (a[0] - b[0])*(a[0] - b[0]) + (a[1] - b[1])*(a[1] - b[1])  # makes things diagonal
 
     # def is_valid(self, x, y):
-        # return 0 <= x < self.width and 0 <= y < self.height
+    #     return 0 <= x < self.width and 0 <= y < self.height
 
     # def is_passable(self, x, y):
-        # return self.is_valid(x, y) and self.obstacle_map[x][y] != Pathfinding.OBSTACLE
-        # return 0 <= x < self.width and 0 <= y < self.height and self.obstacle_map[x][y] != Pathfinding.OBSTACLE
+    #     return self.is_valid(x, y) and self.obstacle_map[x][y] != Pathfinding.OBSTACLE
+    #     return 0 <= x < self.width and 0 <= y < self.height and self.obstacle_map[x][y] != Pathfinding.OBSTACLE
 
-    def reconstruct_path(self, came_from):
-        current = self.goal
+    def reconstruct_path(self, came_from, current):
+        # current = self.goal
         path = []
         while current in came_from:
             current = came_from[current]
@@ -65,7 +69,7 @@ class AStar(Pathfinding):
     def execute(self, map):
         newmap, state = super().execute(map)
 
-        start = Pathfinding.find(map, Pathfinding.ME)  # Starting position
+        start = Pathfinding.find_me(map)  # Starting position
 
         # local scope is marginally faster
         goal = self.goal
@@ -83,9 +87,9 @@ class AStar(Pathfinding):
         while frontier:
             _, current = heappop(frontier)
 
-            # if current == self.goal:
-            if current == goal:
-                path = self.reconstruct_path(came_from)
+            # if current == goal:
+            if current in goal:
+                path = self.reconstruct_path(came_from, current)
                 for x in path:
                     newmap[x[0], x[1]] = Pathfinding.VISITED
                 newmap[current] = Pathfinding.ME
@@ -109,13 +113,25 @@ class AStar(Pathfinding):
 
                 # if self.is_passable(next_x, next_y) and (
                 # if 0 <= next_x < self.width and 0 <= next_y < self.height and self.obstacle_map[next_x][next_y] != Pathfinding.OBSTACLE and (
-                if 0 <= next_x < width and 0 <= next_y < height and obstacle_map[next_x][next_y] != OBSTACLE and (
-                    (next_x, next_y) not in cost_so_far
-                    or new_cost < cost_so_far[(next_x, next_y)]
+                if (
+                    0 <= next_x < width
+                    and 0 <= next_y < height
+                    and obstacle_map[next_x][next_y] != OBSTACLE
+                    and (
+                        (next_x, next_y) not in cost_so_far
+                        or new_cost < cost_so_far[(next_x, next_y)]
+                    )
                 ):
                     cost_so_far[(next_x, next_y)] = new_cost
                     # priority = new_cost + self.heuristic(self.goal, (next_x, next_y))
-                    priority = new_cost + abs(self.goal[0] - next_x) + abs(self.goal[1] - next_y)
+                    # priority = new_cost + abs(goal[0] - next_x) + abs(goal[1] - next_y)
+                    priority = new_cost + sum(
+                        [
+                            abs(goal_x - next_x) + abs(goal_y - next_y)
+                            for goal_x, goal_y in goal
+                        ]
+                    )
+
                     heappush(frontier, (priority, (next_x, next_y)))
                     came_from[(next_x, next_y)] = current
 
@@ -133,11 +149,13 @@ if __name__ == "__main__":
 
     obstacle_map[6, 0:6] = Pathfinding.OBSTACLE  # to get around
     obstacle_map[9, 1] = Pathfinding.GOAL  # where to get to
+    obstacle_map[9, 2] = Pathfinding.GOAL
+    obstacle_map[8, 1] = Pathfinding.GOAL
 
     map = np.zeros_like(obstacle_map)
     map[1, 3] = Pathfinding.ME  # starting location
 
-    pf = AStar(obstacle_map)
+    pf = AStar(obstacle_map, one_goal=False)
 
     newmap, state = pf.execute(map)
 
