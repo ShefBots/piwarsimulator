@@ -31,10 +31,12 @@ class MovementController(Controller):
         super().set_plane_velocity(vel)
         self.motor_driver.set_linear_velocities(vel[1], vel[0])
 
-    def ping(self):
+    def poke(self):
         """tell the hardware we're still using it and check if it's still there"""
-        flag = super().ping()
-        # TODO for @ZodiusInfuser to fill with serial things
+        flag = super().poke()
+        if not self.motor_driver is None:
+            # need to check is None because this will still be called on the Exception raised by having no serial
+            self.motor_driver.poke()
         return flag
 
     def stop(self, exiting=False):

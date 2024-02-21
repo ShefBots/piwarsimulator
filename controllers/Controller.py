@@ -23,7 +23,7 @@ class Controller:
         self.vel = np.array(vel)
         self.moving = True
 
-    def ping(self):
+    def poke(self):
         """tell the hardware we're still using it and check if it's still there"""
         return True  # default assume "this is fine"
 

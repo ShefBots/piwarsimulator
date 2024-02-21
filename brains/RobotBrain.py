@@ -99,7 +99,7 @@ class RobotBrain:
     def process(self):
         """basic logic is to just not hit anything & respond to control input"""
         self.poll_sensors()
-        controller_ok = self.controller.ping()
+        controller_ok = self.controller.poke()
         if not controller_ok:
             print("UH OH! Lost connection with controller!!!")
         self.check_for_collision()
