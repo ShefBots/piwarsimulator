@@ -261,14 +261,11 @@ class EcoDisasterBrain(RobotBrain):
             # check for obstacles within this distance of the grid location
             # (i.e. with this distance of a spot we're looking at moving to)
             # check_distance = (self.pfgrid_scale_factor * 2) ** 2
-            # the robot hangs quite far away from its center, we need to check that entire distance :(
-            # check_distance = max(np.abs(self.TheWorld[0].outline.bounds)) ** 2
+            # the robot's outline ends up quite far away from its center, we
+            # need to check that entire distance :(
             # this costs like 2 fps to do properly
             check_distance = (
-                math.ceil(
-                    max(np.abs(self.TheWorld[0].outline.bounds))
-                    / self.pfgrid_scale_factor
-                )
+                math.ceil(self.min_distance_to_edge / self.pfgrid_scale_factor)
                 * self.pfgrid_scale_factor
             ) ** 2
 
