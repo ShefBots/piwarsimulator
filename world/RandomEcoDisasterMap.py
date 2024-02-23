@@ -31,11 +31,15 @@ def RandomEcoDisasterMap(ExteriorTheWorld):
     )
 
     # some barrels - keep in mind (0,0) is the middle of the map and (-1.1,-1.1) is a corner
+    numgreen = 0
+    numred = 0
     for _ in range(0, 12):
-        if random() < 0.5:
+        if (random() < 0.5 and numred < 6) or numgreen == 6:
             c = "red"
+            numred += 1
         else:
             c = "darkgreen"
+            numgreen += 1
 
         # need to check if we have a valid barrel position
         # start with a known bad position to kick off checks
