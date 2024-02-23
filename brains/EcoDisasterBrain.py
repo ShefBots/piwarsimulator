@@ -16,7 +16,6 @@ from world.ObjectType import *
 # TODO: let go of barrel
 # TODO: what REALLY happens with walls?
 # TODO: only ever move orthogonal?
-# TODO: won't stop to collect initial close by barrel
 # TODO: sometimes gets stuck
 
 
@@ -130,6 +129,19 @@ class EcoDisasterBrain(RobotBrain):
                     temp_robot_outline_open, center[0], center[1]
                 )
 
+        # in order to turn on spot to reach barrel need to have a minimum clearance to it
+        # we'll use the distance to the farthest point of the outline of the robot
+        b1 = temp_robot_outline_clsd.bounds
+        b2 = temp_robot_outline_open.bounds
+        self.min_distance_to_edge = max(
+            [
+                (b1[0] ** 2 + b1[1] ** 2) ** 0.5,
+                (b1[2] ** 2 + b1[3] ** 2) ** 0.5,
+                (b2[0] ** 2 + b2[1] ** 2) ** 0.5,
+                (b2[2] ** 2 + b2[3] ** 2) ** 0.5,
+            ]
+        )
+
         # last calculated pathfinding path
         self.last_path = []
         self.path_refresh = 0
@@ -159,7 +171,10 @@ class EcoDisasterBrain(RobotBrain):
             # try to get to the nearest barrel and grab it
             # this assumes there's nothing between the robot and the barrel
 
-            if goal_distance < 0.2:
+            if (
+                goal_distance < 0.2
+                and math.fabs(goal.heading) < self.GRIPPER_ANGLE_TOLERANCE
+            ):
                 self.open_gripper()
 
             # if in range of barrel
@@ -179,9 +194,18 @@ class EcoDisasterBrain(RobotBrain):
                 else:
                     self.controller.set_angular_velocity(0)
 
-                if math.fabs(goal.heading) > 10:
+                if (
+                    goal_distance < self.min_distance_to_edge
+                    and math.fabs(goal.heading) > 10
+                ):
+                    # we're too close to fit in the gripper, backup
+                    self.controller.set_plane_velocity([0, -self.speed / 4])
+                elif math.fabs(goal.heading) > 10:
                     # so far off we probably need to just turn in place
-                    self.controller.set_plane_velocity([0, 0])
+                    # self.controller.set_plane_velocity([0, 0])
+                    self.controller.set_plane_velocity(
+                        [0, self.speed / 10]
+                    )  # too easy to dead lock otherwise?
                 else:
                     # move towards goal
                     self.controller.set_plane_velocity([0, self.speed])
