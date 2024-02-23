@@ -16,7 +16,6 @@ from world.ObjectType import *
 # TODO: let go of barrel
 # TODO: what REALLY happens with walls?
 # TODO: only ever move orthogonal?
-# TODO: sometimes drives through barrels
 # TODO: won't stop to collect initial close by barrel
 # TODO: sometimes gets stuck
 
@@ -237,7 +236,18 @@ class EcoDisasterBrain(RobotBrain):
             obstacle_map = np.zeros_like(pfgrid_geometry)
             # check for obstacles within this distance of the grid location
             # (i.e. with this distance of a spot we're looking at moving to)
-            check_distance = (self.pfgrid_scale_factor * 2) ** 2
+            # check_distance = (self.pfgrid_scale_factor * 2) ** 2
+            # the robot hangs quite far away from its center, we need to check that entire distance :(
+            # check_distance = max(np.abs(self.TheWorld[0].outline.bounds)) ** 2
+            # this costs like 2 fps to do properly
+            check_distance = (
+                math.ceil(
+                    max(np.abs(self.TheWorld[0].outline.bounds))
+                    / self.pfgrid_scale_factor
+                )
+                * self.pfgrid_scale_factor
+            ) ** 2
+
             goal_check_distance = (goal.width + goal.height) ** 2
             for ii in range(0, self.pfgrid_size):
                 for jj in range(0, self.pfgrid_size):
