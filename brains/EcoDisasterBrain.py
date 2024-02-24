@@ -317,7 +317,10 @@ class EcoDisasterBrain(RobotBrain):
 
                 last_move = self.last_path[-1]  # last move
                 next_move = pf.move_record[-1]  # next move
-                move_after = pf.move_record[-2]  # the move after that (for diagonals)
+                if len(pf.move_record) > 1:
+                    move_after = pf.move_record[-2]  # the move after that (for diagonals)
+                else:
+                    move_after = None
 
                 # check for oscillating movement and don't
                 do_next_move = True
