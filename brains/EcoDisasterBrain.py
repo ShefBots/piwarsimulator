@@ -5,6 +5,7 @@ from shapely.affinity import scale
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 from shapely import lib as shapely_lib
+from time import monotonic as time
 from brains.ExecutionState import ExecutionState
 from brains.RobotBrain import RobotBrain
 from algorithms.pathfinding_astar import AStar as Pathfinding
@@ -13,10 +14,11 @@ from world.WorldObject import *
 from world.ObjectType import *
 
 
-# TODO: let go of barrel
-# TODO: what REALLY happens with walls?
-# TODO: only ever move orthogonal?
+# TODO: back away after letting go of barrel and hunt for the next one
+#       excluding barrels in zones
+# TODO: what should happen with walls? use them to align and move orthogonal?
 # TODO: sometimes gets stuck
+# TODO: sometimes drives over a barrel dropping off
 
 
 class EcoDisasterBrain(RobotBrain):
@@ -39,6 +41,14 @@ class EcoDisasterBrain(RobotBrain):
 
     # how aligned to be when heading towards zone
     ZONE_ANGLE_TOLERANCE = 0.5
+
+    # TODO make these constants?
+    # pathfinding grid geometry
+    PFGRID_SCALE_FACTOR = 0.1  # each grid space size (in metres)
+    # how far out in distance to plan for in grid spaces, ideally this is big enough to always get to goal
+    PFGRID_SIZE_HALF = 25
+    # over all the grid size MUST BE ODD (centered around 0)
+    PFGRID_SIZE = PFGRID_SIZE_HALF * 2 + 1
 
     def __init__(self, **kwargs):
         super(EcoDisasterBrain, self).__init__(**kwargs)
@@ -89,20 +99,12 @@ class EcoDisasterBrain(RobotBrain):
         # check the intersection with every near-by world object that sensors
         # have deteted. nearby being +- 1 grid spacing distance or so.
 
-        # TODO make these constants?
-        # pathfinding grid geometry
-        self.pfgrid_scale_factor = 0.1  # each grid space size (in metres)
-        # how far out in distance to plan for in grid spaces, ideally this is big enough to always get to goal
-        self.pfgrid_size_half = 25
-        # over all the grid size MUST BE ODD (centered around 0)
-        self.pfgrid_size = self.pfgrid_size_half * 2 + 1
-
         # for each possible spot on the grid, pre-compute the robot translation with both the closed and open gripper
         self.pfgrid_geometry_closed = np.zeros(
-            (self.pfgrid_size, self.pfgrid_size), dtype=object
+            (self.PFGRID_SIZE, self.PFGRID_SIZE), dtype=object
         )
         self.pfgrid_geometry_open = np.zeros(
-            (self.pfgrid_size, self.pfgrid_size), dtype=object
+            (self.PFGRID_SIZE, self.PFGRID_SIZE), dtype=object
         )
         temp_robot = WorldObject(
             object_type=ObjectType.ROBOT,
@@ -116,11 +118,11 @@ class EcoDisasterBrain(RobotBrain):
         # store the center coordinates of each grid location
         self.pfgrid_centers = np.zeros_like(self.pfgrid_geometry_closed, dtype=object)
         # translate the robot for each grid location
-        for ii in range(-self.pfgrid_size_half, self.pfgrid_size_half + 1):
-            for jj in range(-self.pfgrid_size_half, self.pfgrid_size_half + 1):
-                center = (ii * self.pfgrid_scale_factor, jj * self.pfgrid_scale_factor)
-                ii2 = ii + self.pfgrid_size_half
-                jj2 = jj + self.pfgrid_size_half
+        for ii in range(-self.PFGRID_SIZE_HALF, self.PFGRID_SIZE_HALF + 1):
+            for jj in range(-self.PFGRID_SIZE_HALF, self.PFGRID_SIZE_HALF + 1):
+                center = (ii * self.PFGRID_SCALE_FACTOR, jj * self.PFGRID_SCALE_FACTOR)
+                ii2 = ii + self.PFGRID_SIZE_HALF
+                jj2 = jj + self.PFGRID_SIZE_HALF
                 self.pfgrid_centers[ii2, jj2] = center
                 self.pfgrid_geometry_closed[ii2, jj2] = fast_translate(
                     temp_robot_outline_clsd, center[0], center[1]
@@ -147,7 +149,8 @@ class EcoDisasterBrain(RobotBrain):
         self.path_refresh = 0
 
         # some timers to switch behaivours if we're stuck
-        self.time_trying_to_get_to_zone = 0
+        self.time_trying_to_get_to_zone = 0  # time since grabbed barrel
+        self.time_since_good_move = 0  # time since last good move
 
     def process(self):
         """do the basic brain stuff then do specific ecodisaster things"""
@@ -158,12 +161,18 @@ class EcoDisasterBrain(RobotBrain):
         if self.sensor_measurements["manual_control"]:
             return
 
-        if self.state == ExecutionState.PROGRAM_CONTROL:
+        if self.state == ExecutionState.PROGRAM_COMPLETE:
+            # done
+            return
+        elif self.state == ExecutionState.PROGRAM_CONTROL:
             # this should only happen after squaring up
-            self.state = ExecutionState.MOVE_TO_ZONE
+            self.state = ExecutionState.DROP_OFF_BARREL
         elif self.state == ExecutionState.SQUARING_UP:
             # nothing smart to do while squaring up
             return
+
+        # could try plotting routes to both zones here in order to pick barrel
+        # with easiest route back to zone
 
         # find something to move towards
         (goal, goal_distance) = self.find_goal()
@@ -184,8 +193,15 @@ class EcoDisasterBrain(RobotBrain):
             if goal_distance < self.GRIPPER_TOLERANCE:
                 print("Grabbing barrel")
                 self.controller.stop()
+                if not self.gripper_state == self.GRIPPER_OPEN and len(
+                    self.holding == 0
+                ):
+                    # gripper needs to be open before we can grab it
+                    return
                 self.close_gripper()
                 self.holding.append(goal)
+                if not self.gripper_state == self.GRIPPER_CLOSED:
+                    return
                 self.state = ExecutionState.MOVE_TO_ZONE
                 self.time_trying_to_get_to_zone = time()
 
@@ -218,7 +234,7 @@ class EcoDisasterBrain(RobotBrain):
 
         elif self.state == ExecutionState.MOVE_TO_ZONE:
             # wait for the gripper to close
-            if self.gripper_state == self.GRIPPER_OPEN:
+            if not self.gripper_state == self.GRIPPER_CLOSED:
                 return
 
             # if we're close switch to a homing mode to drop off the barrel
@@ -229,12 +245,15 @@ class EcoDisasterBrain(RobotBrain):
                 return
 
             # turn towards zone after a few seconds in case we're stuck
-            if time() - self.time_trying_to_get_to_zone > 8:
+            if (
+                time() - self.time_trying_to_get_to_zone > 8
+                or math.fabs(goal.heading) > 40
+            ):
                 # 0.5*30 = 15 degrees?
                 if goal.heading > self.ZONE_ANGLE_TOLERANCE * 30:
-                    self.controller.set_angular_velocity(self.turning_speed/2)
+                    self.controller.set_angular_velocity(self.turning_speed / 2)
                 elif goal.heading < -self.ZONE_ANGLE_TOLERANCE * 30:
-                    self.controller.set_angular_velocity(-self.turning_speed/2)
+                    self.controller.set_angular_velocity(-self.turning_speed / 2)
                 else:
                     self.controller.set_angular_velocity(0)
 
@@ -250,6 +269,8 @@ class EcoDisasterBrain(RobotBrain):
                 if (
                     obj.object_type == ObjectType.BARREL
                     or obj.object_type == ObjectType.WALL
+                    # stay out of not destination zone
+                    or (obj.object_type == ObjectType.ZONE and not obj is goal)
                 ) and not self.is_holding(obj):
                     # could add a buffer around objets here, obj.outline.buffer(0.02)
                     world_obstacles.append((obj.outline.buffer(0.02), obj.center))
@@ -271,13 +292,13 @@ class EcoDisasterBrain(RobotBrain):
             # need to check that entire distance :(
             # this costs like 2 fps to do properly
             check_distance = (
-                math.ceil(self.min_distance_to_edge / self.pfgrid_scale_factor)
-                * self.pfgrid_scale_factor
+                math.ceil(self.min_distance_to_edge / self.PFGRID_SCALE_FACTOR)
+                * self.PFGRID_SCALE_FACTOR
             ) ** 2
 
             goal_check_distance = (goal.width + goal.height) ** 2
-            for ii in range(0, self.pfgrid_size):
-                for jj in range(0, self.pfgrid_size):
+            for ii in range(0, self.PFGRID_SIZE):
+                for jj in range(0, self.PFGRID_SIZE):
                     b = pathfinding_centers[ii, jj]
 
                     # check if this grid point sits within the goal first so that
@@ -301,15 +322,15 @@ class EcoDisasterBrain(RobotBrain):
             # map holding our current location, it will have the found path added to it
             map = np.zeros_like(obstacle_map)
             # starting location
-            map[self.pfgrid_size_half, self.pfgrid_size_half] = Pathfinding.ME
+            map[self.PFGRID_SIZE_HALF, self.PFGRID_SIZE_HALF] = Pathfinding.ME
 
             # do the pathfinding and store the route in newmap
             pf = Pathfinding(obstacle_map, one_goal=False)
             _, state = pf.execute(map)
-            # print(f"STATE: {state}")
+            # newmap, state = pf.execute(map)
+            # pf.print_map(newmap)
 
             if state == Pathfinding.ARRIVED:
-                # print("Pathfinding worked, trying to follow...")
 
                 # on first time store for oscillation detection
                 if len(self.last_path) == 0:
@@ -318,7 +339,8 @@ class EcoDisasterBrain(RobotBrain):
                 last_move = self.last_path[-1]  # last move
                 next_move = pf.move_record[-1]  # next move
                 if len(pf.move_record) > 1:
-                    move_after = pf.move_record[-2]  # the move after that (for diagonals)
+                    # the move after that (for diagonals)
+                    move_after = pf.move_record[-2]
                 else:
                     move_after = None
 
@@ -339,7 +361,7 @@ class EcoDisasterBrain(RobotBrain):
                         do_next_move = False
 
                 if do_next_move == True:
-                    # print("Move agreement...")
+                    self.time_since_good_move = time()
                     if next_move == Pathfinding.UP:
                         if move_after == Pathfinding.LEFT:
                             self.controller.set_plane_velocity(
@@ -388,6 +410,7 @@ class EcoDisasterBrain(RobotBrain):
                         else:
                             # print("Trying to move right")
                             self.controller.set_plane_velocity([self.speed, 0])
+
                 else:
                     print("NO NEW MOVE!!!")
 
@@ -396,6 +419,37 @@ class EcoDisasterBrain(RobotBrain):
                 print("Pathfinding failed!!! :(")
 
         elif self.state == ExecutionState.DROP_OFF_BARREL:
+            # at this point should be fairly close to the zone and in an area
+            # where there aren't going to be any barrels near by
+            # 1) rotate to minimise distance between barrel and zone
+            # 2) square up against left wall for left zone and right wall for right zone (not done)
+            # 3) slowly move towards the zone and when the barrel is entirely in the zone drop it off
+            #    this might not work well depending on the 360 system bing able to tell where the zone is
+            # 4) back away (not done)
+            # 5) go for next barrel (not done)
+
+            if goal_distance == 0:
+                self.controller.stop()
+                # wait for the gripper to open
+                self.open_gripper()
+                if not self.gripper_state == self.GRIPPER_OPEN:
+                    return
+                self.holding.pop(0)
+                self.state = ExecutionState.PROGRAM_COMPLETE
+                return
+
+            # turn to face roughly the zone
+            # 0.5*30 = 15 degrees?
+            if goal.heading > self.ZONE_ANGLE_TOLERANCE:
+                self.controller.set_angular_velocity(self.turning_speed / 4)
+                self.controller.set_plane_velocity([self.speed / 8, self.speed / 8])
+            elif goal.heading < -self.ZONE_ANGLE_TOLERANCE:
+                self.controller.set_angular_velocity(-self.turning_speed / 4)
+                self.controller.set_plane_velocity([-self.speed / 8, self.speed / 8])
+            else:
+                self.controller.set_angular_velocity(0)
+                self.controller.set_plane_velocity([0, self.speed / 4])
+
             pass
 
             # if a zone drop the barrel off
@@ -411,21 +465,90 @@ class EcoDisasterBrain(RobotBrain):
     def find_goal(self):
         """find the closest TARGET or ZONE depending on execution state"""
 
+        if len(self.holding) > 0:
+            barrel = self.holding[0]
+            if barrel.color == Color("darkgreen"):
+                holding_color = "darkgreen"
+            elif barrel.color == Color("red"):
+                holding_color = "red"
+            else:
+                print("yikes shouldn't get here")
+            goal_color = self.GOAL_MAPPING[holding_color]
+        else:
+            goal_color = None
+        # treat the middle of the gripper as the center
+        gripper_center = (0, self.robot.height / 2 + 0.025)
+
         if self.state == ExecutionState.MOVE_TO_ZONE:
             # TODO need to ignore barrels in/near zones
-            if self.holding[0].color == Color("darkgreen"):
-                holding_color = "darkgreen"
-            elif self.holding[0].color == Color("red"):
-                holding_color = "red"
-            return self.find_closest(
-                ObjectType.ZONE, color=self.GOAL_MAPPING[holding_color]
-            )
+            return self.find_closest(ObjectType.ZONE, color=goal_color)
+        
         elif self.state == ExecutionState.MOVE_TO_BARREL:
-            # find barrel closest to the front of the robot, 0.025 = barrel radius
-            return self.find_closest(
-                ObjectType.BARREL, relative_to=(0, self.robot.height / 2 + 0.025)
+            # treat the middle of the gripper as the center, so find barrel closest
+            # to the front of the robot, 0.025 = barrel radius
+            # finds the closest barrel that's in a straight line
+            return self.find_closest(ObjectType.BARREL, relative_to=gripper_center)
+        
+        elif self.state == ExecutionState.DROP_OFF_BARREL:
+            # we have a barrel and we're near the zone, find the bit of the zone
+            # closet to where we are to put the barrel
+
+            # the zone
+            zone, _ = self.find_closest(ObjectType.ZONE, color=goal_color)
+
+            barrel_center_point = Point(barrel.center)
+            # the closest part of the zone to the barrel
+            zone_intersection_point = zone.outline.exterior.interpolate(
+                zone.outline.exterior.project(barrel_center_point)
             )
-            # find the closest barrel that's in a straight unobstructed line?
+
+            # if we're not inside the zone, find a point inside it to aim towards
+
+            # the line between the barrel and edge of zone
+            line_to_zone = LineString([barrel_center_point, zone_intersection_point])
+
+            if not zone.outline.intersects(barrel_center_point):
+                # barrel is not inside the zone
+                # scaled by *2 because scaling both ends
+                fact = (barrel.radius * 3 + line_to_zone.length) / line_to_zone.length
+                scaled_line = scale(line_to_zone, xfact=fact, yfact=fact)
+                drop_point = scaled_line.coords[1]
+            elif zone.outline.contains(barrel.outline):
+                # the barrel is entirely in the zone, we're done
+                return (barrel, 0)
+            else:
+                # trying to find some point slightly inside the zone still
+                # but more likely just some point slightly ahead of where we are
+                drop_point = line_to_zone.interpolate(
+                    line_to_zone.length - barrel.radius * 3
+                )
+                drop_point = (drop_point.x, drop_point.y)
+
+            # temporary world object to move towards
+            barrel_drop = WorldObject(
+                object_type=ObjectType.DROP_SPOT,
+                x=drop_point[0],
+                y=drop_point[1],
+                radius=barrel.radius,
+                color="gray",
+            )
+            # work out the heading
+            # possibly more useful to use the heading between the barrel and
+            # drop off point instead of the robot and drop off point?
+            offset_drop = drop_point - barrel.center
+            barrel_drop.heading = math.degrees(
+                # math.atan2(barrel_drop.center[0], barrel_drop.center[1])
+                math.atan2(offset_drop[0], offset_drop[1])
+            )
+
+            self.TheWorld.append(barrel_drop)
+            return (
+                barrel_drop,
+                self.TheWorld[0].get_distance(
+                    barrel_drop,
+                    relative_to=gripper_center,
+                ),
+            )
         else:
             return (None, 9e99)
 
