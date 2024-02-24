@@ -300,49 +300,91 @@ class EcoDisasterBrain(RobotBrain):
             # do the pathfinding and store the route in newmap
             pf = Pathfinding(obstacle_map, one_goal=False)
             _, state = pf.execute(map)
-            print(f"STATE: {state}")
+            # print(f"STATE: {state}")
 
             if state == Pathfinding.ARRIVED:
-                print("Pathfinding worked, trying to follow...")
+                # print("Pathfinding worked, trying to follow...")
 
                 # on first time store for oscillation detection
                 if len(self.last_path) == 0:
                     self.last_path = copy.deepcopy(pf.move_record)
 
-                l_move = self.last_path[-1]  # last move
-                n_move = pf.move_record[-1]  # next move
+                last_move = self.last_path[-1]  # last move
+                next_move = pf.move_record[-1]  # next move
+                move_after = pf.move_record[-2]  # the move after that (for diagonals)
 
                 # check for oscillating movement and don't
                 do_next_move = True
-                if l_move == n_move:
-                    print("Move agreement...")
-                else:
-                    if l_move == Pathfinding.UP and n_move == Pathfinding.DOWN:
+                if not last_move == next_move:
+                    if last_move == Pathfinding.UP and next_move == Pathfinding.DOWN:
                         do_next_move = False
-                    elif l_move == Pathfinding.DOWN and n_move == Pathfinding.UP:
+                    elif last_move == Pathfinding.DOWN and next_move == Pathfinding.UP:
                         do_next_move = False
-                    elif l_move == Pathfinding.LEFT and n_move == Pathfinding.RIGHT:
+                    elif (
+                        last_move == Pathfinding.LEFT and next_move == Pathfinding.RIGHT
+                    ):
                         do_next_move = False
-                    elif l_move == Pathfinding.RIGHT and n_move == Pathfinding.LEFT:
+                    elif (
+                        last_move == Pathfinding.RIGHT and next_move == Pathfinding.LEFT
+                    ):
                         do_next_move = False
 
                 if do_next_move == True:
-                    if n_move == Pathfinding.UP:
-                        print("Trying to move up")
-                        self.controller.set_plane_velocity([0, self.speed])
-                    elif n_move == Pathfinding.DOWN:
-                        print("Trying to move down")
-                        self.controller.set_plane_velocity([0, -self.speed])
-                    elif n_move == Pathfinding.LEFT:
-                        print("Trying to move left")
-                        self.controller.set_plane_velocity([-self.speed, 0])
-                    elif n_move == Pathfinding.RIGHT:
-                        print("Trying to move right")
-                        self.controller.set_plane_velocity([self.speed, 0])
+                    # print("Move agreement...")
+                    if next_move == Pathfinding.UP:
+                        if move_after == Pathfinding.LEFT:
+                            self.controller.set_plane_velocity(
+                                [-self.speed * 0.8, self.speed * 0.8]
+                            )
+                        elif move_after == Pathfinding.RIGHT:
+                            self.controller.set_plane_velocity(
+                                [self.speed * 0.8, self.speed * 0.8]
+                            )
+                        else:
+                            # print("Trying to move up")
+                            self.controller.set_plane_velocity([0, self.speed])
+                    elif next_move == Pathfinding.DOWN:
+                        if move_after == Pathfinding.LEFT:
+                            self.controller.set_plane_velocity(
+                                [-self.speed * 0.8, -self.speed * 0.8]
+                            )
+                        elif move_after == Pathfinding.RIGHT:
+                            self.controller.set_plane_velocity(
+                                [self.speed * 0.8, -self.speed * 0.8]
+                            )
+                        else:
+                            # print("Trying to move down")
+                            self.controller.set_plane_velocity([0, -self.speed])
+                    elif next_move == Pathfinding.LEFT:
+                        if move_after == Pathfinding.UP:
+                            self.controller.set_plane_velocity(
+                                [-self.speed * 0.8, self.speed * 0.8]
+                            )
+                        elif move_after == Pathfinding.DOWN:
+                            self.controller.set_plane_velocity(
+                                [-self.speed * 0.8, -self.speed * 0.8]
+                            )
+                        else:
+                            # print("Trying to move left")
+                            self.controller.set_plane_velocity([-self.speed, 0])
+                    elif next_move == Pathfinding.RIGHT:
+                        if move_after == Pathfinding.UP:
+                            self.controller.set_plane_velocity(
+                                [self.speed * 0.8, self.speed * 0.8]
+                            )
+                        elif move_after == Pathfinding.DOWN:
+                            self.controller.set_plane_velocity(
+                                [self.speed * 0.8, -self.speed * 0.8]
+                            )
+                        else:
+                            # print("Trying to move right")
+                            self.controller.set_plane_velocity([self.speed, 0])
                 else:
                     print("NO NEW MOVE!!!")
 
                 self.last_path = copy.deepcopy(pf.move_record)
+            else:
+                print("Pathfinding failed!!! :(")
 
         elif self.state == ExecutionState.DROP_OFF_BARREL:
             pass
