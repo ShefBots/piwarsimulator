@@ -146,6 +146,9 @@ class EcoDisasterBrain(RobotBrain):
         self.last_path = []
         self.path_refresh = 0
 
+        # some timers to switch behaivours if we're stuck
+        self.time_trying_to_get_to_zone = 0
+
     def process(self):
         """do the basic brain stuff then do specific ecodisaster things"""
 
@@ -184,6 +187,7 @@ class EcoDisasterBrain(RobotBrain):
                 self.close_gripper()
                 self.holding.append(goal)
                 self.state = ExecutionState.MOVE_TO_ZONE
+                self.time_trying_to_get_to_zone = time()
 
             else:
                 # turn towards barrel
@@ -224,13 +228,15 @@ class EcoDisasterBrain(RobotBrain):
                 self.state = ExecutionState.DROP_OFF_BARREL
                 return
 
-            # turn towards zone
-            # if goal.heading > self.ZONE_ANGLE_TOLERANCE:
-            #     self.controller.set_angular_velocity(self.turning_speed)
-            # elif goal.heading < -self.ZONE_ANGLE_TOLERANCE:
-            #     self.controller.set_angular_velocity(-self.turning_speed)
-            # else:
-            #     self.controller.set_angular_velocity(0)
+            # turn towards zone after a few seconds in case we're stuck
+            if time() - self.time_trying_to_get_to_zone > 10:
+                # 0.5*30 = 15 degrees?
+                if goal.heading > self.ZONE_ANGLE_TOLERANCE * 30:
+                    self.controller.set_angular_velocity(self.turning_speed)
+                elif goal.heading < -self.ZONE_ANGLE_TOLERANCE * 30:
+                    self.controller.set_angular_velocity(-self.turning_speed)
+                else:
+                    self.controller.set_angular_velocity(0)
 
             # PLAN ROUTE BACK TO ZONE
             # general scheme is to break the world into grid (done in init)
