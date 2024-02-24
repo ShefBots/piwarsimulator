@@ -138,6 +138,7 @@ class RobotBrain:
                     # can't collide with flat objects
                     obj.object_type == ObjectType.MINE
                     or obj.object_type == ObjectType.LINE
+                    or obj.object_type == ObjectType.ZONE
                 )
             ):
                 print(f"WARNING: {obj} is a bit close")
