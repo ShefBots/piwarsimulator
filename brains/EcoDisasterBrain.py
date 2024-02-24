@@ -229,12 +229,12 @@ class EcoDisasterBrain(RobotBrain):
                 return
 
             # turn towards zone after a few seconds in case we're stuck
-            if time() - self.time_trying_to_get_to_zone > 10:
+            if time() - self.time_trying_to_get_to_zone > 8:
                 # 0.5*30 = 15 degrees?
                 if goal.heading > self.ZONE_ANGLE_TOLERANCE * 30:
-                    self.controller.set_angular_velocity(self.turning_speed)
+                    self.controller.set_angular_velocity(self.turning_speed/2)
                 elif goal.heading < -self.ZONE_ANGLE_TOLERANCE * 30:
-                    self.controller.set_angular_velocity(-self.turning_speed)
+                    self.controller.set_angular_velocity(-self.turning_speed/2)
                 else:
                     self.controller.set_angular_velocity(0)
 
