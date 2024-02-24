@@ -20,7 +20,6 @@ from world.ObjectType import *
 # TODO: sometimes gets stuck
 # TODO: sometimes drives over a barrel dropping off
 
-
 class EcoDisasterBrain(RobotBrain):
     """
     logic for the ecodisaster challenge
@@ -251,11 +250,13 @@ class EcoDisasterBrain(RobotBrain):
             ):
                 # 0.5*30 = 15 degrees?
                 if goal.heading > self.ZONE_ANGLE_TOLERANCE * 30:
-                    self.controller.set_angular_velocity(self.turning_speed / 2)
+                    self.controller.set_angular_velocity(self.turning_speed / 4)
                 elif goal.heading < -self.ZONE_ANGLE_TOLERANCE * 30:
-                    self.controller.set_angular_velocity(-self.turning_speed / 2)
+                    self.controller.set_angular_velocity(-self.turning_speed / 4)
                 else:
                     self.controller.set_angular_velocity(0)
+            else:
+                self.controller.set_angular_velocity(0)
 
             # PLAN ROUTE BACK TO ZONE
             # general scheme is to break the world into grid (done in init)
@@ -417,6 +418,8 @@ class EcoDisasterBrain(RobotBrain):
                 self.last_path = copy.deepcopy(pf.move_record)
             else:
                 print("Pathfinding failed!!! :(")
+
+            # time since last side to side when moving front to back?
 
         elif self.state == ExecutionState.DROP_OFF_BARREL:
             # at this point should be fairly close to the zone and in an area
