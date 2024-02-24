@@ -4,7 +4,7 @@ import numpy as np
 from shapely.affinity import rotate
 from time import monotonic
 from world.ObjectType import *
-from util import outline_xy,fast_translate
+from util import outline_xy, fast_translate
 
 
 class WorldRenderer:
@@ -103,7 +103,22 @@ class WorldRenderer:
                         fill=False,
                     )
 
-            for obj in reversed(TheWorld):
+            # render order:
+            # ZONE, MINE, LINE, WALL, UNKNOWN, BARREL, DROP_SPOT, ROBOT
+            # object_types = [obj.object_type for obj in TheWorld]
+            SortedWold = (
+                [obj for obj in TheWorld if obj.object_type == ObjectType.ZONE]
+                + [obj for obj in TheWorld if obj.object_type == ObjectType.MINE]
+                + [obj for obj in TheWorld if obj.object_type == ObjectType.LINE]
+                + [obj for obj in TheWorld if obj.object_type == ObjectType.WALL]
+                + [obj for obj in TheWorld if obj.object_type == ObjectType.UNKNOWN]
+                + [obj for obj in TheWorld if obj.object_type == ObjectType.BARREL]
+                + [obj for obj in TheWorld if obj.object_type == ObjectType.DROP_SPOT]
+                + [obj for obj in TheWorld if obj.object_type == ObjectType.ROBOT]
+            )
+
+            # for obj in reversed(TheWorld):
+            for obj in SortedWold:
                 # iterate through backwards so that the robot is always rendered last (on top)
 
                 # draw object outline

@@ -22,6 +22,7 @@ class WorldObject:
         if (
             self.object_type == ObjectType.UNKNOWN
             or self.object_type == ObjectType.BARREL
+            or self.object_type == ObjectType.DROP_SPOT
         ):
             self._center = np.array([kwargs.get("x", 0), kwargs.get("y", 0)])
             self._angle = 0  # construct the objects vertically then rotate

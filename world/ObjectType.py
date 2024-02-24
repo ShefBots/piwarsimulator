@@ -12,6 +12,7 @@ class ObjectType(Enum):
     LINE = 5
     WALL = 6
     MINE = 7
+    DROP_SPOT = 8
 
     def __str__(self):
         """Return a string representation of the ObjectType"""
@@ -24,4 +25,5 @@ class ObjectType(Enum):
             self.LINE: "L",
             self.WALL: "W",
             self.MINE: "M",
+            self.DROP_SPOT: "D",
         }[self]
