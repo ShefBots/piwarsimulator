@@ -91,7 +91,7 @@ class EcoDisasterBrain(RobotBrain):
 
         # TODO make these constants?
         # pathfinding grid geometry
-        self.pfgrid_scale_factor = 0.08  # each grid space size (in metres)
+        self.pfgrid_scale_factor = 0.1  # each grid space size (in metres)
         # how far out in distance to plan for in grid spaces, ideally this is big enough to always get to goal
         self.pfgrid_size_half = 25
         # over all the grid size MUST BE ODD (centered around 0)
