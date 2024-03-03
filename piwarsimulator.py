@@ -34,7 +34,13 @@ from world.WorldObject import WorldObject
 running = True  # state of simulator
 ctrlc_count = 0  # if hitting 3 try and sys.exit
 target_frame_time = 1 / 60.0  # aim for 60 fps simulation/processing
-serial_pattern = "/dev/ttyACM*"  # serial ports to scan for hardware
+
+# ROBOT_SPEED = 0.05
+# TURNING_SPEED = 10
+ROBOT_SPEED = 0.3
+TURNING_SPEED = 30
+
+SERIAL_PATTERN = "/dev/ttyACM*"  # serial ports to scan for hardware
 
 
 def sigint_handler(signal_received, frame):
@@ -86,6 +92,12 @@ parser.add_argument(
     choices=["simulation", "sensor_simulation", "control"],
 )
 parser.add_argument(
+    "--radio",
+    help="use radio receiever for control (default false)",
+    default="false",
+    choices=["true", "false"],
+)
+parser.add_argument(
     "--rendering",
     help="render world on screen (default true)",
     default="true",
@@ -96,6 +108,8 @@ args = parser.parse_args()
 # imports for hardware etc based on settings
 if args.rendering == "true":
     from sensors.Keyboard import Keyboard
+if args.radio == "true":
+    from sensors.RadioControl import RadioControl
 if args.mode == "simulation":
     from controllers.SimulatedMovementController import SimulatedMovementController
     from sensors.SimulatedLineOfSight import SimulatedLineOfSight
@@ -115,14 +129,14 @@ if (
     args.rendering == "true" and args.mode == "simulation"
 ) or not args.mode == "simulation":
     print("Preparing serial comms...")
-    # want controller input even if simulating
-    # or otherwise it's someting with hardware and will want serial
+    # we want controller input even if simulating
+    # or otherwise it's someting with hardware and we will want serial
 
     # Find serial ports matching the pattern
-    port_list = util.find_serial_ports(serial_pattern)
+    port_list = util.find_serial_ports(SERIAL_PATTERN)
 
     if not port_list:
-        print(f"No serial ports found matching the pattern '{serial_pattern}'.")
+        print(f"No serial ports found matching the pattern '{SERIAL_PATTERN}'.")
         serial_instances = {}
     else:
         # Create instances for each serial port
@@ -168,8 +182,9 @@ else:
 
 print(f"Loading {args.brain}...")
 brain = getattr(importlib.import_module("brains." + args.brain), args.brain)
-# robot_brain = brain(robot=robot, controller=controller, speed=0.05, turning_speed=10)
-robot_brain = brain(robot=robot, controller=controller, speed=0.3, turning_speed=30)
+robot_brain = brain(
+    robot=robot, controller=controller, speed=SPEED, turning_speed=TURNING_SPEED
+)
 if args.mode == "simulation" or args.mode == "sensor_simulation":
     # this works because lists are references
     controller.holding = robot_brain.holding
@@ -185,6 +200,8 @@ if args.mode == "simulation" or args.mode == "sensor_simulation":
 else:
     # TODO real hardware
     pass
+if args.radio == "true":
+    robot_brain.add_sensor(RadioControl(robot_brain.speed, robot_brain.turning_speed))
 
 if args.rendering == "true":
     from world.WorldRenderer import *

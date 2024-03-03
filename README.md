@@ -1,5 +1,6 @@
 # piwarsimulator
 Robot simulator to work on PiWars logic. This is a work in progress, revivified for 2024. The software for most of the challenges is complete, with Eco-Disaster being the most incomplete. Manual robot control can be engaged by pressing spacebar and then driving with WASD/arrow for strafe and QE for rotate.
+Manual control on real hardware may be engaged using `--radio true` and then flicking the enable channel switch.
 
 ```
 $ ./piwarsimulator.py -h
@@ -14,10 +15,11 @@ options:
   -h, --help            show this help message and exit
   --brain {EcoDisasterBrain,LineFollowingBrain,MazeBrain,MinesweeperBrain,RobotBrain}
                         robot brain/challenge (default RobotBrain)
-  --map {EscapeRouteMap,LavaPalavaMap,MinesweeperMap,SimpleEcoDisasterMap}
+  --map {EscapeRouteMap,LavaPalavaMap,MinesweeperMap,RandomEcoDisasterMap,SimpleEcoDisasterMap}
                         map (default EscapeRouteMap)
   --mode {simulation,sensor_simulation,control}
                         operation mode (default simulation)
+  --radio {true,false}  use radio receiever for control (default false)
   --rendering {true,false}
                         render world on screen (default true)
 ```
