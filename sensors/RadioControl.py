@@ -62,27 +62,24 @@ class RadioControl(Sensor):
             manual_control = not self.controller.read_channel(self.EN_CHANNEL)
 
             if manual_control:
-                max_speed = self.controller.read_channel(self.SPEED_CHANNEL)
+                speed_scale = self.controller.read_channel(self.SPEED_CHANNEL)
 
                 # note all speeds here are scaled according to the max speed
                 # control and then the max speed (& turning speed) of robot
                 forward_vel = (
                     self.controller.read_channel(self.FORWARD_CHANNEL)
-                    * self.LIN_SCALE
-                    * max_speed
                     * self.speed
+                    * speed_scale
                 )
                 sideways_vel = (
                     self.controller.read_channel(self.RIGHT_CHANNEL)
-                    * self.LIN_SCALE
-                    * max_speed
                     * self.speed
+                    * speed_scale
                 )
                 angular_vel = (
                     self.controller.read_channel(self.TURN_CHANNEL)
-                    * self.ANG_SCALE
-                    * max_speed
                     * self.turning_speed
+                    * speed_scale
                 )
 
         inputs = {
