@@ -20,6 +20,7 @@ from world.ObjectType import *
 # TODO: sometimes gets stuck
 # TODO: sometimes drives over a barrel dropping off
 
+
 class EcoDisasterBrain(RobotBrain):
     """
     logic for the ecodisaster challenge
@@ -520,12 +521,20 @@ class EcoDisasterBrain(RobotBrain):
                 # the barrel is entirely in the zone, we're done
                 return (barrel, 0)
             else:
+                # slightly inside the zone
                 # trying to find some point slightly inside the zone still
                 # but more likely just some point slightly ahead of where we are
                 drop_point = line_to_zone.interpolate(
                     line_to_zone.length - barrel.radius * 3
                 )
                 drop_point = (drop_point.x, drop_point.y)
+                # if we're just inside the zone then the interpolated location along
+                # the line ends up being the end of the line instead of the correct barrel location
+                # so we need to extrapolate instead
+                if all(barrel.center == drop_point):
+                    fact = (barrel.radius * 3) / line_to_zone.length
+                    scaled_line = scale(line_to_zone, xfact=fact, yfact=fact)
+                    drop_point = scaled_line.coords[0]
 
             # temporary world object to move towards
             barrel_drop = WorldObject(
