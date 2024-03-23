@@ -133,13 +133,13 @@ class WorldObject:
 
     def get_distance(self, obj=None, relative_to="outline"):
         """distance between this object and 0,0 or another object"""
-        if relative_to == "center":
+        if isinstance(relative_to, str) and relative_to == "center":
             if obj is None:
                 return np.linalg.norm(self._center)
             else:
                 assert isinstance(obj, WorldObject)
                 return np.linalg.norm(self._center - obj._center)
-        elif relative_to == "outline":
+        elif isinstance(relative_to, str) and relative_to == "outline":
             if obj is None:
                 print("WARNING: was this supposed to take into account the robot???")
                 return self.outline.distance(Point(0, 0))
