@@ -15,6 +15,8 @@ class SimulatedLineOfSight(Sensor):
     # from VL53L4CD datasheet
     FIELD_OF_VIEW = 18  # degrees
     MAX_RANGE = 1.3  # metres
+    # field of view is halved to either side from centreline, but things to
+    # that side read further away than they actually are
 
     def __init__(self, ExteriorTheWorld, brain, angle):
         super().__init__()
@@ -97,10 +99,10 @@ class SimulatedLineOfSight(Sensor):
             self.ExteriorTheWorld[0].center[1],
         )
 
-        # if holding something a forward facing sensor won't see anything
-        if len(self.robot_brain.holding) > 0 and self.angle == 0:
-            # could return unknown object type instead?
-            return scan_result, {}
+        # # if holding something a forward facing sensor won't see anything
+        # if len(self.robot_brain.holding) > 0 and self.angle == 0:
+        #     # could return unknown object type instead?
+        #     return scan_result, {}
 
         closest = None
         closest_distance = 9e99
@@ -108,8 +110,9 @@ class SimulatedLineOfSight(Sensor):
         for obj in self.ExteriorTheWorld[1:]:  # ignore the robot in 0
             if (
                 not (
-                    obj.object_type == ObjectType.BARREL
-                    or obj.object_type == ObjectType.WALL
+                    obj.object_type == ObjectType.WALL
+                    # we'll see over the tops of barrels
+                    # or obj.object_type == ObjectType.BARREL
                 )
                 or obj.is_held
             ):
