@@ -304,6 +304,7 @@ class EcoDisasterBrain(RobotBrain):
                 * self.PFGRID_SCALE_FACTOR
             ) ** 2
 
+            goal_found = False
             goal_check_distance = (goal.width + goal.height) ** 2
             for ii in range(0, self.PFGRID_SIZE):
                 for jj in range(0, self.PFGRID_SIZE):
@@ -326,6 +327,11 @@ class EcoDisasterBrain(RobotBrain):
                     ) ** 2 < goal_check_distance:
                         if shapely_lib.intersects(goal.outline, Point(b)):
                             obstacle_map[jj, ii] = Pathfinding.GOAL
+                            goal_found = True
+
+            if goal_found == False:
+                print("ERROR NO GOAL, SKIPPING")
+                return
 
             # map holding our current location, it will have the found path added to it
             map = np.zeros_like(obstacle_map)
