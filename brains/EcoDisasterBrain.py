@@ -17,7 +17,7 @@ from world.ObjectType import *
 # TODO: back away after letting go of barrel and hunt for the next one
 #       excluding barrels in zones
 # TODO: what should happen with walls? use them to align and move orthogonal?
-# TODO: sometimes gets stuck
+# TODO: occaisionally gets stuck
 # TODO: sometimes drives over a barrel dropping off
 
 
@@ -44,7 +44,7 @@ class EcoDisasterBrain(RobotBrain):
 
     # TODO make these constants?
     # pathfinding grid geometry
-    PFGRID_SCALE_FACTOR = 0.1  # each grid space size (in metres)
+    PFGRID_SCALE_FACTOR = 0.08  # each grid space size (in metres)
     # how far out in distance to plan for in grid spaces, ideally this is big enough to always get to goal
     PFGRID_SIZE_HALF = 25
     # over all the grid size MUST BE ODD (centered around 0)
@@ -147,7 +147,7 @@ class EcoDisasterBrain(RobotBrain):
 
         # last calculated pathfinding path
         self.last_path = []
-        self.path_refresh = 0
+        self.last_path_refresh = 0  # time last path was calculated
 
         # some timers to switch behaivours if we're stuck
         self.time_trying_to_get_to_zone = 0  # time since grabbed barrel
@@ -266,6 +266,11 @@ class EcoDisasterBrain(RobotBrain):
             # pass onto path finding library to determine a route to the goal
             # try to follow that route
 
+            # only recalculate a few times a second as it's very expensive
+            if time() - self.last_path_refresh < 0.1:
+                print("skipping new path")
+                return
+
             # things we're trying to avoid and where they are located
             world_obstacles = []
             for obj in self.TheWorld[1:]:
@@ -304,15 +309,7 @@ class EcoDisasterBrain(RobotBrain):
                 for jj in range(0, self.PFGRID_SIZE):
                     b = pathfinding_centers[ii, jj]
 
-                    # check if this grid point sits within the goal first so that
-                    # obstacles can overwrite if need be
-                    # if goal.outline.contains(Point(b)):
-                    if (goal.center[0] - b[0]) ** 2 + (
-                        goal.center[1] - b[1]
-                    ) ** 2 < goal_check_distance:
-                        if shapely_lib.intersects(goal.outline, Point(b)):
-                            obstacle_map[jj, ii] = Pathfinding.GOAL
-
+                    # put down obstacles first so goals can override
                     for obj, oc in world_obstacles:
                         # slightly annoying that writing it out long hand is faster than vectorisation
                         if (oc[0] - b[0]) ** 2 + (oc[1] - b[1]) ** 2 < check_distance:
@@ -321,6 +318,14 @@ class EcoDisasterBrain(RobotBrain):
                                 # ii and jj swapped for pathfinding library map output
                                 obstacle_map[jj, ii] = Pathfinding.OBSTACLE
                                 break
+
+                    # doing the goal second lets us ignore already deposited barrels
+                    # if goal.outline.contains(Point(b)):
+                    if (goal.center[0] - b[0]) ** 2 + (
+                        goal.center[1] - b[1]
+                    ) ** 2 < goal_check_distance:
+                        if shapely_lib.intersects(goal.outline, Point(b)):
+                            obstacle_map[jj, ii] = Pathfinding.GOAL
 
             # map holding our current location, it will have the found path added to it
             map = np.zeros_like(obstacle_map)
@@ -332,6 +337,7 @@ class EcoDisasterBrain(RobotBrain):
             _, state = pf.execute(map)
             # newmap, state = pf.execute(map)
             # pf.print_map(newmap)
+            self.last_path_refresh = time()
 
             if state == Pathfinding.ARRIVED:
 
