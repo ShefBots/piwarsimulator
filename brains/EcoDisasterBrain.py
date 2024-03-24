@@ -91,7 +91,8 @@ class EcoDisasterBrain(RobotBrain):
         self.gripper_open_outline = half_gripper_open.union(
             scale(half_gripper_open, xfact=-1, origin=(0, 0))
         )
-        self.close_gripper()
+        # self.close_gripper()
+        self.open_gripper()
 
         # for pathfinding, we need to find out if a potential location we move
         # the robot to would intersect with any objects. to do this, we need to
@@ -193,8 +194,9 @@ class EcoDisasterBrain(RobotBrain):
             if goal_distance < self.GRIPPER_TOLERANCE:
                 print("Grabbing barrel")
                 self.controller.stop()
-                if not self.gripper_state == self.GRIPPER_OPEN and len(
-                    self.holding == 0
+                if (
+                    not self.gripper_state == self.GRIPPER_OPEN
+                    and len(self.holding) == 0
                 ):
                     # gripper needs to be open before we can grab it
                     return
@@ -206,29 +208,28 @@ class EcoDisasterBrain(RobotBrain):
                 self.time_trying_to_get_to_zone = time()
 
             else:
-                # turn towards barrel
+                # strafe towards barrel
                 if goal.heading > self.GRIPPER_ANGLE_TOLERANCE:
-                    self.controller.set_angular_velocity(self.turning_speed)
+                    self.controller.set_plane_velocity([self.speed, 0])
                 elif goal.heading < -self.GRIPPER_ANGLE_TOLERANCE:
-                    self.controller.set_angular_velocity(-self.turning_speed)
+                    self.controller.set_plane_velocity([-self.speed, 0])
                 else:
-                    self.controller.set_angular_velocity(0)
 
-                if (
-                    goal_distance < self.min_distance_to_edge
-                    and math.fabs(goal.heading) > 10
-                ):
-                    # we're too close to fit in the gripper, backup
-                    self.controller.set_plane_velocity([0, -self.speed / 4])
-                elif math.fabs(goal.heading) > 10:
-                    # so far off we probably need to just turn in place
-                    # self.controller.set_plane_velocity([0, 0])
-                    self.controller.set_plane_velocity(
-                        [0, self.speed / 10]
-                    )  # too easy to dead lock otherwise?
-                else:
-                    # move towards goal
-                    self.controller.set_plane_velocity([0, self.speed])
+                    if (
+                        goal_distance < self.min_distance_to_edge
+                        and math.fabs(goal.heading) > 10
+                    ):
+                        # we're too close to fit in the gripper, backup
+                        self.controller.set_plane_velocity([0, -self.speed / 4])
+                    elif math.fabs(goal.heading) > 10:
+                        # so far off we probably need to just turn in place
+                        # self.controller.set_plane_velocity([0, 0])
+                        self.controller.set_plane_velocity(
+                            [0, self.speed / 10]
+                        )  # too easy to dead lock otherwise?
+                    else:
+                        # move towards goal
+                        self.controller.set_plane_velocity([0, self.speed])
 
             # TODO if the angles don't match, backup rotate, try to grab again
 
@@ -432,7 +433,8 @@ class EcoDisasterBrain(RobotBrain):
             # 4) back away (not done)
             # 5) go for next barrel (not done)
 
-            if goal_distance == 0:
+            # are we in the goal? it counts as long as some part of the barrel is touching the zone
+            if goal_distance < 0.005:
                 self.controller.stop()
                 # wait for the gripper to open
                 self.open_gripper()
@@ -442,17 +444,19 @@ class EcoDisasterBrain(RobotBrain):
                 self.state = ExecutionState.PROGRAM_COMPLETE
                 return
 
-            # turn to face roughly the zone
-            # 0.5*30 = 15 degrees?
+            # strafe to be in line with the zone
+
             if goal.heading > self.ZONE_ANGLE_TOLERANCE:
-                self.controller.set_angular_velocity(self.turning_speed / 4)
-                self.controller.set_plane_velocity([self.speed / 8, self.speed / 8])
+                v = [self.speed / 4, self.speed / 8]
             elif goal.heading < -self.ZONE_ANGLE_TOLERANCE:
-                self.controller.set_angular_velocity(-self.turning_speed / 4)
-                self.controller.set_plane_velocity([-self.speed / 8, self.speed / 8])
+                v = [-self.speed / 4, self.speed / 8]
             else:
-                self.controller.set_angular_velocity(0)
-                self.controller.set_plane_velocity([0, self.speed / 4])
+                v = [0, self.speed / 4]
+
+            if self.distance_forward() < 0.10:
+                # about to hit the wall with the gripper, don't move forward anymore!!!
+                v[1] = 0
+            self.controller.set_plane_velocity(v)
 
             pass
 
@@ -465,6 +469,38 @@ class EcoDisasterBrain(RobotBrain):
             # self.controller.stop()
             # print("Dropping off barrel")
             # self.holding.pop(0)
+
+    def find_in_front(self, object_type, color="", exclude=[], relative_to="outline"):
+        """
+        find something somewhat in front of the robot
+        based on find_closest
+        note color should be a pygame.color.Color
+        exclude a list of WorldObjects
+        if relative_to is a tuple or list, treat that as an offset from the center of the robot
+        """
+        closest = None
+        closest_distance = 9e99
+        for obj in self.TheWorld[1:]:  # skip the robot and check everything else
+            dist = self.TheWorld[0].get_distance(obj, relative_to=relative_to)
+            t = obj.center[1]
+            if isinstance(relative_to, (tuple, list, np.ndarray)):
+                t = obj.center - relative_to
+            else:
+                raise Exception("can only find closest points in front")
+            if (
+                obj.object_type == object_type
+                and (color == "" or obj.color == color)
+                and not self.is_holding(obj)
+                and not any(RobotBrain.match_objects(obj, obj2) for obj2 in exclude)
+                and t[1] > 0  # this should filter for objects in front
+                and abs(t[0]) < 0.25  # only straight ahead
+            ):
+                if dist < closest_distance:
+                    # I'd like to dist > self.TheWorld[0].height/2 but then it looses tracking
+                    closest = obj
+                    closest_distance = dist
+
+        return (closest, closest_distance)
 
     def find_goal(self):
         """find the closest TARGET or ZONE depending on execution state"""
@@ -486,13 +522,15 @@ class EcoDisasterBrain(RobotBrain):
         if self.state == ExecutionState.MOVE_TO_ZONE:
             # TODO need to ignore barrels in/near zones
             return self.find_closest(ObjectType.ZONE, color=goal_color)
-        
+
         elif self.state == ExecutionState.MOVE_TO_BARREL:
             # treat the middle of the gripper as the center, so find barrel closest
             # to the front of the robot, 0.025 = barrel radius
             # finds the closest barrel that's in a straight line
-            return self.find_closest(ObjectType.BARREL, relative_to=gripper_center)
-        
+            return self.find_in_front(ObjectType.BARREL, relative_to=gripper_center)
+            # TODO fall back to flosest if there's nothing in front?
+            # return self.find_closest(ObjectType.BARREL, relative_to=gripper_center)
+
         elif self.state == ExecutionState.DROP_OFF_BARREL:
             # we have a barrel and we're near the zone, find the bit of the zone
             # closet to where we are to put the barrel
