@@ -77,7 +77,7 @@ class Pathfinding:
 
     @staticmethod
     def find(map, thing, one_of=True):
-        '''find one (or more) of something in a map'''
+        """find one (or more) of something in a map"""
         ii, jj = np.where(map == thing)
 
         # only one thing
@@ -85,6 +85,10 @@ class Pathfinding:
             assert len(ii) == 1
             assert len(jj) == 1
             # return ii[0], jj[0]
+        else:
+            # we still need to have at least one thing!
+            assert len(ii) >= 1
+            assert len(jj) >= 1
 
         return list(zip(ii, jj))
 
