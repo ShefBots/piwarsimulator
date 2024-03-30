@@ -121,7 +121,7 @@ elif args.mode == "sensor_simulation":
     from sensors.SimulatedVision360 import SimulatedVision360
 elif args.mode == "control":
     from controllers.MovementController import MovementController
-
+    from sensors.DistanceSensor import DistanceSensor
     # TODO real hardware (sensors)
 
 # do serial stuff if needed
@@ -178,7 +178,8 @@ elif args.mode == "sensor_simulation":
         robot, secondary_controller=real_controller
     )
 else:
-    raise Exception("No real hardware controller yet")
+    controller = MovementController(serial_instances)
+#    raise Exception("No real hardware controller yet")
 
 print(f"Loading {args.brain}...")
 brain = getattr(importlib.import_module("brains." + args.brain), args.brain)
@@ -199,6 +200,7 @@ if args.mode == "simulation" or args.mode == "sensor_simulation":
     robot_brain.add_sensor(SimulatedVision360(ExteriorTheWorld, robot_brain))
 else:
     # TODO real hardware
+    robot_brain.add_sensor(DistanceSensor(ExteriorTheWorld, robot_brain, -90))
     pass
 if args.radio == "true":
     robot_brain.add_sensor(RadioControl(robot_brain.speed, robot_brain.turning_speed))
