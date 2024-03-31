@@ -5,3 +5,4 @@ dependencies:
   - pygame
   - numpy
   - shapely
+  - pyserial
