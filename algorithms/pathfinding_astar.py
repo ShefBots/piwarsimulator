@@ -7,6 +7,12 @@ if __name__ == "__main__":
 else:
     from algorithms.pathfinding import Pathfinding
 
+# The real way to make this work would be to:
+# a) add angle as a possible movement; and
+# b) do the collision checks in the Pathfinding routine and cache the result
+# The latter should let a higher resolution be used and let angle work to best result
+# Note that 0, 45 and 90 degree turns are rotationally symetric to the rest of the possibilities
+
 
 class AStar(Pathfinding):
     """

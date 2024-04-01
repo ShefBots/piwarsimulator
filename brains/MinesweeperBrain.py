@@ -29,7 +29,9 @@ class MinesweeperBrain(RobotBrain):
         if self.sensor_measurements["manual_control"]:
             return
 
-        if self.state == ExecutionState.PROGRAM_INIT:
+        if self.state == ExecutionState.PROGRAM_COMPLETE:
+            return
+        elif self.state == ExecutionState.PROGRAM_INIT:
             self.state = ExecutionState.SQUARING_UP
             if not self.distance_forward() is None:
                 self.square_up_heading = 0
@@ -39,14 +41,16 @@ class MinesweeperBrain(RobotBrain):
                 self.square_up_heading = -90
             else:
                 self.state = ExecutionState.PROGRAM_CONTROL
-            print(self.square_up_heading)
+            print(f"Squaring up based on {self.square_up_heading}' time of flight")
+            return
         elif self.state == ExecutionState.SQUARING_UP:
             # nothing smart to do while squaring up
             return
 
         if time() - self.last_mine_found > 30:
             print("No mines found for 30 seconds, we're done here")
-            self.running = False
+            # self.running = False
+            self.state = ExecutionState.PROGRAM_COMPLETE
             return
 
         # find something to move towards

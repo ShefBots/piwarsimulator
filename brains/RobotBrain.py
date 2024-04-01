@@ -129,6 +129,8 @@ class RobotBrain:
             print("Quit requested")
             self.running = False
 
+        # TODO timer on PROGRAM_COMPLETE to change to self.running = False
+
         if self.state == ExecutionState.SQUARING_UP:
             self.square_up()
 

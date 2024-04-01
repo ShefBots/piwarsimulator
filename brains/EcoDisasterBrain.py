@@ -42,7 +42,6 @@ class EcoDisasterBrain(RobotBrain):
     # how aligned to be when heading towards zone
     ZONE_ANGLE_TOLERANCE = 0.5
 
-    # TODO make these constants?
     # pathfinding grid geometry
     PFGRID_SCALE_FACTOR = 0.08  # each grid space size (in metres)
     # how far out in distance to plan for in grid spaces, ideally this is big enough to always get to goal
