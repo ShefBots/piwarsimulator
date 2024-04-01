@@ -14,6 +14,11 @@ from world.WorldObject import *
 from world.ObjectType import *
 
 
+# TODO use is_held and add held barrel to TheWorld
+# TODO pre-programmed target drop-off points
+# TODO move to zone & drop off
+
+
 class CheesedEcoDisasterBrain(RobotBrain):
     """
     logic for the ecodisaster challenge
@@ -27,10 +32,18 @@ class CheesedEcoDisasterBrain(RobotBrain):
     GOAL_MAPPING = {"darkgreen": Color("blue"), "red": Color("yellow")}
 
     # how close to be to target before activating gripper
-    GRIPPER_TOLERANCE = 0.01  # m
+    GRIPPER_ANGLE_TOLERANCE = 2  # degree
+    GRIPPER_TOLERANCE = 0.025  # m
 
     GRIPPER_CLOSED = 0
     GRIPPER_OPEN = 1
+    GRIPPER_MOVING = 2
+
+    # how close to get to walls before stopping
+    LEFT_WALL_TARGET = 0.02
+    RIGHT_WALL_TARGET = 0.02
+    # how much further than the target is OK
+    WALL_MARGIN = 0.02
 
     def __init__(self, **kwargs):
         super(CheesedEcoDisasterBrain, self).__init__(**kwargs)
@@ -73,8 +86,17 @@ class CheesedEcoDisasterBrain(RobotBrain):
         self.gripper_open_outline = half_gripper_open.union(
             scale(half_gripper_open, xfact=-1, origin=(0, 0))
         )
-        self.close_gripper()
+        self.gripper_state = self.GRIPPER_CLOSED
+        self.attachment_outline = self.gripper_closed_outline
+        # self.close_gripper()
         # self.open_gripper()
+        # TODO real hardware init
+
+        # how close to get to rear wall
+        # we will start to increment this at some point
+        self.rear_wall_target = 0.02
+        # currently don't know where a barrel is
+        self.found_barrel = 0
 
     def process(self):
         """do the basic brain stuff then do specific ecodisaster things"""
@@ -206,15 +228,71 @@ class CheesedEcoDisasterBrain(RobotBrain):
             # nothing smart to do while squaring up
             return
 
-        # find something to move towards
-        (goal, goal_distance) = self.find_goal()
-        if goal is None:
-            return
+        # TODO add in distance mesuarement margins?
 
-        if self.state == ExecutionState.MOVE_TO_BARREL:
-            pass
+        if self.state == ExecutionState.PROGRAM_CONTROL:
+            print("Homing...")
+            # move to back left corner
+            if tof_rear < self.rear_wall_target - self.WALL_MARGIN:
+                self.controller.set_plane_velocity([0, self.speed])
+            elif tof_rear > self.rear_wall_target:
+                # and not tof_rear > self.rear_wall_target + self.WALL_MARGIN: # for margin?
+                self.controller.set_plane_velocity([0, -self.speed])
+            elif tof_left > self.LEFT_WALL_TARGET:
+                self.controller.set_plane_velocity([-self.speed, 0])
+            else:
+                self.controller.stop()
+                if self.found_barrel == 0:
+                    self.state = ExecutionState.MOVE_TO_BARREL
+                elif self.found_barrel == 1:
+                    self.state = ExecutionState.MOVE_TO_ZONE
+
+        elif self.state == ExecutionState.MOVE_TO_BARREL:
+            # find a barrel to move towards
+            if self.found_barrel == 0:
+                print("Locating barrel...")
+                if tof_right < self.RIGHT_WALL_TARGET:
+                    # go forwards and do another scan
+                    self.rear_wall_target += 0.05
+                    self.controller.stop()
+                    self.state = ExecutionState.PROGRAM_CONTROL
+                    print("Drop it back down and reverse it...")
+
+                self.controller.set_plane_velocity([self.speed, 0])
+
+            goal, goal_distance = self.find_goal()
+            if goal is not None:
+                self.found_barrel = 1
+                print("Barrel found...")
+                if abs(goal.heading) < self.GRIPPER_ANGLE_TOLERANCE:
+                    self.controller.set_plane_velocity([0, self.speed])
+
+            if self.found_barrel == 1:
+                print(goal_distance)
+                if goal_distance < self.GRIPPER_TOLERANCE:
+                    # barrel is right in front of us (shorter distance goes first)
+                    self.controller.stop()
+                    self.close_gripper()
+                    if not self.gripper_state == self.GRIPPER_CLOSED:
+                        return
+                    self.holding.append(goal)
+                    # goal.exterior.is_held = True
+                    self.state = (
+                        ExecutionState.PROGRAM_CONTROL
+                    )  # home, then we move to zone
+                elif goal_distance < 0.15:
+                    # barrel is closer to in front of us
+                    self.controller.set_plane_velocity([0, self.speed / 4])
+                    self.open_gripper()  # follw up open call to trigger gripper animation
+                elif goal_distance < 0.2:
+                    # barrel is close to in front of us
+                    self.controller.set_plane_velocity([0, self.speed / 2])
+                    self.open_gripper()
 
         elif self.state == ExecutionState.MOVE_TO_ZONE:
+            print("Heading to zone...")
+            if not self.gripper_state == self.GRIPPER_CLOSED:
+                return
             pass
 
         elif self.state == ExecutionState.DROP_OFF_BARREL:
@@ -247,6 +325,8 @@ class CheesedEcoDisasterBrain(RobotBrain):
             return -1.1 + (tof + self.robot.width / 2)
         else:
             return None
+
+    ### TODO OLD CODE BELOW HERE, WILL NEED OPTIMISATION/SIMPLIFICATION ###
 
     def find_in_front(self, object_type, color="", exclude=[], relative_to="outline"):
         """
@@ -382,10 +462,28 @@ class CheesedEcoDisasterBrain(RobotBrain):
 
     def open_gripper(self):
         # TODO real hardware
-        self.gripper_state = self.GRIPPER_OPEN
-        self.attachment_outline = self.gripper_open_outline
+        if self.gripper_state == self.GRIPPER_CLOSED:
+            print("Opening gripper")
+            self.gripper_changed = time()
+            self.gripper_state = self.GRIPPER_MOVING
+        if (
+            self.gripper_state == self.GRIPPER_MOVING
+            and time() - self.gripper_changed > 1
+        ):
+            print("Gripper open")
+            self.gripper_state = self.GRIPPER_OPEN
+            self.attachment_outline = self.gripper_open_outline
 
     def close_gripper(self):
         # TODO real hardware
-        self.gripper_state = self.GRIPPER_CLOSED
-        self.attachment_outline = self.gripper_closed_outline
+        if self.gripper_state == self.GRIPPER_OPEN:
+            print("Closing gripper")
+            self.gripper_changed = time()
+            self.gripper_state = self.GRIPPER_MOVING
+        if (
+            self.gripper_state == self.GRIPPER_MOVING
+            and time() - self.gripper_changed > 1
+        ):
+            print("Gripper closed")
+            self.gripper_state = self.GRIPPER_CLOSED
+            self.attachment_outline = self.gripper_closed_outline

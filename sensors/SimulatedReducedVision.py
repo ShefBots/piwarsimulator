@@ -15,7 +15,7 @@ class SimulatedReducedVision(Sensor):
 
     # the range of what the system sees looking forward
     FIELD_OF_VIEW = 90  # degrees, centered on 0' forwards
-    MAX_RANGE = 1.3  # metres
+    MAX_RANGE = 0.8  # metres
 
     def __init__(self, ExteriorTheWorld, brain, fov=None):
         super().__init__()
@@ -176,7 +176,7 @@ class SimulatedReducedVision(Sensor):
                 scanned_obj.angle - self.ExteriorTheWorld[0].angle
             )  # make relative to heading of robot
 
-            scanned_obj.exterior = obj
+            scanned_obj.exterior = closest
             scan_result.append(scanned_obj)
 
         elif not closest_line is None:
@@ -203,7 +203,7 @@ class SimulatedReducedVision(Sensor):
                 math.atan2(scanned_obj.center[0], scanned_obj.center[1])
             )
 
-            scanned_obj.exterior = obj
+            scanned_obj.exterior = closest
             scan_result.append(scanned_obj)
 
         return scan_result, {}

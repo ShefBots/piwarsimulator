@@ -201,6 +201,7 @@ class EcoDisasterBrain(RobotBrain):
                     return
                 self.close_gripper()
                 self.holding.append(goal)
+                # goal.exterior.is_held = True
                 if not self.gripper_state == self.GRIPPER_CLOSED:
                     return
                 self.state = ExecutionState.MOVE_TO_ZONE
