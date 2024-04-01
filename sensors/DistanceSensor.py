@@ -34,7 +34,9 @@ class DistanceSensor(Sensor):
         self.io_controller = None
 
         if IOController.EXPECTED_ID in serial_instances.keys():
-            self.io_controller = IOController(serial_instances[IOController.EXPECTED_ID])
+            self.io_controller = IOController(
+                serial_instances[IOController.EXPECTED_ID]
+            )
         else:
             raise Exception("Could not find IO controller hardware")
 
@@ -113,7 +115,7 @@ class DistanceSensor(Sensor):
         #     return scan_result, {}
 
         # TODO query the correct sensor
-        closest_distance = self.io_controller.read_tof() / 100 # convert cm to m
+        closest_distance = self.io_controller.read_tof() / 100  # convert cm to m
 
         # construct the wall the scanned object could be
         if closest_distance > 0:
@@ -145,4 +147,4 @@ class DistanceSensor(Sensor):
 
             scan_result.append(scanned_obj)
 
-        return scan_result, {}
+        return scan_result, {"tof_" + str(self.angle): closest_distance}
