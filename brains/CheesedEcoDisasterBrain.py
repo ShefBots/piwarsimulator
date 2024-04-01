@@ -86,43 +86,90 @@ class CheesedEcoDisasterBrain(RobotBrain):
 
         # use time of flight sensor readings to infer drop of zone locations
         # where are we relative to (0,0) if that was the center of the arena?
-        front_tof = self.sensor_measurements["tof_0"]
-        rear_tof = self.sensor_measurements["tof_180"]
-        if not front_tof == 9e99 and rear_tof == 9e99:
-            # base off front sensor
-            # if the walldist (tof-height) was 1.1 then we'd be in the center
-            y = 1.1 - (front_tof + self.robot.height / 2)
-        elif front_tof == 9e99 and not rear_tof == 9e99:
-            # base off rear sensor
-            y = -1.1 + (rear_tof + self.robot.height / 2)
-        elif not front_tof == 9e99 and not rear_tof == 9e99:
-            # base off both
-            y = (
-                (1.1 - (front_tof + self.robot.height / 2))
-                + (-1.1 + (rear_tof + self.robot.height / 2))
-            ) / 2
-        else:
-            print("Y Localisation failed!")
-            return
+        tof_front = self.sensor_measurements["tof_0"]
+        tof_rear = self.sensor_measurements["tof_180"]
+        tof_right = self.sensor_measurements["tof_90"]
+        tof_left = self.sensor_measurements["tof_270"]
 
-        left_tof = self.sensor_measurements["tof_270"]
-        right_tof = self.sensor_measurements["tof_90"]
-        if not right_tof == 9e99 and left_tof == 9e99:
-            # base off right sensor
-            # if the walldist (tof-height) was 1.1 then we'd be in the center
-            x = 1.1 - (right_tof + self.robot.height / 2)
-        elif right_tof == 9e99 and not left_tof == 9e99:
-            # base off left sensor
-            x = -1.1 + (left_tof + self.robot.height / 2)
-        elif not right_tof == 9e99 and not left_tof == 9e99:
-            # base off both
-            x = (
-                (1.1 - (right_tof + self.robot.height / 2))
-                + (-1.1 + (left_tof + self.robot.height / 2))
-            ) / 2
-        else:
+        yf = self.estimate_y_front(tof_front)
+        yr = self.estimate_y_rear(tof_rear)
+
+        xr = self.estimate_x_right(tof_right)
+        xl = self.estimate_x_left(tof_left)
+
+        # rely on closest reading of side sensors when close to the other side's wall
+        # this avoids issue where false readings from wall edge of wall mess up distances
+        x = None
+        y = None
+
+        if not yr is None and tof_rear < 0.15:  # and xr > 0.15 and xl > 0.15:
+            y = yr
+            if not xr is None and not xl is None:
+                if tof_left <= tof_right:
+                    x = xl
+                else:
+                    x = xr
+            elif not xr is None:
+                x = xr
+            elif not xl is None:
+                x = xl
+        elif not yf is None and tof_front < 0.15:  # and xr > 0.15 and xl > 0.15:
+            y = yf
+            if not xr is None and not xl is None:
+                if tof_left <= tof_right:
+                    x = xl
+                else:
+                    x = xr
+            elif not xr is None:
+                x = xr
+            elif not xl is None:
+                x = xl
+
+        if not xr is None and tof_right < 0.15:
+            x = xr
+            if not yf is None and not yr is None:
+                if tof_front <= tof_rear:
+                    y = yf
+                else:
+                    y = yr
+            elif not yf is None:
+                y = yf
+            elif not yr is None:
+                y = yr
+        elif not xl is None and tof_left < 0.15:
+            x = xl
+            if not yf is None and not yr is None:
+                if tof_front <= tof_rear:
+                    y = yf
+                else:
+                    y = yr
+            elif not yf is None:
+                y = yf
+            elif not yr is None:
+                y = yr
+
+        if y is None and (not yf is None or not yr is None):
+            if not yf is None:
+                y = yf
+            elif not yr is None:
+                y = yr
+            else:
+                y = (yf + yr) / 2
+
+        if x is None and (not xr is None or not xl is None):
+            if not xr is None:
+                x = xr
+            elif not xl is None:
+                x = xl
+            else:
+                x = (xl + xr) / 2
+
+        if y is None:
+            print("Y Localisation failed!")
+        if x is None:
             print("X Localisation failed!")
-            return
+
+        # print([x, y])
 
         # put in estimated target zone locations based on sensor readings
         self.TheWorld.append(
@@ -172,6 +219,34 @@ class CheesedEcoDisasterBrain(RobotBrain):
 
         elif self.state == ExecutionState.DROP_OFF_BARREL:
             pass
+
+    def estimate_y_front(self, tof):
+        # base off front sensor
+        if not tof == 9e99:
+            return 1.1 - (tof + self.robot.height / 2)
+        else:
+            return None
+
+    def estimate_y_rear(self, tof):
+        # base off rear sensor
+        if not tof == 9e99:
+            return -1.1 + (tof + self.robot.height / 2)
+        else:
+            return None
+
+    def estimate_x_right(self, tof):
+        # base off right sensor
+        if not tof == 9e99:
+            return 1.1 - (tof + self.robot.width / 2)
+        else:
+            return None
+
+    def estimate_x_left(self, tof):
+        # base off left sensor
+        if not tof == 9e99:
+            return -1.1 + (tof + self.robot.width / 2)
+        else:
+            return None
 
     def find_in_front(self, object_type, color="", exclude=[], relative_to="outline"):
         """
