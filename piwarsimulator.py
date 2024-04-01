@@ -193,6 +193,7 @@ else:
         controller = MovementController(serial_instances)
     except Exception as e:
         running = False
+        controller = None
         print(f"Caught error: {e}")
         print(traceback.format_exc())
 
@@ -210,18 +211,11 @@ print("Attaching sensors...")
 if args.mode == "simulation" or args.mode == "sensor_simulation":
     if args.rendering == "true":
         robot_brain.add_sensor(Keyboard(robot_brain.speed, robot_brain.turning_speed))
-    robot_brain.add_sensor(
-        SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 0)
-    )  # forward
-    robot_brain.add_sensor(
-        SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 90)
-    )  # right
-    robot_brain.add_sensor(
-        SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 180)
-    )  # behind
-    robot_brain.add_sensor(
-        SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 270)
-    )  # left
+    # forward, right, behind, left
+    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 0))
+    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 90))
+    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 180))
+    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 270))
     robot_brain.add_sensor(SimulatedVision360(ExteriorTheWorld, robot_brain))
 else:
     try:
@@ -270,7 +264,9 @@ while running:
         try:
             if args.mode == "control":
                 renderer.update(
-                    Worlds=[robot_brain.TheWorld]
+                    Worlds=[robot_brain.TheWorld],
+                    # yes this is a list in a list. deal with it.
+                    Sensors=[[s.outline for s in robot_brain.sensors]],
                 )  # see the world as the robot sees it
             else:
                 renderer.update(
@@ -293,4 +289,5 @@ while running:
         time.sleep(to_sleep)
 
 print("Quitting...")
-controller.stop(exiting=True)
+if not controller is None:
+    controller.stop(exiting=True)

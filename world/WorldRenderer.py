@@ -55,6 +55,9 @@ class WorldRenderer:
                 print("Quit requested!")
                 self.running = False
 
+        if not isinstance(Worlds, list) or not isinstance(Worlds, list) or not len(Worlds) == len(Sensors):
+            raise Exception("WorldRenderer.update() inputs must be matched size lists")
+
         # reset the canvas
         self.screen.fill(pygame.Color("black"))
         if self.AA_THICK_LINES == 1:
