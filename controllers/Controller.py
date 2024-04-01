@@ -6,7 +6,6 @@ class Controller:
     """controllers are things that move the robot"""
 
     def __init__(self):
-        print("HELLO")
         super(Controller, self).__init__()
         # default don't move
         self.vel = np.array([0, 0])

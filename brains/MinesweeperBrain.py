@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from time import monotonic as time
 from brains.ExecutionState import ExecutionState
 from brains.RobotBrain import RobotBrain
 from world.WorldObject import *
@@ -17,6 +18,7 @@ class MinesweeperBrain(RobotBrain):
     def __init__(self, **kwargs):
         super(MinesweeperBrain, self).__init__(**kwargs)
         self.state = ExecutionState.PROGRAM_INIT
+        self.last_mine_found = time()
 
     def process(self):
         """do the basic brain stuff then do specific minesweeper things"""
@@ -42,11 +44,14 @@ class MinesweeperBrain(RobotBrain):
             # nothing smart to do while squaring up
             return
 
+        if time() - self.last_mine_found > 30:
+            print("No mines found for 30 seconds, we're done here")
+            self.running = False
+            return
+
         # find something to move towards
         (goal, goal_distance) = self.find_goal()
-        if goal is None and self.controller.moving:
-            if self.controller.moving:
-                self.controller.stop()
+        if goal is None:
             return
 
         # slow down as we approach the mine
@@ -61,6 +66,7 @@ class MinesweeperBrain(RobotBrain):
 
         if overlap > self.OVERLAP_TARGET and self.controller.moving:
             self.controller.stop()
+            # self.controller.set_plane_velocity([0, 0])
         elif overlap < self.OVERLAP_TARGET:
             if self.FUN_MODE:
                 # turn towards target
@@ -85,8 +91,12 @@ class MinesweeperBrain(RobotBrain):
 
             else:
                 # go directly at angle to the target
-                forward_vel = self.speed * speed_modifier * math.cos(math.radians(goal.heading))
-                side_vel = self.speed * speed_modifier * math.sin(math.radians(goal.heading))
+                forward_vel = (
+                    self.speed * speed_modifier * math.cos(math.radians(goal.heading))
+                )
+                side_vel = (
+                    self.speed * speed_modifier * math.sin(math.radians(goal.heading))
+                )
 
             # handle walls so that we zig-zag off them
             if (
@@ -115,4 +125,12 @@ class MinesweeperBrain(RobotBrain):
 
     def find_goal(self):
         """find the closest MINE"""
-        return self.find_closest(ObjectType.MINE)
+        goal = self.find_closest(ObjectType.MINE)
+        if goal[0] is None:
+            print("Hunting for mines!")
+            self.controller.set_plane_velocity([0, 0])
+            self.controller.set_angular_velocity(self.turning_speed)
+        else:
+            self.last_mine_found = time()
+            self.controller.set_angular_velocity(0)
+        return goal

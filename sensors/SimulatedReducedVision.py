@@ -2,67 +2,65 @@
 import copy
 import math
 from pygame import Color
-from shapely.geometry import Polygon
+from shapely.geometry import LineString, Polygon
 from shapely.affinity import rotate
 from sensors.Sensor import Sensor
 from world.ObjectType import *
 from world.WorldObject import *
-from util import rotate_by,fast_translate
+from util import rotate_by, fast_translate
 
 
-class SimulatedVision360(Sensor):
-    """simulated output from the 360 vision system"""
+class SimulatedReducedVision(Sensor):
+    """simulated output from a reduced capability vision system"""
 
-    # how far around the robot to scan for lines
-    # this excludes the robot dimension, so make sure it's big enough
-    LINE_DECTION_DISTANCE = 0.2
+    # the range of what the system sees looking forward
+    FIELD_OF_VIEW = 90  # degrees, centered on 0' forwards
+    MAX_RANGE = 1.3  # metres
 
-    def __init__(self, ExteriorTheWorld, brain):
+    def __init__(self, ExteriorTheWorld, brain, fov=None):
         super().__init__()
         self.ExteriorTheWorld = ExteriorTheWorld
         self.robot_brain = brain  # needed for holding
         assert ExteriorTheWorld[0].object_type == ObjectType.ROBOT
-        print("Activating simulated 360 degree vision sensor")
+        print("Activating simulated reduced capability vision sensor")
 
-        # detect lines pretty similar to how simulated line of sight works
-        # construct a box ahead of the robot where a line may be detected
-        # find the closest line in the box, and then return that
-        self.outline = rotate(
-            Polygon(
-                [
-                    (
-                        self.ExteriorTheWorld[0].center[0] - self.LINE_DECTION_DISTANCE,
-                        self.ExteriorTheWorld[0].center[1],
-                    ),
-                    (
-                        self.ExteriorTheWorld[0].center[0] + self.LINE_DECTION_DISTANCE,
-                        self.ExteriorTheWorld[0].center[1],
-                    ),
-                    (
-                        self.ExteriorTheWorld[0].center[0] + self.LINE_DECTION_DISTANCE,
-                        self.ExteriorTheWorld[0].center[1] + self.LINE_DECTION_DISTANCE,
-                    ),
-                    (
-                        self.ExteriorTheWorld[0].center[0] - self.LINE_DECTION_DISTANCE,
-                        self.ExteriorTheWorld[0].center[1] + self.LINE_DECTION_DISTANCE,
-                    ),
-                ]
-            ),
-            -ExteriorTheWorld[0].angle,
-            origin=(
-                self.ExteriorTheWorld[0].center[0],
-                self.ExteriorTheWorld[0].center[1],
-            ),
-        )
-        # subtract the outline of the robot
-        self.outline = self.outline.difference(ExteriorTheWorld[0].outline)
-        self.outline = rotate(
-            self.outline,
-            ExteriorTheWorld[0].angle,
-            origin=(
-                self.ExteriorTheWorld[0].center[0],
-                self.ExteriorTheWorld[0].center[1],
-            ),
+        self.fov_angle = self.FIELD_OF_VIEW if fov is None else fov
+        assert self.fov_angle <= 180
+
+        # need to get mounting position on the chassis
+        # first distance to check edge for (larger than width or height to make sure it goes beyond)
+        l = max(self.ExteriorTheWorld[0].width, self.ExteriorTheWorld[0].height) * 2
+        # find edge
+        t = LineString(
+            [
+                (
+                    self.ExteriorTheWorld[0].center[0],
+                    self.ExteriorTheWorld[0].center[1],
+                ),
+                (
+                    self.ExteriorTheWorld[0].center[0],
+                    self.ExteriorTheWorld[0].center[1] + l,
+                ),
+            ]
+        ).intersection(self.ExteriorTheWorld[0].outline)
+        # intersection of sensor and robot outline, this is where the sensor is "mounted"
+        x0, y0 = t.coords[1]
+
+        self.outline = Polygon(
+            [
+                (
+                    x0,
+                    y0,
+                ),
+                (
+                    x0 - self.MAX_RANGE * math.tan(math.radians(self.fov_angle / 2)),
+                    y0 + self.MAX_RANGE,
+                ),
+                (
+                    x0 + self.MAX_RANGE * math.tan(math.radians(self.fov_angle / 2)),
+                    y0 + self.MAX_RANGE,
+                ),
+            ]
         )
         # make relative to a robot at 0,0 pointing north
         self.outline = fast_translate(
@@ -70,7 +68,10 @@ class SimulatedVision360(Sensor):
             -self.ExteriorTheWorld[0].center[0],
             -self.ExteriorTheWorld[0].center[1],
         )
-        assert self.outline.geom_type == "Polygon"  # LINE_DECTION_DISTANCE not small
+        # sensor moutning location for 0,0 pointing north
+        self.x0 = self.outline.exterior.coords[0][0]
+        self.y0 = self.outline.exterior.coords[0][1]
+        assert self.outline.geom_type == "Polygon"  # need to look in a volume
 
     def do_scan(self):
         """
@@ -101,14 +102,11 @@ class SimulatedVision360(Sensor):
                     or (
                         obj.object_type == ObjectType.MINE and obj.color == Color("red")
                     )
+                    and self.fov.intersects(obj.outline)  # only inside fov
                 )
                 or obj.is_held
             ):
-                if (
-                    obj.object_type == ObjectType.LINE
-                    and obj.color == Color("white")
-                    and self.fov.intersects(obj.outline)
-                ):
+                if obj.object_type == ObjectType.LINE and obj.color == Color("white"):
                     # from SimulatedLineOfSight
                     u = self.fov.intersection(obj.outline)
                     if u.geom_type == "LineString":

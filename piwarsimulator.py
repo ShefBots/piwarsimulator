@@ -106,6 +106,13 @@ parser.add_argument(
     default="true",
     choices=["true", "false"],
 )
+parser.add_argument(
+    "--simplevision",
+    help="rely on simpler vision system (default false)",
+    default="false",
+    # default="true",
+    choices=["true", "false"],
+)
 args = parser.parse_args()
 
 # imports for hardware etc based on settings
@@ -116,12 +123,24 @@ if args.radio == "true":
 if args.mode == "simulation":
     from controllers.SimulatedMovementController import SimulatedMovementController
     from sensors.SimulatedLineOfSight import SimulatedLineOfSight
-    from sensors.SimulatedVision360 import SimulatedVision360
+
+    if args.simplevision == "false":
+        from sensors.SimulatedVision360 import SimulatedVision360 as SimulatedVision
+    else:
+        from sensors.SimulatedReducedVision import (
+            SimulatedReducedVision as SimulatedVision,
+        )
 elif args.mode == "sensor_simulation":
     from controllers.SimulatedMovementController import SimulatedMovementController
     from controllers.MovementController import MovementController
     from sensors.SimulatedLineOfSight import SimulatedLineOfSight
-    from sensors.SimulatedVision360 import SimulatedVision360
+
+    if args.simplevision == "false":
+        from sensors.SimulatedVision360 import SimulatedVision360 as SimulatedVision
+    else:
+        from sensors.SimulatedReducedVision import (
+            SimulatedReducedVision as SimulatedVision,
+        )
 elif args.mode == "control":
     from controllers.MovementController import MovementController
     # from controllers.SimulatedMovementController import SimulatedMovementController
@@ -129,9 +148,7 @@ elif args.mode == "control":
     # TODO real hardware (sensors)
 
 # do serial stuff if needed
-if (
-    args.rendering == "true" and args.mode == "simulation"
-) or not args.mode == "simulation":
+if not args.mode == "simulation":
     print("Preparing serial comms...")
     # we want controller input even if simulating
     # or otherwise it's someting with hardware and we will want serial
@@ -216,7 +233,7 @@ if args.mode == "simulation" or args.mode == "sensor_simulation":
     robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 90))
     robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 180))
     robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 270))
-    robot_brain.add_sensor(SimulatedVision360(ExteriorTheWorld, robot_brain))
+    robot_brain.add_sensor(SimulatedVision(ExteriorTheWorld, robot_brain))
 else:
     try:
         # TODO real hardware
