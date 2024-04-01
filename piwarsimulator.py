@@ -169,7 +169,8 @@ robot = WorldObject(
     object_type=ObjectType.ROBOT,
     x=0,
     y=0,
-    w=0.18,
+    # w=0.18,  # without bumpers
+    w=0.215,  # with bumpers
     h=0.235,
     angle=0,
     # object_type=ObjectType.ROBOT, x=0.1, y=-0.3, w=0.18, h=0.235, angle=20
