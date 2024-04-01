@@ -195,12 +195,15 @@ if args.mode == "simulation" or args.mode == "sensor_simulation":
     if args.rendering == "true":
         robot_brain.add_sensor(Keyboard(robot_brain.speed, robot_brain.turning_speed))
     robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 0))
-    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, -90))
     robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 90))
+    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 180))
+    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 270))
     robot_brain.add_sensor(SimulatedVision360(ExteriorTheWorld, robot_brain))
 else:
     # TODO real hardware
-    robot_brain.add_sensor(DistanceSensor(ExteriorTheWorld, robot_brain, -90))
+    # 4x line of sight
+    # vision system
+    robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 270))
     pass
 if args.radio == "true":
     robot_brain.add_sensor(RadioControl(robot_brain.speed, robot_brain.turning_speed))

@@ -20,24 +20,77 @@ class DistanceSensor(Sensor):
     # field of view is halved to either side from centreline, but things to
     # that side read further away than they actually are
 
-    def __init__(self, ExteriorTheWorld, brain, angle):
+    def __init__(self, serial_instances, robot, angle):
         super().__init__()
-        self.ExteriorTheWorld = ExteriorTheWorld
-        self.robot_brain = brain  # needed for holding
-        assert ExteriorTheWorld[0].object_type == ObjectType.ROBOT
+        assert robot.object_type == ObjectType.ROBOT
         print(f"Activating time of flight sensor, pointing at {angle}'")
+
+        # construct a triangle reprsenting the sensor field of view
+        # this is relative to the robot's center
+        assert angle == 0 or angle == 90 or angle == 180 or angle == 270
+        self.angle = angle
 
         self.io_controller = None
 
-#        if MotorDriver.EXPECTED_ID in serial_instances.keys():
-#            self. = MotorDriver(serial_instances[MotorDriver.EXPECTED_ID])
-        if IOController.EXPECTED_ID in instances.keys():
-                self.io_controller = IOController(instances[IOController.EXPECTED_ID])
+        if IOController.EXPECTED_ID in serial_instances.keys():
+            self.io_controller = IOController(serial_instances[IOController.EXPECTED_ID])
         else:
             raise Exception("Could not find IO controller hardware")
 
+        # need to get mounting position on the chassis
+        # first distance to check edge for (larger than width or height to make sure it goes beyond)
+        l = max(self.robot.width, self.robot.height) * 2
+        # find edge
+        t = rotate(
+            LineString(
+                [
+                    (
+                        self.robot.center[0],
+                        self.robot.center[1],
+                    ),
+                    (
+                        self.robot.center[0],
+                        self.robot.center[1] + l,
+                    ),
+                ]
+            ),
+            -self.angle,  # make scan in direction of sensor
+            origin=(
+                self.robot.center[0],
+                self.robot.center[1],
+            ),
+        ).intersection(self.robot.outline)
+        # intersection of sensor and robot outline, this is where the sensor is "mounted"
+        x0, y0 = t.coords[1]
 
-
+        self.outline = Polygon(
+            [
+                (
+                    x0,
+                    y0,
+                ),
+                (
+                    x0
+                    - self.MAX_RANGE * math.tan(math.radians(self.FIELD_OF_VIEW / 2)),
+                    y0 + self.MAX_RANGE,
+                ),
+                (
+                    x0
+                    + self.MAX_RANGE * math.tan(math.radians(self.FIELD_OF_VIEW / 2)),
+                    y0 + self.MAX_RANGE,
+                ),
+            ]
+        )
+        # make relative to a robot at 0,0 pointing north
+        self.outline = rotate(self.outline, -self.angle, origin=(x0, y0))
+        self.outline = fast_translate(
+            self.outline,
+            -self.robot.center[0],
+            -self.robot.center[1],
+        )
+        # sensor moutning location for 0,0 pointing north
+        self.x0 = self.outline.exterior.coords[0][0]
+        self.y0 = self.outline.exterior.coords[0][1]
 
     def do_scan(self):
         """return the nearest barrel or wall from TheExteriorWorld within the field of view"""
@@ -46,11 +99,11 @@ class DistanceSensor(Sensor):
 
         # need to move the field of view outline to the robots locations and rotation
         # rotate first to take advantage of center (-ve because coordiante system)
-        self.fov = rotate(self.outline, -self.ExteriorTheWorld[0].angle, origin=(0, 0))
+        self.fov = rotate(self.outline, -self.robot.angle, origin=(0, 0))
         self.fov = fast_translate(
             self.fov,
-            self.ExteriorTheWorld[0].center[0],
-            self.ExteriorTheWorld[0].center[1],
+            self.robot.center[0],
+            self.robot.center[1],
         )
 
         # # if holding something a forward facing sensor won't see anything
@@ -58,7 +111,8 @@ class DistanceSensor(Sensor):
         #     # could return unknown object type instead?
         #     return scan_result, {}
 
-        closest_distance = self.io_controller.read_tof()
+        # TODO query the correct sensor
+        closest_distance = self.io_controller.read_tof() / 100 # convert cm to m
 
         # construct the wall the scanned object could be
         if closest_distance > 0:
@@ -88,7 +142,6 @@ class DistanceSensor(Sensor):
             # because the sensor is always pointing one direction we know it's always has that heading
             scanned_obj.heading = self.angle
             
-            scanned_obj.exterior = obj
             scan_result.append(scanned_obj)
 
         return scan_result, {}
