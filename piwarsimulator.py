@@ -286,6 +286,9 @@ while running:
             print(f"Caught error: {e}")
             print(traceback.format_exc())
 
+    if robot_brain.running == False:
+        running = False
+
     to_sleep = target_frame_time - (time.monotonic() - now)
     if to_sleep > 0:
         time.sleep(to_sleep)

@@ -34,6 +34,9 @@ class RobotBrain:
         assert self.robot.object_type == ObjectType.ROBOT
         self.robot.brain = self
 
+        # for letting the brain tell the program to quit
+        self.running = kwargs.get("running", True)
+
         # the long term goal - we get this from a scan result and
         # use it to cross verify with subsequent scan results
         self.goal = None
@@ -121,6 +124,10 @@ class RobotBrain:
             self.controller.set_angular_velocity(
                 self.sensor_measurements["angular_vel"]
             )
+
+        if self.sensor_measurements["do_quit"]:
+            print("Quit requested")
+            self.running = False
 
         if self.state == ExecutionState.SQUARING_UP:
             self.square_up()

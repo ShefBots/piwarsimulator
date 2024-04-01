@@ -45,11 +45,17 @@ class Keyboard(Sensor):
                 self.manual_control = not self.manual_control
                 print(f"Manual Control: {self.manual_control}")
 
+        if keys[pygame.K_ESCAPE]:
+            do_quit = True
+        else:
+            do_quit = False
+
         inputs = {
             "forward_vel": forward_vel,
             "sideways_vel": sideways_vel,
             "angular_vel": angular_vel,
             "manual_control": self.manual_control,
+            "do_quit": do_quit,
         }
 
         return [], inputs
