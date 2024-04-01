@@ -95,19 +95,16 @@ class SimulatedReducedVision(Sensor):
         closest_line = None
 
         for obj in self.ExteriorTheWorld[1:]:  # ignore the robot in 0
+            # only inside fov and not something held
+            if not self.fov.intersects(obj.outline) or obj.is_held:
+                continue
             if (
-                not (
-                    obj.object_type == ObjectType.BARREL
-                    or obj.object_type == ObjectType.ZONE
-                    or (
-                        obj.object_type == ObjectType.MINE and obj.color == Color("red")
-                    )
-                    and self.fov.intersects(obj.outline)  # only inside fov
-                )
-                or obj.is_held
+                # only register barrels, red mines, or white-lines
+                obj.object_type == ObjectType.BARREL
+                or (obj.object_type == ObjectType.MINE and obj.color == Color("red"))
+                or (obj.object_type == ObjectType.LINE and obj.color == Color("white"))
             ):
-                if obj.object_type == ObjectType.LINE and obj.color == Color("white"):
-                    # from SimulatedLineOfSight
+                if obj.object_type == ObjectType.LINE:
                     u = self.fov.intersection(obj.outline)
                     if u.geom_type == "LineString":
                         dist = self.ExteriorTheWorld[0].outline.distance(u)
@@ -149,11 +146,18 @@ class SimulatedReducedVision(Sensor):
                                     closest = obj
                                     closest_distance = dist
                                     closest_line = u
+                else:
+                    dist = self.ExteriorTheWorld[0].get_distance(
+                        obj, relative_to=(self.x0, self.y0)
+                    )
+                    if dist < closest_distance:
+                        closest = obj
+                        closest_distance = dist
 
-                continue  # skip non-barrels, non-zones, non-red mines, non-lines and things being held
+        if not closest is None and closest_line is None:
 
             # copy the scanned object and then change its coordinate to something relative to the robot
-            scanned_obj = copy.deepcopy(obj)
+            scanned_obj = copy.deepcopy(closest)
             # barrel.center -= self.ExteriorTheWorld[0].center DOES NOT WORK
             scanned_obj.center = scanned_obj.center - self.ExteriorTheWorld[0].center
             scanned_obj.center = rotate_by(
@@ -175,9 +179,9 @@ class SimulatedReducedVision(Sensor):
             scanned_obj.exterior = obj
             scan_result.append(scanned_obj)
 
-        # a line was detected
-        # from SimulatedLineOfSight
-        if closest_line != None:
+        elif not closest_line is None:
+            # a line was detected
+            # from SimulatedLineOfSight
             x1, y1 = closest_line.coords[0]
             x2, y2 = closest_line.coords[1]
 
