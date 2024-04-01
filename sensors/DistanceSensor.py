@@ -22,6 +22,7 @@ class DistanceSensor(Sensor):
 
     def __init__(self, serial_instances, robot, angle):
         super().__init__()
+        self.robot = robot
         assert robot.object_type == ObjectType.ROBOT
         print(f"Activating time of flight sensor, pointing at {angle}'")
 
@@ -141,7 +142,7 @@ class DistanceSensor(Sensor):
 
             # because the sensor is always pointing one direction we know it's always has that heading
             scanned_obj.heading = self.angle
-            
+
             scan_result.append(scanned_obj)
 
         return scan_result, {}

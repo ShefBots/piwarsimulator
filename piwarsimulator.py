@@ -2,6 +2,7 @@
 import argparse
 import importlib
 import time
+import traceback
 import numpy as np
 from os import listdir
 from signal import signal, SIGINT
@@ -18,7 +19,7 @@ from world.WorldObject import WorldObject
 # TODO classes for real hardware
 # TODO sensor_simulation (real control only) mode and control mode (all real)
 # TODO update readme
-# TODO launcher control? radio control?
+# TODO launcher control?
 
 # note this runs about 6 times slower on the Pi under Python 3.7?
 # FPS to TPS for thoughts per second ? :)
@@ -82,6 +83,7 @@ parser.add_argument(
     default="EscapeRouteMap",
     # default="LavaPalavaMap",
     # default="SimpleEcoDisasterMap",
+    # default="RandomEcoDisasterMap",
     choices=maps,
     # "--map", help=f"map (default {maps[0]})", default="LavaPalavaMap", choices=maps
 )
@@ -89,6 +91,7 @@ parser.add_argument(
     "--mode",
     help="operation mode (default simulation)",
     default="simulation",
+    # default="control",
     choices=["simulation", "sensor_simulation", "control"],
 )
 parser.add_argument(
@@ -121,6 +124,7 @@ elif args.mode == "sensor_simulation":
     from sensors.SimulatedVision360 import SimulatedVision360
 elif args.mode == "control":
     from controllers.MovementController import MovementController
+    # from controllers.SimulatedMovementController import SimulatedMovementController
     from sensors.DistanceSensor import DistanceSensor
     # TODO real hardware (sensors)
 
@@ -173,13 +177,25 @@ print("Loading robot controller...")
 if args.mode == "simulation":
     controller = SimulatedMovementController(robot)
 elif args.mode == "sensor_simulation":
-    real_controller = MovementController(serial_instances)
+    try:
+        real_controller = MovementController(serial_instances)
+    except Exception as e:
+        print(f"Caught error: {e}")
+        print(traceback.format_exc())
+        print("Connection to real motor driver failed, not using")
+        real_controller = None
     controller = SimulatedMovementController(
         robot, secondary_controller=real_controller
     )
 else:
-    controller = MovementController(serial_instances)
-#    raise Exception("No real hardware controller yet")
+    try:
+        # controller = SimulatedMovementController(robot)
+        controller = MovementController(serial_instances)
+    except Exception as e:
+        running = False
+        print(f"Caught error: {e}")
+        print(traceback.format_exc())
+
 
 print(f"Loading {args.brain}...")
 brain = getattr(importlib.import_module("brains." + args.brain), args.brain)
@@ -194,21 +210,40 @@ print("Attaching sensors...")
 if args.mode == "simulation" or args.mode == "sensor_simulation":
     if args.rendering == "true":
         robot_brain.add_sensor(Keyboard(robot_brain.speed, robot_brain.turning_speed))
-    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 0))
-    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 90))
-    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 180))
-    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 270))
+    robot_brain.add_sensor(
+        SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 0)
+    )  # forward
+    robot_brain.add_sensor(
+        SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 90)
+    )  # right
+    robot_brain.add_sensor(
+        SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 180)
+    )  # behind
+    robot_brain.add_sensor(
+        SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 270)
+    )  # left
     robot_brain.add_sensor(SimulatedVision360(ExteriorTheWorld, robot_brain))
 else:
-    # TODO real hardware
-    # 4x line of sight
-    # vision system
-    robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 270))
-    pass
+    try:
+        # TODO real hardware
+        # 4x line of sight
+        # vision system
+        robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 270))  # left
+    except Exception as e:
+        running = False
+        print(f"Caught error: {e}")
+        print(traceback.format_exc())
 if args.radio == "true":
-    robot_brain.add_sensor(RadioControl(robot_brain.speed, robot_brain.turning_speed))
+    try:
+        robot_brain.add_sensor(
+            RadioControl(robot_brain.speed, robot_brain.turning_speed)
+        )
+    except Exception as e:
+        running = False
+        print(f"Caught error: {e}")
+        print(traceback.format_exc())
 
-if args.rendering == "true":
+if args.rendering == "true" and running == True:
     from world.WorldRenderer import *
 
     # default 0,0 is centre of screen
@@ -225,28 +260,33 @@ time.sleep(1)  # wait for things to settle
 # controller.set_plane_velocity([0, 0.15])
 # controller.set_angular_velocity(12)
 
-print("Running...")
+print(f"Running... ({running})")
 while running:
     now = time.monotonic()
 
     robot_brain.process()
 
     if args.rendering == "true":
-        if args.mode == "control":
-            renderer.update(
-                Worlds=robot_brain.TheWorld
-            )  # see the world as the robot sees it
-        else:
-            renderer.update(
-                Worlds=[ExteriorTheWorld, robot_brain.TheWorld],
-                Sensors=[
-                    [s.fov for s in robot_brain.sensors],
-                    [s.outline for s in robot_brain.sensors],
-                ],
-            )  # see the world as it is and as the robot sees it
+        try:
+            if args.mode == "control":
+                renderer.update(
+                    Worlds=[robot_brain.TheWorld]
+                )  # see the world as the robot sees it
+            else:
+                renderer.update(
+                    Worlds=[ExteriorTheWorld, robot_brain.TheWorld],
+                    Sensors=[
+                        [s.fov for s in robot_brain.sensors],
+                        [s.outline for s in robot_brain.sensors],
+                    ],
+                )  # see the world as it is and as the robot sees it
 
-        if renderer.running == False:
+            if renderer.running == False:
+                running = False
+        except Exception as e:
             running = False
+            print(f"Caught error: {e}")
+            print(traceback.format_exc())
 
     to_sleep = target_frame_time - (time.monotonic() - now)
     if to_sleep > 0:
