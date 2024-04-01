@@ -208,9 +208,9 @@ if args.mode == "simulation" or args.mode == "sensor_simulation":
     controller.holding = robot_brain.holding
 
 print("Attaching sensors...")
+if args.rendering == "true":
+    robot_brain.add_sensor(Keyboard(robot_brain.speed, robot_brain.turning_speed))
 if args.mode == "simulation" or args.mode == "sensor_simulation":
-    if args.rendering == "true":
-        robot_brain.add_sensor(Keyboard(robot_brain.speed, robot_brain.turning_speed))
     # forward, right, behind, left
     robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 0))
     robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 90))
@@ -267,6 +267,7 @@ while running:
                     Worlds=[robot_brain.TheWorld],
                     # yes this is a list in a list. deal with it.
                     Sensors=[[s.outline for s in robot_brain.sensors]],
+                    robot_brain=robot_brain,
                 )  # see the world as the robot sees it
             else:
                 renderer.update(
@@ -275,6 +276,7 @@ while running:
                         [s.fov for s in robot_brain.sensors],
                         [s.outline for s in robot_brain.sensors],
                     ],
+                    robot_brain=robot_brain,
                 )  # see the world as it is and as the robot sees it
 
             if renderer.running == False:

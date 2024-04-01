@@ -49,13 +49,17 @@ class WorldRenderer:
         """transform vertical coordiant to pixels (flipping so y = 0 is bottom )"""
         return np.round(-c * scale + self.screen.get_height() - self.y_res / 2)
 
-    def update(self, Worlds=[], Sensors=[]):
+    def update(self, Worlds=[], Sensors=[], robot_brain=None):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 print("Quit requested!")
                 self.running = False
 
-        if not isinstance(Worlds, list) or not isinstance(Worlds, list) or not len(Worlds) == len(Sensors):
+        if (
+            not isinstance(Worlds, list)
+            or not isinstance(Worlds, list)
+            or not len(Worlds) == len(Sensors)
+        ):
             raise Exception("WorldRenderer.update() inputs must be matched size lists")
 
         # reset the canvas
@@ -188,6 +192,17 @@ class WorldRenderer:
                 (world_at * self.x_res, 0),
                 (world_at * self.x_res, self.y_res),
             )
+
+        # display velocities
+        if not robot_brain is None:
+            towrite = [
+                f"X-Velocity: {robot_brain.controller.vel[0]}",
+                f"Y-Velocity: {robot_brain.controller.vel[1]}",
+                f"θ-Velocity: {robot_brain.controller.theta_vel}",
+            ]
+            for k, text in enumerate(towrite):
+                text = self.small_font.render(text, True, pygame.Color("gray"))
+                self.screen.blit(text, (self.screen.get_width() - 120, 10 + k * 15))
 
         # calculate fps
         now = monotonic()
