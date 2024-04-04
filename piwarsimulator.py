@@ -245,7 +245,9 @@ else:
         # TODO real hardware
         # 4x line of sight
         # vision system
-        robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 270))  # left
+        robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 270, 2))     # left
+        robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 0, 1))       # forward
+        robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 90, 0))      # right
     except Exception as e:
         running = False
         print(f"Caught error: {e}")
