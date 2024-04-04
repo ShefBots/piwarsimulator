@@ -15,8 +15,8 @@ from world.ObjectType import *
 
 
 # TODO use is_held and add held barrel to TheWorld
-# TODO pre-programmed target drop-off points
-# TODO move to zone & drop off
+# TODO split drop off code from move to zone code
+# TODO verify zone colour on drop off?
 
 
 class CheesedEcoDisasterBrain(RobotBrain):
@@ -29,21 +29,30 @@ class CheesedEcoDisasterBrain(RobotBrain):
     """
 
     # if barrel is this colour aim for that colour zone
-    GOAL_MAPPING = {"darkgreen": Color("blue"), "red": Color("yellow")}
+    GOAL_MAPPING = {"darkgreen": "blue", "red": "yellow"}
 
     # how close to be to target before activating gripper
     GRIPPER_ANGLE_TOLERANCE = 2  # degree
-    GRIPPER_TOLERANCE = 0.025  # m
+    GRIPPER_TOLERANCE = 0.04  # m, if this isn't big bad things happen
 
     GRIPPER_CLOSED = 0
     GRIPPER_OPEN = 1
-    GRIPPER_MOVING = 2
+    GRIPPER_CLOSING = 2
+    GRIPPER_OPENING = 3
 
     # how close to get to walls before stopping
-    LEFT_WALL_TARGET = 0.02
-    RIGHT_WALL_TARGET = 0.02
+    LEFT_WALL_TARGET = 0.1  # puts robot on edge of zone where no barrels may be
+    RIGHT_WALL_TARGET = 0.1
+    FRONT_WALL_TARGET = 0.1
     # how much further than the target is OK
     WALL_MARGIN = 0.02
+
+    # zones for barrel dropping off
+    # note these are the zone mid-points
+    DROP_ZONES = [(-0.4, "blue"), (0.4, "yellow")]
+    # size of the zones
+    ZONE_WIDTH = 0.6
+    ZONE_HEIGHT = 0.2
 
     def __init__(self, **kwargs):
         super(CheesedEcoDisasterBrain, self).__init__(**kwargs)
@@ -94,15 +103,34 @@ class CheesedEcoDisasterBrain(RobotBrain):
 
         # how close to get to rear wall
         # we will start to increment this at some point
-        self.rear_wall_target = 0.02
+        self.rear_wall_target = 0.04
         # currently don't know where a barrel is
         self.found_barrel = 0
+
+        # is there a barrel dropped off at a specific location?
+        self.barrel_positions = np.zeros([2, 6])
+        # place to drop off the current barrel
+        self.drop_off_x = None
+        self.drop_off_y = None
+        self.drop_idx = (0, 0)
 
     def process(self):
         """do the basic brain stuff then do specific ecodisaster things"""
 
         # check sensors and stop if collision is imminent
         super().process()
+
+        # we're done if all barrel holding positions are filled
+        if np.sum(self.barrel_positions) == 12:
+            self.controller.stop()
+            return
+
+        # keep track of gripper state in simulation
+        # return after this to enforce completion of action?
+        if self.gripper_state == self.GRIPPER_OPENING:
+            self.open_gripper()
+        elif self.gripper_state == self.GRIPPER_CLOSING:
+            self.close_gripper()
 
         # some additional sensor processing
 
@@ -187,33 +215,30 @@ class CheesedEcoDisasterBrain(RobotBrain):
                 x = (xl + xr) / 2
 
         if y is None:
-            print("Y Localisation failed!")
+            print("Y Localisation failed! (reusing old value, yikes)")
+            y = self.y
+        else:
+            self.y = y
         if x is None:
-            print("X Localisation failed!")
+            print("X Localisation failed! (reusing old value, yikes)")
+            x = self.x
+        else:
+            self.x = x
 
         # print([x, y])
 
         # put in estimated target zone locations based on sensor readings
-        self.TheWorld.append(
-            WorldObject(
-                object_type=ObjectType.ZONE,
-                x=-0.4 - x,
-                y=1.0 - y,
-                w=0.6,
-                h=0.2,
-                color="blue",
+        for xoff, color in self.DROP_ZONES:
+            self.TheWorld.append(
+                WorldObject(
+                    object_type=ObjectType.ZONE,
+                    x=xoff - x,
+                    y=1.0 - y,
+                    w=self.ZONE_WIDTH,
+                    h=self.ZONE_HEIGHT,
+                    color=color,
+                )
             )
-        )
-        self.TheWorld.append(
-            WorldObject(
-                object_type=ObjectType.ZONE,
-                x=0.4 - x,
-                y=1.0 - y,
-                w=0.6,
-                h=0.2,
-                color="yellow",
-            )
-        )
 
         # don't do anything if the manual override is triggered
         if self.sensor_measurements["manual_control"]:
@@ -238,8 +263,13 @@ class CheesedEcoDisasterBrain(RobotBrain):
             elif tof_rear > self.rear_wall_target:
                 # and not tof_rear > self.rear_wall_target + self.WALL_MARGIN: # for margin?
                 self.controller.set_plane_velocity([0, -self.speed])
-            elif tof_left > self.LEFT_WALL_TARGET:
+            elif tof_left > self.LEFT_WALL_TARGET and self.found_barrel == 0:
+                # go to bottom left when not holding a barrel
                 self.controller.set_plane_velocity([-self.speed, 0])
+            elif tof_right > self.RIGHT_WALL_TARGET and self.found_barrel == 1:
+                # and bottom right when holding a barrel
+                # (so that when dropping off barrels barrels could get pushed left and detected earlier)
+                self.controller.set_plane_velocity([self.speed, 0])
             else:
                 self.controller.stop()
                 if self.found_barrel == 0:
@@ -253,7 +283,7 @@ class CheesedEcoDisasterBrain(RobotBrain):
                 print("Locating barrel...")
                 if tof_right < self.RIGHT_WALL_TARGET:
                     # go forwards and do another scan
-                    self.rear_wall_target += 0.05
+                    self.rear_wall_target += 0.25
                     self.controller.stop()
                     self.state = ExecutionState.PROGRAM_CONTROL
                     print("Drop it back down and reverse it...")
@@ -264,7 +294,8 @@ class CheesedEcoDisasterBrain(RobotBrain):
             if goal is not None:
                 self.found_barrel = 1
                 print("Barrel found...")
-                if abs(goal.heading) < self.GRIPPER_ANGLE_TOLERANCE:
+                # if abs(goal.heading) < self.GRIPPER_ANGLE_TOLERANCE:
+                if abs(goal.center[0]) < self.GRIPPER_TOLERANCE / 2:
                     self.controller.set_plane_velocity([0, self.speed])
 
             if self.found_barrel == 1:
@@ -290,10 +321,53 @@ class CheesedEcoDisasterBrain(RobotBrain):
                     self.open_gripper()
 
         elif self.state == ExecutionState.MOVE_TO_ZONE:
-            print("Heading to zone...")
-            if not self.gripper_state == self.GRIPPER_CLOSED:
+            if not self.gripper_state == self.GRIPPER_CLOSED and len(self.holding) == 1:
                 return
-            pass
+            print("Heading to zone...")
+            if (
+                tof_front > self.ZONE_HEIGHT + self.FRONT_WALL_TARGET
+                and len(self.holding) == 1
+            ):  # + gripper size
+                # 1) approach up the right hand side wall
+                self.controller.set_plane_velocity([0, self.speed])
+            elif len(self.holding) == 0:
+                if tof_front < self.ZONE_HEIGHT + self.FRONT_WALL_TARGET:
+                    if not self.gripper_state == self.GRIPPER_OPEN:
+                        return
+                    # 5) no longer holding, go back a bit to back off
+                    self.controller.set_plane_velocity([0, -self.speed / 4])
+                elif not self.gripper_state == self.GRIPPER_CLOSED:
+                    self.controller.stop()
+                    self.close_gripper()
+                else:
+                    # 6) return to the right
+                    if tof_right > self.RIGHT_WALL_TARGET:
+                        self.controller.set_plane_velocity([self.speed, 0])
+                    else:
+                        # 7) done, we should now be able to go back to homing and restart the process
+                        self.controller.set_plane_velocity([0, -self.speed])
+                        # but we need to clean up state variables first
+                        self.drop_off_x = None
+                        self.drop_off_y = None
+                        self.found_barrel = 0
+                        self.state = ExecutionState.PROGRAM_CONTROL
+                        return
+            else:
+                self.find_next_free_barrel_slot(self.get_barrel_color(self.holding[0]))
+                if x > self.drop_off_x:
+                    # 2) scuttle left to the drop off location
+                    self.controller.set_plane_velocity([-self.speed, 0])
+                elif y < self.drop_off_y:
+                    # 3) at location go forwards
+                    self.controller.set_plane_velocity([0, self.speed / 4])
+                elif len(self.holding) == 1:
+                    # 4) we're there, drop things off
+                    self.controller.stop()
+                    self.open_gripper()
+                    self.holding.pop(0)
+                    self.barrel_positions[self.drop_idx[0], self.drop_idx[1]] = 1
+
+            # TODO split the relevant part of above out into DROP_OFF_BARREL
 
         elif self.state == ExecutionState.DROP_OFF_BARREL:
             pass
@@ -325,6 +399,46 @@ class CheesedEcoDisasterBrain(RobotBrain):
             return -1.1 + (tof + self.robot.width / 2)
         else:
             return None
+
+    def get_barrel_color(self, barrel):
+        if barrel.color == Color("darkgreen"):
+            return "darkgreen"
+        elif barrel.color == Color("red"):
+            return "red"
+
+    def find_next_free_barrel_slot(self, barrel_color):
+        target_zone_color = self.GOAL_MAPPING[barrel_color]
+        for k, tpl in enumerate(self.DROP_ZONES):
+            if tpl[1] == target_zone_color:
+                break
+        print(f"Looking for the {target_zone_color} zone (index {k})")
+        _, l = np.shape(self.barrel_positions)
+        for ii in range(0, l):
+            if self.barrel_positions[k, ii] == 0:
+                break
+        print(f"Next available slot is {ii}")
+
+        # calculate offset from edge of zone (across & up)
+        # (offset into the zone)
+        zone_xoff = (ii + 1) * self.ZONE_WIDTH / 7.0
+        self.drop_idx = (k, ii)
+
+        # find actual location of zone (check TheWorld)
+        goal, _ = self.find_goal()
+        if (
+            not goal is None
+            and goal.object_type == ObjectType.ZONE
+            and goal.color == Color(target_zone_color)
+        ):
+            # t = goal.center - np.array([self.ZONE_WIDTH/2, self.ZONE_HEIGHT/2])
+            # set cordinates relative to robot as local variable
+            # we need to compare x,y location to these, not to tof readings!
+            self.drop_off_x = tpl[0] - self.ZONE_WIDTH / 2 + zone_xoff
+            # center of the zone minus half the gripper size (for barrel position) - robot edge to center
+            self.drop_off_y = (
+                1.1 - self.ZONE_HEIGHT / 2 - 0.1 / 2 - self.TheWorld[0].height / 2
+            )
+            print(f"Aiming to drop off at {self.drop_off_x}, {self.drop_off_y}")
 
     ### TODO OLD CODE BELOW HERE, WILL NEED OPTIMISATION/SIMPLIFICATION ###
 
@@ -371,7 +485,7 @@ class CheesedEcoDisasterBrain(RobotBrain):
                 holding_color = "red"
             else:
                 print("yikes shouldn't get here")
-            goal_color = self.GOAL_MAPPING[holding_color]
+            goal_color = Color(self.GOAL_MAPPING[holding_color])
         else:
             goal_color = None
         # treat the middle of the gripper as the center
@@ -465,25 +579,25 @@ class CheesedEcoDisasterBrain(RobotBrain):
         if self.gripper_state == self.GRIPPER_CLOSED:
             print("Opening gripper")
             self.gripper_changed = time()
-            self.gripper_state = self.GRIPPER_MOVING
+            self.gripper_state = self.GRIPPER_OPENING
+            self.attachment_outline = self.gripper_open_outline
         if (
-            self.gripper_state == self.GRIPPER_MOVING
+            self.gripper_state == self.GRIPPER_OPENING
             and time() - self.gripper_changed > 1
         ):
             print("Gripper open")
             self.gripper_state = self.GRIPPER_OPEN
-            self.attachment_outline = self.gripper_open_outline
 
     def close_gripper(self):
         # TODO real hardware
         if self.gripper_state == self.GRIPPER_OPEN:
             print("Closing gripper")
             self.gripper_changed = time()
-            self.gripper_state = self.GRIPPER_MOVING
+            self.gripper_state = self.GRIPPER_CLOSING
+            self.attachment_outline = self.gripper_closed_outline
         if (
-            self.gripper_state == self.GRIPPER_MOVING
+            self.gripper_state == self.GRIPPER_CLOSING
             and time() - self.gripper_changed > 1
         ):
             print("Gripper closed")
             self.gripper_state = self.GRIPPER_CLOSED
-            self.attachment_outline = self.gripper_closed_outline
