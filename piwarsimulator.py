@@ -20,6 +20,8 @@ from world.WorldObject import WorldObject
 # TODO sensor_simulation (real control only) mode and control mode (all real)
 # TODO update readme
 # TODO launcher control?
+# TODO nice program end points
+# TODO gripper control
 
 # note this runs about 6 times slower on the Pi under Python 3.7?
 # FPS to TPS for thoughts per second ? :)
@@ -38,8 +40,10 @@ target_frame_time = 1 / 60.0  # aim for 60 fps simulation/processing
 
 # ROBOT_SPEED = 0.05
 # TURNING_SPEED = 10
-ROBOT_SPEED = 0.3
-TURNING_SPEED = 30
+# ROBOT_SPEED = 0.3
+# TURNING_SPEED = 30
+ROBOT_SPEED = 0.6
+TURNING_SPEED = 45
 
 SERIAL_PATTERN = "/dev/ttyACM*"  # serial ports to scan for hardware
 
@@ -73,6 +77,7 @@ parser.add_argument(
     # default="MazeBrain",
     # default="LineFollowingBrain",
     # default="EcoDisasterBrain",
+    # default="CheesedEcoDisasterBrain",
     choices=brains,
 )
 parser.add_argument(
