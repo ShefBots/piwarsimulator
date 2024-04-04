@@ -20,6 +20,7 @@ class Controller:
     def set_plane_velocity(self, vel):
         """velocity aligned to the robot (sideways, forwards)"""
         self.vel = np.array(vel)
+        assert len(self.vel) == 2, "plane velocity is always 2 components"
         self.moving = True
 
     def poke(self):
