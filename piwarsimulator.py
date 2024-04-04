@@ -14,14 +14,11 @@ import util
 from world.ObjectType import ObjectType
 from world.WorldObject import WorldObject
 
-
-# TODO brains: ecodisaster - gets stuck when arriving at zone
 # TODO classes for real hardware
-# TODO sensor_simulation (real control only) mode and control mode (all real)
+# TODO      launcher control?
+# TODO      gripper control
 # TODO update readme
-# TODO launcher control?
 # TODO nice program end points
-# TODO gripper control
 
 # note this runs about 6 times slower on the Pi under Python 3.7?
 # FPS to TPS for thoughts per second ? :)
@@ -97,7 +94,7 @@ parser.add_argument(
     help="operation mode (default simulation)",
     default="simulation",
     # default="control",
-    choices=["simulation", "sensor_simulation", "control"],
+    choices=["simulation", "sensor_simulation", "control"], # , "control_simulation"
 )
 parser.add_argument(
     "--radio",
@@ -126,6 +123,7 @@ if args.rendering == "true":
 if args.radio == "true":
     from sensors.RadioControl import RadioControl
 if args.mode == "simulation":
+    # fake control hardware, fake sensors
     from controllers.SimulatedMovementController import SimulatedMovementController
     from sensors.SimulatedLineOfSight import SimulatedLineOfSight
 
@@ -136,6 +134,7 @@ if args.mode == "simulation":
             SimulatedReducedVision as SimulatedVision,
         )
 elif args.mode == "sensor_simulation":
+    # real control hardware, fake sensors
     from controllers.SimulatedMovementController import SimulatedMovementController
     from controllers.MovementController import MovementController
     from sensors.SimulatedLineOfSight import SimulatedLineOfSight
@@ -147,10 +146,13 @@ elif args.mode == "sensor_simulation":
             SimulatedReducedVision as SimulatedVision,
         )
 elif args.mode == "control":
+    # real control hardware, real sensors
     from controllers.MovementController import MovementController
     # from controllers.SimulatedMovementController import SimulatedMovementController
     from sensors.DistanceSensor import DistanceSensor
-    # TODO real hardware (sensors)
+elif args.mode == "control_simulation":
+    # TODO fake control hardware, real sensors
+    pass
 
 # do serial stuff if needed
 if not args.mode == "simulation":
@@ -243,11 +245,11 @@ if args.mode == "simulation" or args.mode == "sensor_simulation":
 else:
     try:
         # TODO real hardware
-        # 4x line of sight
+        # forward, right, left (TODO behind missing?)
+        robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 0, 1))
+        robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 90, 0))
+        robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 270, 2))
         # vision system
-        robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 270, 2))     # left
-        robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 0, 1))       # forward
-        robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 90, 0))      # right
     except Exception as e:
         running = False
         print(f"Caught error: {e}")
