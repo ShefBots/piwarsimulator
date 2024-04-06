@@ -9,9 +9,9 @@ from devices import IOController
 class GripperController(SimulatedGripperController):
     """move the real gripper"""
 
-    def __init__(self, robot, serial_instances, secondary_controller=None):
+    def __init__(self, robot, serial_instances):
         print("Initialising GripperController...")
-        super(GripperController, self).__init__()
+        super(GripperController, self).__init__(robot)
 
         assert robot.object_type == ObjectType.ROBOT
         self.robot = robot
@@ -29,9 +29,6 @@ class GripperController(SimulatedGripperController):
         self.gripper_angle = 0
         self._gripper_state = self.GRIPPER_CLOSED
         self.last_gripper_state = time()
-
-        # needed for compatabiity with parent class
-        self.mirror = None
 
     @property
     def gripper_state(self):
