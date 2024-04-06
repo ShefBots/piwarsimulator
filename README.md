@@ -44,6 +44,39 @@ Or if you prefer conda:
 conda env create -f environment.yml
 ```
 
+### Network Setup
+
+If you're running a Pi Zero and would like to connect to it over USB Gadget Ethernet, or if you want one of the sensors to talk to the main over USB Gadget Ethernet, it is fairly straightforward to configure.
+
+1. On the Pi Zero enable gadget mode by editing `/boott/firmware/config.txt` and adding 
+```
+[all]
+dtoverlay=dwc2
+```
+to the end of the file. Note the `[all]` section may already exist, in which case just add `dtoverlay=dwc2` to that section.
+
+2. Edit `/boot/firmware/cmdline.txt` and add `modules-load=dwc2,g_ether` to the end of the kernel arguments.
+
+3. Create ` /etc/network/interfaces.d/usb0` with the contents
+```
+auto usb0
+allow-hotplug usb0
+face usb0 inet static
+address 192.168.XX.YY
+netmask 255.255.255.0
+```
+where XX and YY are the last two octets of the IP address you want the zero to have.
+
+4. Create `/etc/NetworkManager/conf.d/unmanage.conf` with the contents
+```
+[keyfile]
+unmanaged-devices=interface-name:usb0
+```
+which will let the ifup script we just wrote work.
+
+5. Reboot and you should be good to go. Note the keyboard may not work any more until you reverse step 1.
+
+For the host pi, only steps 3 and 4 are needed. Be sure to use a different IP address in the same subnet (only change the last octet).
 
 ## Architecture
 
