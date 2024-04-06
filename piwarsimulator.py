@@ -16,7 +16,6 @@ from world.WorldObject import WorldObject
 
 # TODO classes for real hardware
 # TODO      launcher control?
-# TODO      gripper control
 # TODO update readme
 # TODO nice program end points
 
@@ -238,7 +237,6 @@ elif args.mode == "control":
         # controller = SimulatedMovementController(robot)
         controller = MovementController(serial_instances)
         if args.attachment == "gripper":
-            # TODO attempt to init real gripper controller
             attachment_controller = GripperController(robot, serial_instances)
         elif args.attachment == "launcher":
             # TODO attempt to init real launcher controller

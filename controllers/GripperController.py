@@ -30,6 +30,9 @@ class GripperController(SimulatedGripperController):
         self._gripper_state = self.GRIPPER_CLOSED
         self.last_gripper_state = time()
 
+        # needed for compatabiity with parent class
+        self.mirror = None
+
     @property
     def gripper_state(self):
         # property has a timeout and only checks for a new value every 0.5s or os
