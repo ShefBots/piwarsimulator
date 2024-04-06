@@ -36,9 +36,7 @@ target_frame_time = 1 / 60.0  # aim for 60 fps simulation/processing
 
 # ROBOT_SPEED = 0.05
 # TURNING_SPEED = 10
-# ROBOT_SPEED = 0.3
-# TURNING_SPEED = 30
-ROBOT_SPEED = 0.6
+ROBOT_SPEED = 0.3
 TURNING_SPEED = 45
 
 SERIAL_PATTERN = "/dev/ttyACM*"  # serial ports to scan for hardware
@@ -281,6 +279,7 @@ else:
     try:
         # TODO real hardware
         # forward, right, left (TODO behind missing?)
+        # NOTE WHEN ADDING MISSING NEED TO ADD IT TO RobotBrain AS WELL
         robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 0, 1))
         robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 90, 0))
         robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 270, 2))

@@ -20,7 +20,7 @@ class RobotBrain:
     HOLDING_TOLERANCE = 0.01  # m
 
     # where time of flight sensors are installed pointing
-    SENSOR_HEADINGS = [-90, 0, 90]
+    SENSOR_HEADINGS = [270, 0, 90]
 
     # seconds to move when doing square up procedure
     SQUARE_UP_DURATION = 1
@@ -242,7 +242,7 @@ class RobotBrain:
 
     def distance_left(self):
         """return the distance to left wall"""
-        return self.distances[self.SENSOR_HEADINGS.index(-90)]
+        return self.distances[self.SENSOR_HEADINGS.index(270)]
 
     def distance_right(self):
         """return the distance to left wall"""

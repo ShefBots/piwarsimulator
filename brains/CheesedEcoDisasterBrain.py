@@ -76,6 +76,7 @@ class CheesedEcoDisasterBrain(RobotBrain):
 
         # use time of flight sensor readings to infer drop of zone locations
         # where are we relative to (0,0) if that was the center of the arena?
+        # TODO replace with .distance_left() etc calls
         tof_front = self.sensor_measurements["tof_0"]
         tof_rear = self.sensor_measurements["tof_180"]
         tof_right = self.sensor_measurements["tof_90"]
