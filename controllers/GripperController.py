@@ -38,6 +38,7 @@ class GripperController(SimulatedGripperController):
         if time() - self.last_gripper_state > 0.5:
             # refresh cache
             self._gripper_state = self.io_controller.gripper_state()
+            self.last_gripper_state = time()
             # update angle
             if self._gripper_state == self.GRIPPER_CLOSED:
                 self.gripper_angle = 0
