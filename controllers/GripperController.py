@@ -59,6 +59,8 @@ class GripperController(SimulatedGripperController):
             return
         print("Opening gripper")
         self.io_controller.open_gripper()
+        self.last_gripper_state = 0  # invalidate cache
+        self.gripper_state
 
     def close_gripper(self):
         """close the gripper"""
@@ -69,3 +71,5 @@ class GripperController(SimulatedGripperController):
             return
         print("Closing gripper")
         self.io_controller.close_gripper()
+        self.last_gripper_state = 0  # invalidate cache
+        self.gripper_state
