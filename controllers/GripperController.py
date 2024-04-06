@@ -51,8 +51,20 @@ class GripperController(SimulatedGripperController):
 
     def open_gripper(self):
         """open the gripper"""
+        if (
+            self.gripper_state == self.GRIPPER_OPEN
+            or self.gripper_state == self.GRIPPER_OPENING
+        ):
+            return
+        print("Opening gripper")
         self.io_controller.open_gripper()
 
     def close_gripper(self):
         """close the gripper"""
+        if (
+            self.gripper_state == self.GRIPPER_CLOSED
+            or self.gripper_state == self.GRIPPER_CLOSING
+        ):
+            return
+        print("Closing gripper")
         self.io_controller.close_gripper()

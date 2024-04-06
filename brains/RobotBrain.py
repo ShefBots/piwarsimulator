@@ -128,15 +128,19 @@ class RobotBrain:
                 self.sensor_measurements["angular_vel"]
             )
             # don't want to import so name check will have to do
-            if not self.attachment_controller == None and type(self.attachment_controller).__name__ == 'SimulatedGripperController':
+            if not self.attachment_controller == None and (
+                type(self.attachment_controller).__name__
+                == "SimulatedGripperController"
+                or type(self.attachment_controller).__name__ == "GripperController"
+            ):
                 if (
-                    self.sensor_measurements["gripper_toggle"] # opening
+                    self.sensor_measurements["gripper_toggle"]  # opening
                     and not self.attachment_controller.gripper_state
                     == self.attachment_controller.GRIPPER_OPEN
                 ):
                     self.attachment_controller.open_gripper()
                 elif (
-                    not self.sensor_measurements["gripper_toggle"] # closing
+                    not self.sensor_measurements["gripper_toggle"]  # closing
                     and not self.attachment_controller.gripper_state
                     == self.attachment_controller.GRIPPER_CLOSED
                 ):
