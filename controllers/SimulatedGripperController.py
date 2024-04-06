@@ -71,10 +71,12 @@ class SimulatedGripperController(Controller, Thread):
         # self.running = False
         self.start()
 
-    def generate_outline(self):
+    def generate_outline(self, angle=None):
+        if angle is None:
+            angle = self.gripper_angle
         half_gripper_ = rotate(
             self.half_gripper_closed,
-            self.gripper_angle,
+            angle,
             origin=[
                 -self.robot.width / 2,
                 self.robot.height / 2,
@@ -85,7 +87,10 @@ class SimulatedGripperController(Controller, Thread):
 
     def open_gripper(self):
         """open the gripper"""
-        if self.gripper_state == self.GRIPPER_OPEN or self.gripper_state == self.GRIPPER_OPENING:
+        if (
+            self.gripper_state == self.GRIPPER_OPEN
+            or self.gripper_state == self.GRIPPER_OPENING
+        ):
             return
         print("Opening gripper")
         self.gripper_state = self.GRIPPER_OPENING
@@ -93,7 +98,10 @@ class SimulatedGripperController(Controller, Thread):
 
     def close_gripper(self):
         """close the gripper"""
-        if self.gripper_state == self.GRIPPER_CLOSED or self.gripper_state == self.GRIPPER_CLOSING:
+        if (
+            self.gripper_state == self.GRIPPER_CLOSED
+            or self.gripper_state == self.GRIPPER_CLOSING
+        ):
             return
         print("Closing gripper")
         self.gripper_state = self.GRIPPER_CLOSING

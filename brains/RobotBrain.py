@@ -167,7 +167,8 @@ class RobotBrain:
                     or obj.object_type == ObjectType.ZONE
                 )
             ):
-                print(f"WARNING: {obj} is a bit close")
+                if self.do_collision_detection:
+                    print(f"WARNING: {obj} is a bit close")
                 self.collision = obj
                 return
 

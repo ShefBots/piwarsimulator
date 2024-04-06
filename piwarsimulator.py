@@ -238,7 +238,11 @@ else:
 print(f"Loading {args.brain}...")
 brain = getattr(importlib.import_module("brains." + args.brain), args.brain)
 robot_brain = brain(
-    robot=robot, controller=controller, speed=ROBOT_SPEED, turning_speed=TURNING_SPEED, attachment_controller=attachment_controller
+    robot=robot,
+    controller=controller,
+    speed=ROBOT_SPEED,
+    turning_speed=TURNING_SPEED,
+    attachment_controller=attachment_controller,
 )
 if args.mode == "simulation" or args.mode == "sensor_simulation":
     # this works because lists are references

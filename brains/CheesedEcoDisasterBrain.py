@@ -2,8 +2,6 @@
 import math
 from shapely.affinity import scale
 from shapely.geometry import Point
-from shapely.geometry import Polygon
-from time import monotonic as time
 from brains.ExecutionState import ExecutionState
 from brains.RobotBrain import RobotBrain
 from world.WorldObject import *
@@ -31,11 +29,6 @@ class CheesedEcoDisasterBrain(RobotBrain):
     GRIPPER_ANGLE_TOLERANCE = 2  # degree
     GRIPPER_TOLERANCE = 0.04  # m, if this isn't big bad things happen
 
-    GRIPPER_CLOSED = 0
-    GRIPPER_OPEN = 1
-    GRIPPER_CLOSING = 2
-    GRIPPER_OPENING = 3
-
     # how close to get to walls before stopping
     LEFT_WALL_TARGET = 0.1  # puts robot on edge of zone where no barrels may be
     RIGHT_WALL_TARGET = 0.1
@@ -54,48 +47,6 @@ class CheesedEcoDisasterBrain(RobotBrain):
         super(CheesedEcoDisasterBrain, self).__init__(**kwargs)
         self.state = ExecutionState.PROGRAM_INIT
         self.do_collision_detection = False  # plow through barrels
-
-        half_gripper_closed = Polygon(
-            [
-                (
-                    -self.robot.width / 2,
-                    self.robot.height / 2 - 0.002,  # minus a bit so geometry sticks
-                ),
-                (
-                    -0.002,  # minus a bit so that there's always a hole
-                    self.robot.height / 2 + 0.1,
-                ),
-                (
-                    -0.002,
-                    self.robot.height / 2 + 0.08,
-                ),
-                (
-                    -self.robot.width / 2 + 0.02,
-                    self.robot.height / 2 - 0.002,
-                ),
-            ]
-        )
-
-        half_gripper_open = rotate(
-            half_gripper_closed,
-            45,
-            origin=[
-                -self.robot.width / 2,
-                self.robot.height / 2,
-            ],
-        )
-
-        self.gripper_closed_outline = half_gripper_closed.union(
-            scale(half_gripper_closed, xfact=-1, origin=(0, 0))
-        )
-        self.gripper_open_outline = half_gripper_open.union(
-            scale(half_gripper_open, xfact=-1, origin=(0, 0))
-        )
-        self.gripper_state = self.GRIPPER_CLOSED
-        self.attachment_outline = self.gripper_closed_outline
-        # self.close_gripper()
-        # self.open_gripper()
-        # TODO real hardware init
 
         # how close to get to rear wall
         # we will start to increment this at some point
@@ -120,13 +71,6 @@ class CheesedEcoDisasterBrain(RobotBrain):
         if np.sum(self.barrel_positions) == 12:
             self.controller.stop()
             return
-
-        # keep track of gripper state in simulation
-        # return after this to enforce completion of action?
-        if self.gripper_state == self.GRIPPER_OPENING:
-            self.open_gripper()
-        elif self.gripper_state == self.GRIPPER_CLOSING:
-            self.close_gripper()
 
         # some additional sensor processing
 
@@ -299,8 +243,11 @@ class CheesedEcoDisasterBrain(RobotBrain):
                 if goal_distance < self.GRIPPER_TOLERANCE:
                     # barrel is right in front of us (shorter distance goes first)
                     self.controller.stop()
-                    self.close_gripper()
-                    if not self.gripper_state == self.GRIPPER_CLOSED:
+                    self.attachment_controller.close_gripper()
+                    if (
+                        not self.attachment_controller.gripper_state
+                        == self.attachment_controller.GRIPPER_CLOSED
+                    ):
                         return
                     self.holding.append(goal)
                     # goal.exterior.is_held = True
@@ -310,14 +257,19 @@ class CheesedEcoDisasterBrain(RobotBrain):
                 elif goal_distance < 0.15:
                     # barrel is closer to in front of us
                     self.controller.set_plane_velocity([0, self.speed / 4])
-                    self.open_gripper()  # follw up open call to trigger gripper animation
+                    # follw up open call to trigger gripper animation
+                    self.attachment_controller.open_gripper()
                 elif goal_distance < 0.2:
                     # barrel is close to in front of us
                     self.controller.set_plane_velocity([0, self.speed / 2])
-                    self.open_gripper()
+                    self.attachment_controller.open_gripper()
 
         elif self.state == ExecutionState.MOVE_TO_ZONE:
-            if not self.gripper_state == self.GRIPPER_CLOSED and len(self.holding) == 1:
+            if (
+                not self.attachment_controller.gripper_state
+                == self.attachment_controller.GRIPPER_CLOSED
+                and len(self.holding) == 1
+            ):
                 return
             print("Heading to zone...")
             if (
@@ -328,13 +280,19 @@ class CheesedEcoDisasterBrain(RobotBrain):
                 self.controller.set_plane_velocity([0, self.speed])
             elif len(self.holding) == 0:
                 if tof_front < self.ZONE_HEIGHT + self.FRONT_WALL_TARGET:
-                    if not self.gripper_state == self.GRIPPER_OPEN:
+                    if (
+                        not self.attachment_controller.gripper_state
+                        == self.attachment_controller.GRIPPER_OPEN
+                    ):
                         return
                     # 5) no longer holding, go back a bit to back off
                     self.controller.set_plane_velocity([0, -self.speed / 4])
-                elif not self.gripper_state == self.GRIPPER_CLOSED:
+                elif (
+                    not self.attachment_controller.gripper_state
+                    == self.attachment_controller.GRIPPER_CLOSED
+                ):
                     self.controller.stop()
-                    self.close_gripper()
+                    self.attachment_controller.close_gripper()
                 else:
                     # 6) return to the right
                     if tof_right > self.RIGHT_WALL_TARGET:
@@ -359,7 +317,7 @@ class CheesedEcoDisasterBrain(RobotBrain):
                 elif len(self.holding) == 1:
                     # 4) we're there, drop things off
                     self.controller.stop()
-                    self.open_gripper()
+                    self.attachment_controller.open_gripper()
                     self.holding.pop(0)
                     self.barrel_positions[self.drop_idx[0], self.drop_idx[1]] = 1
 
@@ -495,9 +453,9 @@ class CheesedEcoDisasterBrain(RobotBrain):
             # treat the middle of the gripper as the center, so find barrel closest
             # to the front of the robot, 0.025 = barrel radius
             # finds the closest barrel that's in a straight line
-            return self.find_in_front(ObjectType.BARREL, relative_to=gripper_center)
+            # return self.find_in_front(ObjectType.BARREL, relative_to=gripper_center)
             # TODO fall back to flosest if there's nothing in front?
-            # return self.find_closest(ObjectType.BARREL, relative_to=gripper_center)
+            return self.find_closest(ObjectType.BARREL, relative_to=gripper_center)
 
         elif self.state == ExecutionState.DROP_OFF_BARREL:
             # we have a barrel and we're near the zone, find the bit of the zone
@@ -569,31 +527,3 @@ class CheesedEcoDisasterBrain(RobotBrain):
             )
         else:
             return (None, 9e99)
-
-    def open_gripper(self):
-        # TODO real hardware
-        if self.gripper_state == self.GRIPPER_CLOSED:
-            print("Opening gripper")
-            self.gripper_changed = time()
-            self.gripper_state = self.GRIPPER_OPENING
-            self.attachment_outline = self.gripper_open_outline
-        if (
-            self.gripper_state == self.GRIPPER_OPENING
-            and time() - self.gripper_changed > 1
-        ):
-            print("Gripper open")
-            self.gripper_state = self.GRIPPER_OPEN
-
-    def close_gripper(self):
-        # TODO real hardware
-        if self.gripper_state == self.GRIPPER_OPEN:
-            print("Closing gripper")
-            self.gripper_changed = time()
-            self.gripper_state = self.GRIPPER_CLOSING
-            self.attachment_outline = self.gripper_closed_outline
-        if (
-            self.gripper_state == self.GRIPPER_CLOSING
-            and time() - self.gripper_changed > 1
-        ):
-            print("Gripper closed")
-            self.gripper_state = self.GRIPPER_CLOSED

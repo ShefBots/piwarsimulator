@@ -3,7 +3,6 @@ import copy
 import math
 from shapely.affinity import scale
 from shapely.geometry import Point
-from shapely.geometry import Polygon
 from shapely import lib as shapely_lib
 from time import monotonic as time
 from brains.ExecutionState import ExecutionState
@@ -36,9 +35,6 @@ class EcoDisasterBrain(RobotBrain):
     GRIPPER_ANGLE_TOLERANCE = 2  # degree
     GRIPPER_TOLERANCE = 0.01  # m
 
-    GRIPPER_CLOSED = 0
-    GRIPPER_OPEN = 1
-
     # how aligned to be when heading towards zone
     ZONE_ANGLE_TOLERANCE = 0.5
 
@@ -53,45 +49,6 @@ class EcoDisasterBrain(RobotBrain):
         super(EcoDisasterBrain, self).__init__(**kwargs)
         self.state = ExecutionState.MOVE_TO_BARREL
         self.do_collision_detection = False  # let the logic here handle it
-
-        half_gripper_closed = Polygon(
-            [
-                (
-                    -self.robot.width / 2,
-                    self.robot.height / 2 - 0.002,  # minus a bit so geometry sticks
-                ),
-                (
-                    -0.002,  # minus a bit so that there's always a hole
-                    self.robot.height / 2 + 0.1,
-                ),
-                (
-                    -0.002,
-                    self.robot.height / 2 + 0.08,
-                ),
-                (
-                    -self.robot.width / 2 + 0.02,
-                    self.robot.height / 2 - 0.002,
-                ),
-            ]
-        )
-
-        half_gripper_open = rotate(
-            half_gripper_closed,
-            45,
-            origin=[
-                -self.robot.width / 2,
-                self.robot.height / 2,
-            ],
-        )
-
-        self.gripper_closed_outline = half_gripper_closed.union(
-            scale(half_gripper_closed, xfact=-1, origin=(0, 0))
-        )
-        self.gripper_open_outline = half_gripper_open.union(
-            scale(half_gripper_open, xfact=-1, origin=(0, 0))
-        )
-        # self.close_gripper()
-        self.open_gripper()
 
         # for pathfinding, we need to find out if a potential location we move
         # the robot to would intersect with any objects. to do this, we need to
@@ -113,8 +70,16 @@ class EcoDisasterBrain(RobotBrain):
             w=self.robot.width,
             h=self.robot.height,
         )  # temporary robot at 0,0 for pre-computation
-        temp_robot_outline_clsd = temp_robot.outline.union(self.gripper_closed_outline)
-        temp_robot_outline_open = temp_robot.outline.union(self.gripper_open_outline)
+        temp_robot_outline_clsd = temp_robot.outline.union(
+            self.attachment_controller.generate_outline(
+                angle=self.attachment_controller.GRIPPER_ANGLE_CLOSED
+            )
+        )
+        temp_robot_outline_open = temp_robot.outline.union(
+            self.attachment_controller.generate_outline(
+                angle=self.attachment_controller.GRIPPER_ANGLE_OPEN
+            )
+        )
         # store the center coordinates of each grid location
         self.pfgrid_centers = np.zeros_like(self.pfgrid_geometry_closed, dtype=object)
         # translate the robot for each grid location
@@ -187,32 +152,47 @@ class EcoDisasterBrain(RobotBrain):
                 goal_distance < 0.2
                 and math.fabs(goal.heading) < self.GRIPPER_ANGLE_TOLERANCE
             ):
-                self.open_gripper()
+                self.attachment_controller.open_gripper()
+
+            if (
+                self.attachment_controller.gripper_state
+                == self.attachment_controller.GRIPPER_OPEN
+                or self.attachment_controller.gripper_state
+                == self.attachment_controller.GRIPPER_OPENING
+            ):
+                speed_multiplier = 0.25
+            else:
+                speed_multiplier = 1
 
             # if in range of barrel
             if goal_distance < self.GRIPPER_TOLERANCE:
                 print("Grabbing barrel")
                 self.controller.stop()
                 if (
-                    not self.gripper_state == self.GRIPPER_OPEN
+                    not self.attachment_controller.gripper_state
+                    == self.attachment_controller.GRIPPER_OPEN
                     and len(self.holding) == 0
                 ):
                     # gripper needs to be open before we can grab it
+                    self.controller.stop()
                     return
-                self.close_gripper()
-                self.holding.append(goal)
-                # goal.exterior.is_held = True
-                if not self.gripper_state == self.GRIPPER_CLOSED:
-                    return
+                self.attachment_controller.close_gripper()
+                if not goal.exterior.is_held == True:
+                    print("adding barrel to held")
+                    self.holding.append(goal)
                 self.state = ExecutionState.MOVE_TO_ZONE
                 self.time_trying_to_get_to_zone = time()
 
             else:
                 # strafe towards barrel
                 if goal.heading > self.GRIPPER_ANGLE_TOLERANCE:
-                    self.controller.set_plane_velocity([self.speed, 0])
+                    self.controller.set_plane_velocity(
+                        [self.speed * speed_multiplier, 0]
+                    )
                 elif goal.heading < -self.GRIPPER_ANGLE_TOLERANCE:
-                    self.controller.set_plane_velocity([-self.speed, 0])
+                    self.controller.set_plane_velocity(
+                        [-self.speed * speed_multiplier, 0]
+                    )
                 else:
 
                     if (
@@ -229,13 +209,19 @@ class EcoDisasterBrain(RobotBrain):
                         )  # too easy to dead lock otherwise?
                     else:
                         # move towards goal
-                        self.controller.set_plane_velocity([0, self.speed])
+                        self.controller.set_plane_velocity(
+                            [0, self.speed * speed_multiplier]
+                        )
 
             # TODO if the angles don't match, backup rotate, try to grab again
 
         elif self.state == ExecutionState.MOVE_TO_ZONE:
             # wait for the gripper to close
-            if not self.gripper_state == self.GRIPPER_CLOSED:
+            if (
+                not self.attachment_controller.gripper_state
+                == self.attachment_controller.GRIPPER_CLOSED
+            ):
+                self.controller.stop()
                 return
 
             # if we're close switch to a homing mode to drop off the barrel
@@ -284,7 +270,10 @@ class EcoDisasterBrain(RobotBrain):
                     world_obstacles.append((obj.outline.buffer(0.02), obj.center))
 
             # the pre-computed robot locations that we could be moving to on our way to the goal
-            if self.gripper_state == self.GRIPPER_CLOSED:
+            if (
+                self.attachment_controller.gripper_state
+                == self.attachment_controller.GRIPPER_CLOSED
+            ):
                 pfgrid_geometry = self.pfgrid_geometry_closed
             else:
                 pfgrid_geometry = self.pfgrid_geometry_open
@@ -449,8 +438,11 @@ class EcoDisasterBrain(RobotBrain):
             if goal_distance < 0.005:
                 self.controller.stop()
                 # wait for the gripper to open
-                self.open_gripper()
-                if not self.gripper_state == self.GRIPPER_OPEN:
+                self.attachment_controller.open_gripper()
+                if (
+                    not self.attachment_controller.gripper_state
+                    == self.attachment_controller.GRIPPER_OPEN
+                ):
                     return
                 self.holding.pop(0)
                 self.state = ExecutionState.PROGRAM_COMPLETE
@@ -613,13 +605,3 @@ class EcoDisasterBrain(RobotBrain):
             )
         else:
             return (None, 9e99)
-
-    def open_gripper(self):
-        # TODO real hardware
-        self.gripper_state = self.GRIPPER_OPEN
-        self.attachment_outline = self.gripper_open_outline
-
-    def close_gripper(self):
-        # TODO real hardware
-        self.gripper_state = self.GRIPPER_CLOSED
-        self.attachment_outline = self.gripper_closed_outline
