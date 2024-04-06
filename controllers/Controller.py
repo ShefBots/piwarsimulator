@@ -29,7 +29,8 @@ class Controller:
 
     def stop(self, exiting=False):
         """stop moving"""
-        # print("Stopping moving")
+        if not self.vel[0] == 0 or not self.vel[1] == 0 or not self.theta_vel == 0:
+            print("Stopping moving")
         self.vel = np.array([0, 0])
         self.theta_vel = 0
         self.moving = False

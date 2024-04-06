@@ -39,7 +39,6 @@ class MovementController(Controller):
 
     def stop(self, exiting=False):
         """stop moving"""
-        print("Stopping moving")
         super().stop(exiting)
         if not self.motor_driver is None:
             # need to check is None because this will still be called on the Exception raised by having no serial
