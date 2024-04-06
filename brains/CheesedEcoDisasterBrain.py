@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
-import copy
 import math
 from shapely.affinity import scale
 from shapely.geometry import Point
 from shapely.geometry import Polygon
-from shapely import lib as shapely_lib
 from time import monotonic as time
 from brains.ExecutionState import ExecutionState
 from brains.RobotBrain import RobotBrain
-from algorithms.pathfinding_astar import AStar as Pathfinding
-from util import fast_translate
 from world.WorldObject import *
 from world.ObjectType import *
 

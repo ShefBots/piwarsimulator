@@ -27,6 +27,7 @@ class RobotBrain:
 
     def __init__(self, **kwargs):
         self.robot = kwargs.get("robot", None)
+        self.attachment_controller = kwargs.get("attachment_controller", None)
         self.controller = kwargs.get("controller", None)
         self.speed = kwargs.get("speed", 0.001)  # 1 mm/s
         self.turning_speed = kwargs.get("turning_speed", 1)  # 1 degrees/s
@@ -124,6 +125,20 @@ class RobotBrain:
             self.controller.set_angular_velocity(
                 self.sensor_measurements["angular_vel"]
             )
+            # TODO handle if the attchment controller isn't a gripper controller
+            if not self.attachment_controller == None:
+                if (
+                    self.sensor_measurements["gripper_toggle"] # opening
+                    and not self.attachment_controller.gripper_state
+                    == self.attachment_controller.GRIPPER_OPEN
+                ):
+                    self.attachment_controller.open_gripper()
+                elif (
+                    not self.sensor_measurements["gripper_toggle"] # closing
+                    and not self.attachment_controller.gripper_state
+                    == self.attachment_controller.GRIPPER_CLOSED
+                ):
+                    self.attachment_controller.close_gripper()
 
         if self.sensor_measurements["do_quit"]:
             print("Quit requested")

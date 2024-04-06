@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-import time
-import numpy as np
-import util
 from controllers.Controller import Controller
 from world.ObjectType import *
 from devices import MotorDriver

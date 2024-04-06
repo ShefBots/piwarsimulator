@@ -148,7 +148,8 @@ class SimulatedMovementController(Controller, Thread):
 
     def stop(self, exiting=False):
         """stop moving"""
-        print("Stopping moving")
+        if self.moving:
+            print("Stopping simulated moving")
         super().stop(exiting)
         if not self.mirror is None:
             self.mirror.stop()

@@ -115,6 +115,13 @@ parser.add_argument(
     # default="true",
     choices=["true", "false"],
 )
+parser.add_argument(
+    "--gripper",
+    help="enable the gripper attachment (default false)",
+    # default="false",
+    default="true",
+    choices=["true", "false"],
+)
 args = parser.parse_args()
 
 # imports for hardware etc based on settings
@@ -125,6 +132,7 @@ if args.radio == "true":
 if args.mode == "simulation":
     # fake control hardware, fake sensors
     from controllers.SimulatedMovementController import SimulatedMovementController
+    from controllers.SimulatedGripperController import SimulatedGripperController
     from sensors.SimulatedLineOfSight import SimulatedLineOfSight
 
     if args.simplevision == "false":
@@ -136,6 +144,7 @@ if args.mode == "simulation":
 elif args.mode == "sensor_simulation":
     # real control hardware, fake sensors
     from controllers.SimulatedMovementController import SimulatedMovementController
+    from controllers.SimulatedGripperController import SimulatedGripperController
     from controllers.MovementController import MovementController
     from sensors.SimulatedLineOfSight import SimulatedLineOfSight
 
@@ -198,9 +207,12 @@ if args.mode == "simulation" or args.mode == "sensor_simulation":
     map_func(ExteriorTheWorld)
 
 # logic for the robot
-print("Loading robot controller...")
+print("Loading robot controllers...")
+attachment_controller = None
 if args.mode == "simulation":
     controller = SimulatedMovementController(robot)
+    if args.gripper == "true":
+        attachment_controller = SimulatedGripperController(robot)
 elif args.mode == "sensor_simulation":
     try:
         real_controller = MovementController(serial_instances)
@@ -226,11 +238,13 @@ else:
 print(f"Loading {args.brain}...")
 brain = getattr(importlib.import_module("brains." + args.brain), args.brain)
 robot_brain = brain(
-    robot=robot, controller=controller, speed=ROBOT_SPEED, turning_speed=TURNING_SPEED
+    robot=robot, controller=controller, speed=ROBOT_SPEED, turning_speed=TURNING_SPEED, attachment_controller=attachment_controller
 )
 if args.mode == "simulation" or args.mode == "sensor_simulation":
     # this works because lists are references
     controller.holding = robot_brain.holding
+if args.gripper == "true":
+    attachment_controller.set_brain(robot_brain)
 
 print("Attaching sensors...")
 if args.rendering == "true":
@@ -281,6 +295,7 @@ time.sleep(1)  # wait for things to settle
 # controller.set_plane_velocity([0, 0.15])
 # controller.set_angular_velocity(12)
 
+start_time = time.monotonic()
 print(f"Running... ({running})")
 while running:
     now = time.monotonic()
@@ -313,6 +328,10 @@ while running:
             print(f"Caught error: {e}")
             print(traceback.format_exc())
 
+    # quit after a few seconds
+    # if time.monotonic() - start_time > 10:
+    #     running = False
+
     if robot_brain.running == False:
         running = False
 
@@ -323,3 +342,5 @@ while running:
 print("Quitting...")
 if not controller is None:
     controller.stop(exiting=True)
+if not attachment_controller is None:
+    attachment_controller.stop(exiting=True)
