@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 import time
-import numpy as np
 from shapely.affinity import rotate
 from shapely.affinity import scale
 from shapely.geometry import Polygon
 from threading import Thread
-import util
 from controllers.Controller import Controller
 from world.ObjectType import *
 
@@ -22,10 +20,13 @@ class SimulatedGripperController(Controller, Thread):
     GRIPPER_ANGLE_CLOSED = 0
     GRIPPER_SPEED = 45  # degrees / s
 
+    # these should match the definitions in
+    # https://github.com/ShefBots/io-controller-micropython/blob/main/main.py#L61
     GRIPPER_CLOSED = 0
     GRIPPER_OPEN = 1
-    GRIPPER_CLOSING = 2
-    GRIPPER_OPENING = 3
+    GRIPPER_UNKOWN = 2
+    GRIPPER_CLOSING = 3
+    GRIPPER_OPENING = 4
 
     def __init__(self, robot, secondary_controller=None):
         print("Initialising SimulatedGripperController...")
@@ -37,7 +38,7 @@ class SimulatedGripperController(Controller, Thread):
 
         # assume starting with the gripper closed
         self.gripper_angle = 0
-        self.gripper_state = self.GRIPPER_CLOSED
+        self._gripper_state = self.GRIPPER_CLOSED
 
         self.half_gripper_closed = Polygon(
             [
@@ -71,6 +72,10 @@ class SimulatedGripperController(Controller, Thread):
         # self.running = False
         self.start()
 
+    @property
+    def gripper_state(self):
+        return self._gripper_state
+
     def generate_outline(self, angle=None):
         if angle is None:
             angle = self.gripper_angle
@@ -88,24 +93,28 @@ class SimulatedGripperController(Controller, Thread):
     def open_gripper(self):
         """open the gripper"""
         if (
-            self.gripper_state == self.GRIPPER_OPEN
-            or self.gripper_state == self.GRIPPER_OPENING
+            self._gripper_state == self.GRIPPER_OPEN
+            or self._gripper_state == self.GRIPPER_OPENING
         ):
             return
         print("Opening gripper")
-        self.gripper_state = self.GRIPPER_OPENING
+        self._gripper_state = self.GRIPPER_OPENING
         self.set_angular_velocity(self.GRIPPER_SPEED)
+        if not self.mirror is None:
+            self.mirror.open_gripper()
 
     def close_gripper(self):
         """close the gripper"""
         if (
-            self.gripper_state == self.GRIPPER_CLOSED
-            or self.gripper_state == self.GRIPPER_CLOSING
+            self._gripper_state == self.GRIPPER_CLOSED
+            or self._gripper_state == self.GRIPPER_CLOSING
         ):
             return
         print("Closing gripper")
-        self.gripper_state = self.GRIPPER_CLOSING
+        self._gripper_state = self.GRIPPER_CLOSING
         self.set_angular_velocity(-self.GRIPPER_SPEED)
+        if not self.mirror is None:
+            self.mirror.close_gripper()
 
     def set_angular_velocity(self, theta):
         """set angular velocity in degrees per second"""
@@ -139,10 +148,10 @@ class SimulatedGripperController(Controller, Thread):
                 self.robot_brain.attachment_outline = self.generate_outline()
 
                 if self.gripper_angle >= self.GRIPPER_ANGLE_OPEN:
-                    self.gripper_state = self.GRIPPER_OPEN
+                    self._gripper_state = self.GRIPPER_OPEN
                     self.stop()
                 elif self.gripper_angle <= self.GRIPPER_ANGLE_CLOSED:
-                    self.gripper_state = self.GRIPPER_CLOSED
+                    self._gripper_state = self.GRIPPER_CLOSED
                     self.stop()
 
             to_sleep = self.UPDATE_RATE - (time.monotonic() - now)

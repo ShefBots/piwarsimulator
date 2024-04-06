@@ -146,6 +146,7 @@ elif args.mode == "sensor_simulation":
     from controllers.SimulatedMovementController import SimulatedMovementController
     from controllers.SimulatedGripperController import SimulatedGripperController
     from controllers.MovementController import MovementController
+    from controllers.GripperController import GripperController
     from sensors.SimulatedLineOfSight import SimulatedLineOfSight
 
     if args.simplevision == "false":
@@ -157,7 +158,7 @@ elif args.mode == "sensor_simulation":
 elif args.mode == "control":
     # real control hardware, real sensors
     from controllers.MovementController import MovementController
-    # from controllers.SimulatedMovementController import SimulatedMovementController
+    from controllers.GripperController import GripperController
     from sensors.DistanceSensor import DistanceSensor
 elif args.mode == "control_simulation":
     # TODO fake control hardware, real sensors
@@ -219,7 +220,7 @@ elif args.mode == "sensor_simulation":
         real_controller = MovementController(serial_instances)
         if args.attachment == "gripper":
             # TODO attempt to init real gripper controller
-            real_attachment_controller = None
+            real_attachment_controller = GripperController(robot, serial_instances)
     except Exception as e:
         print(f"Caught error: {e}")
         print(traceback.format_exc())
@@ -238,7 +239,7 @@ elif args.mode == "control":
         controller = MovementController(serial_instances)
         if args.attachment == "gripper":
             # TODO attempt to init real gripper controller
-            attachment_controller = None
+            attachment_controller = GripperController(robot, serial_instances)
         elif args.attachment == "launcher":
             # TODO attempt to init real launcher controller
             attachment_controller = None
@@ -264,7 +265,8 @@ robot_brain = brain(
 if args.mode == "simulation" or args.mode == "sensor_simulation":
     # this works because lists are references
     controller.holding = robot_brain.holding
-if not args.attachment == "none":
+if not args.attachment == "none" and not attachment_controller is None:
+    print("Attaching brain to attachment")
     attachment_controller.set_brain(robot_brain)
 
 print("Attaching sensors...")
