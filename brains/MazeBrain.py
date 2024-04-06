@@ -36,6 +36,7 @@ class MazeBrain(RobotBrain):
         if self.state == ExecutionState.PROGRAM_CONTROL:
             # entry into solving routine
             self.state = ExecutionState.MOVE_LEFT
+            print("Moving left")
             self.controller.set_plane_velocity([-self.speed, 0])
 
         # check we're in range of some wall still
@@ -50,6 +51,7 @@ class MazeBrain(RobotBrain):
             ):
                 self.controller.set_plane_velocity([0, self.speed])
                 self.state = ExecutionState.MOVE_FORWARD
+                print("Moving forward")
 
         elif self.state == ExecutionState.MOVE_FORWARD:
             if (
@@ -63,6 +65,7 @@ class MazeBrain(RobotBrain):
                     # there's space on the right, go that way
                     self.controller.set_plane_velocity([self.speed, 0])
                     self.state = ExecutionState.MOVE_RIGHT
+                    print("Moving right")
                 elif (
                     self.distance_left() is None
                     or self.distance_left() > self.WALL_STOP_DISTANCE
@@ -70,6 +73,7 @@ class MazeBrain(RobotBrain):
                     # there's space on the left, go that way
                     self.controller.set_plane_velocity([-self.speed, 0])
                     self.state = ExecutionState.MOVE_LEFT
+                    print("Moving left")
                 else:
                     # possibly not square anymore? reenter alignment
                     self.controller.stop()
@@ -87,3 +91,4 @@ class MazeBrain(RobotBrain):
             ):
                 self.controller.set_plane_velocity([0, self.speed])
                 self.state = ExecutionState.MOVE_FORWARD
+                print("Moving forward")
