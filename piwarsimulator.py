@@ -94,7 +94,7 @@ parser.add_argument(
     help="operation mode (default simulation)",
     default="simulation",
     # default="control",
-    choices=["simulation", "sensor_simulation", "control"], # , "control_simulation"
+    choices=["simulation", "sensor_simulation", "control"],  # , "control_simulation"
 )
 parser.add_argument(
     "--radio",
@@ -116,11 +116,11 @@ parser.add_argument(
     choices=["true", "false"],
 )
 parser.add_argument(
-    "--gripper",
-    help="enable the gripper attachment (default false)",
-    # default="false",
-    default="true",
-    choices=["true", "false"],
+    "--attachment",
+    help="choose an attachment (default none)",
+    # default="none",
+    default="gripper",
+    choices=["none", "gripper", "launcher"],
 )
 args = parser.parse_args()
 
@@ -161,7 +161,8 @@ elif args.mode == "control":
     from sensors.DistanceSensor import DistanceSensor
 elif args.mode == "control_simulation":
     # TODO fake control hardware, real sensors
-    pass
+    from controllers.SimulatedMovementController import SimulatedMovementController
+    from controllers.SimulatedGripperController import SimulatedGripperController
 
 # do serial stuff if needed
 if not args.mode == "simulation":
@@ -211,11 +212,14 @@ print("Loading robot controllers...")
 attachment_controller = None
 if args.mode == "simulation":
     controller = SimulatedMovementController(robot)
-    if args.gripper == "true":
+    if args.attachment == "gripper":
         attachment_controller = SimulatedGripperController(robot)
 elif args.mode == "sensor_simulation":
     try:
         real_controller = MovementController(serial_instances)
+        if args.attachment == "gripper":
+            # TODO attempt to init real gripper controller
+            real_attachment_controller = None
     except Exception as e:
         print(f"Caught error: {e}")
         print(traceback.format_exc())
@@ -224,15 +228,28 @@ elif args.mode == "sensor_simulation":
     controller = SimulatedMovementController(
         robot, secondary_controller=real_controller
     )
-else:
+    if args.attachment == "gripper":
+        attachment_controller = SimulatedGripperController(
+            robot, secondary_controller=real_attachment_controller
+        )
+elif args.mode == "control":
     try:
         # controller = SimulatedMovementController(robot)
         controller = MovementController(serial_instances)
+        if args.attachment == "gripper":
+            # TODO attempt to init real gripper controller
+            attachment_controller = None
+        elif args.attachment == "launcher":
+            # TODO attempt to init real launcher controller
+            attachment_controller = None
     except Exception as e:
         running = False
         controller = None
         print(f"Caught error: {e}")
         print(traceback.format_exc())
+elif args.mode == "control_simulation":
+    # TODO
+    pass
 
 
 print(f"Loading {args.brain}...")
@@ -247,7 +264,7 @@ robot_brain = brain(
 if args.mode == "simulation" or args.mode == "sensor_simulation":
     # this works because lists are references
     controller.holding = robot_brain.holding
-if args.gripper == "true":
+if not args.attachment == "none":
     attachment_controller.set_brain(robot_brain)
 
 print("Attaching sensors...")
