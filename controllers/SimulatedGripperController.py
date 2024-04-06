@@ -15,9 +15,12 @@ class SimulatedGripperController(Controller, Thread):
 
     UPDATE_RATE = 1 / 120.0
 
+    # note real gripper is 50 degrees opening to parallel with robot side
+    # simulated gripper doesn't have quite the same geometry, so it opens
+    # to 45 degrees to also be parallel when open
     GRIPPER_ANGLE_OPEN = 45
     GRIPPER_ANGLE_CLOSED = 0
-    GRIPPER_SPEED = 15  # degrees / s
+    GRIPPER_SPEED = 45  # degrees / s
 
     GRIPPER_CLOSED = 0
     GRIPPER_OPEN = 1
@@ -82,12 +85,16 @@ class SimulatedGripperController(Controller, Thread):
 
     def open_gripper(self):
         """open the gripper"""
+        if self.gripper_state == self.GRIPPER_OPEN or self.gripper_state == self.GRIPPER_OPENING:
+            return
         print("Opening gripper")
         self.gripper_state = self.GRIPPER_OPENING
         self.set_angular_velocity(self.GRIPPER_SPEED)
 
     def close_gripper(self):
         """close the gripper"""
+        if self.gripper_state == self.GRIPPER_CLOSED or self.gripper_state == self.GRIPPER_CLOSING:
+            return
         print("Closing gripper")
         self.gripper_state = self.GRIPPER_CLOSING
         self.set_angular_velocity(-self.GRIPPER_SPEED)
@@ -120,7 +127,7 @@ class SimulatedGripperController(Controller, Thread):
             now = time.monotonic()
 
             if self.moving:
-                self.gripper_angle = self.theta_vel * self.UPDATE_RATE
+                self.gripper_angle += self.theta_vel * self.UPDATE_RATE
                 self.robot_brain.attachment_outline = self.generate_outline()
 
                 if self.gripper_angle >= self.GRIPPER_ANGLE_OPEN:

@@ -94,6 +94,8 @@ class RobotBrain:
         self.TheWorld[-1].outline = self.TheWorld[-1].outline.union(
             self.attachment_outline
         )
+        # this has to be hear otherwise a missing sensor not returning it = bad time
+        self.sensor_measurements["manual_control"] = False
         for s in self.sensors:
             objects, readings = s.do_scan()
             self.TheWorld += objects
@@ -125,8 +127,8 @@ class RobotBrain:
             self.controller.set_angular_velocity(
                 self.sensor_measurements["angular_vel"]
             )
-            # TODO handle if the attchment controller isn't a gripper controller
-            if not self.attachment_controller == None:
+            # don't want to import so name check will have to do
+            if not self.attachment_controller == None and type(self.attachment_controller).__name__ == 'SimulatedGripperController':
                 if (
                     self.sensor_measurements["gripper_toggle"] # opening
                     and not self.attachment_controller.gripper_state
