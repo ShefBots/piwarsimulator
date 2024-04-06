@@ -12,6 +12,9 @@ class Keyboard(Sensor):
         self.speed = speed
         self.turning_speed = turning_speed
 
+        self.lastg = False
+        self.gripper_status = False
+
         self.lastspace = False
         self.manual_control = False
 
@@ -39,6 +42,11 @@ class Keyboard(Sensor):
         elif keys[pygame.K_e]:
             angular_vel = self.turning_speed
 
+        if not keys[pygame.K_g] == self.lastg:
+            self.lastg = keys[pygame.K_g]
+            if self.lastg == True:
+                self.gripper_status = not self.gripper_status
+
         if not keys[pygame.K_SPACE] == self.lastspace:
             self.lastspace = keys[pygame.K_SPACE]
             if self.lastspace == True:
@@ -54,6 +62,7 @@ class Keyboard(Sensor):
             "forward_vel": forward_vel,
             "sideways_vel": sideways_vel,
             "angular_vel": angular_vel,
+            "gripper_toggle": self.gripper_status,
             "manual_control": self.manual_control,
             "do_quit": do_quit,
         }
