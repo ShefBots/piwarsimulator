@@ -6,16 +6,24 @@ from world.WorldObject import *
 from world.ObjectType import *
 
 
+# TODO fix line following, it goes crazy - use TOFs?
+# could go sideways in the direction where there's most space
+# mostly goes crazy due to gripper attachment
+
+
 class LineFollowingBrain(RobotBrain):
     """logic for the line following challenge"""
 
     ANGLE_TOLERANCE = 2  # try and be pointing towards the line
     NEAR_WALL = 0.1
 
+    # we (may?) need longer for this one
+    # EXECUTION_TIMEOUT = 60
+
     def __init__(self, **kwargs):
         super(LineFollowingBrain, self).__init__(**kwargs)
         self.state = ExecutionState.PROGRAM_CONTROL
-        self.last_goal = monotonic()
+        self.last_goal_time = monotonic()
 
     def process(self):
         """do the basic brain stuff then do specific line following things"""
@@ -31,22 +39,29 @@ class LineFollowingBrain(RobotBrain):
         if goal is None:
             # keep moving for a little bit in hopes of reacquiring line/passing goal
             # otherwise just stop
-            if monotonic() - self.last_goal > (0.4 / self.speed) and self.controller.moving:
+            if (
+                monotonic() - self.last_goal_time > (0.4 / self.speed)
+                and self.controller.moving
+            ):
                 self.controller.stop()
-                self.state = ExecutionState.STOPPED
+                self.state = ExecutionState.PROGRAM_CONTROL
             return
-        self.last_goal = monotonic()
+        self.last_goal_time = monotonic()
 
         # if a wall is ahead do everything more slowly
-        if self.distance_forward() is None or self.distance_forward() > 0.5:
+        if self.distance_forward() is None or self.distance_forward() > 0.4:
             speed_modifier = 1
+            # mostly needed to avoid execution timeout
+            self.state = ExecutionState.GO_SLOW
         elif self.distance_forward() < 0.3:
             speed_modifier = 0.2
+            self.state = ExecutionState.GO_SLOW
         else:
             speed_modifier = 0.2 + 0.8 * (self.distance_forward() - 0.3) / 0.2
             print(
                 f"dist: {self.distance_forward()} m, speed modifier: {speed_modifier}"
             )
+            self.state = ExecutionState.GO_SLOW
         forward_vel = 0
         side_vel = 0
 

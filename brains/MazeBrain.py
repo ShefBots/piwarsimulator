@@ -29,7 +29,7 @@ class MazeBrain(RobotBrain):
             return
 
         # do nothing if halted
-        if self.state == ExecutionState.STOPPED:
+        if self.state == ExecutionState.PROGRAM_COMPLETE:
             return
 
         # make sure we're parallel to a wall
@@ -81,8 +81,10 @@ class MazeBrain(RobotBrain):
 
             if monotonic() - self.last_reading > (0.03 / self.speed):
                 # stop if no walls have been seen for X seconds (30 cm distance equiv)
+                # this won't work, there are will always be something detected in reality
+                # TODO end based on a long distance to rear wall?
                 self.controller.stop()
-                self.state = ExecutionState.STOPPED
+                self.state = ExecutionState.PROGRAM_COMPLETE
 
         elif self.state == ExecutionState.MOVE_RIGHT:
             if (

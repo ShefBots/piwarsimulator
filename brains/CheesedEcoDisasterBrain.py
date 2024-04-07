@@ -30,9 +30,9 @@ class CheesedEcoDisasterBrain(RobotBrain):
     GRIPPER_TOLERANCE = 0.04  # m, if this isn't big bad things happen
 
     # how close to get to walls before stopping
-    LEFT_WALL_TARGET = 0.1  # puts robot on edge of zone where no barrels may be
-    RIGHT_WALL_TARGET = 0.1
-    FRONT_WALL_TARGET = 0.1
+    LEFT_WALL_TARGET = 0.12  # puts robot on edge of zone where no barrels may be
+    RIGHT_WALL_TARGET = 0.12
+    FRONT_WALL_TARGET = 0.12
     # how much further than the target is OK
     WALL_MARGIN = 0.02
 
@@ -50,7 +50,7 @@ class CheesedEcoDisasterBrain(RobotBrain):
 
         # how close to get to rear wall
         # we will start to increment this at some point
-        self.rear_wall_target = 0.04
+        self.rear_wall_target = 0.06
         # currently don't know where a barrel is
         self.found_barrel = 0
 
@@ -69,8 +69,7 @@ class CheesedEcoDisasterBrain(RobotBrain):
 
         # we're done if all barrel holding positions are filled
         if np.sum(self.barrel_positions) == 12:
-            self.controller.stop()
-            return
+            self.state = ExecutionState.PROGRAM_COMPLETE
 
         # how far away things are from us
         tof_front = self.distance_forward()

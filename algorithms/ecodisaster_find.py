@@ -30,6 +30,7 @@ def find_goal(brain, use_front=False):
 
     if brain.state == ExecutionState.MOVE_TO_ZONE:
         # TODO need to ignore barrels in/near zones
+        # need to have find_closest return ranked list? or another function to sort TheWorld?
         return brain.find_closest(ObjectType.ZONE, color=goal_color)
 
     elif brain.state == ExecutionState.MOVE_TO_BARREL:
@@ -40,7 +41,7 @@ def find_goal(brain, use_front=False):
             return brain.find_in_front(ObjectType.BARREL, relative_to=gripper_center)
         else:
             return brain.find_closest(ObjectType.BARREL, relative_to=gripper_center)
-        # TODO fall back to flosest if there's nothing in front?
+        # TODO fall back to closest if there's nothing in front?
 
     elif brain.state == ExecutionState.DROP_OFF_BARREL:
         # we have a barrel and we're near the zone, find the bit of the zone

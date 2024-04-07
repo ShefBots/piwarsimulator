@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 import math
 import numpy as np
+from time import monotonic as time
 from shapely.geometry import Polygon
 from time import monotonic
 from brains.ExecutionState import ExecutionState
 from world.WorldObject import *
 from world.ObjectType import *
+
+
+# TODO move setting velocities into here so that the robot can be made to slow down
+#     if the gripper is open
+#     if it is approaching a wall
 
 
 class RobotBrain:
@@ -21,6 +27,9 @@ class RobotBrain:
 
     # where time of flight sensors are installed pointing
     SENSOR_HEADINGS = [0, 90, 180, 270]
+
+    # how long between state changes to timeout for
+    EXECUTION_TIMEOUT = 30
 
     # seconds to move when doing square up procedure
     SQUARE_UP_DURATION = 1
@@ -47,6 +56,9 @@ class RobotBrain:
 
         # what we're doing (roughly)
         self.state = ExecutionState.NO_CONTROL
+        # keep track of previous states to time out and quit nicely
+        self.last_state = ExecutionState.NO_CONTROL
+        self.last_state_change_time = time()
 
         # for squaring up
         self.square_up_heading = 0  # direction we're aligning to
@@ -118,6 +130,9 @@ class RobotBrain:
 
         # print(self.sensor_measurements)
         if self.sensor_measurements["manual_control"]:
+            if not self.state == ExecutionState.MANUAL_CONTROL:
+                self.last_state = self.state
+                self.state = ExecutionState.MANUAL_CONTROL
             self.controller.set_plane_velocity(
                 [
                     self.sensor_measurements["sideways_vel"],
@@ -145,12 +160,27 @@ class RobotBrain:
                     == self.attachment_controller.GRIPPER_CLOSED
                 ):
                     self.attachment_controller.close_gripper()
+        else:
+            if self.state == ExecutionState.MANUAL_CONTROL:
+                # resume where we were
+                self.state = self.last_state
 
         if self.sensor_measurements["do_quit"]:
             print("Quit requested")
             self.running = False
+            return
 
-        # TODO timer on PROGRAM_COMPLETE to change to self.running = False
+        # timer on state to change to self.running = False
+        if not self.state == self.last_state:
+            self.last_state = self.state
+            self.last_state_change_time = time()
+        elif (
+            time() - self.last_state_change_time > self.EXECUTION_TIMEOUT
+            and not self.state == ExecutionState.MANUAL_CONTROL
+        ):
+            print(f"Execution time out {self.EXECUTION_TIMEOUT}")
+            self.running = False
+            return
 
         if self.state == ExecutionState.SQUARING_UP:
             self.square_up()

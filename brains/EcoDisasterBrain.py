@@ -16,7 +16,6 @@ from world.ObjectType import *
 
 # TODO: back away after letting go of barrel and hunt for the next one
 #       excluding barrels in zones
-# TODO: what should happen with walls? use them to align and move orthogonal?
 # TODO: occaisionally gets stuck
 # TODO: sometimes drives over a barrel dropping off
 

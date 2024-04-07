@@ -115,8 +115,8 @@ parser.add_argument(
 parser.add_argument(
     "--attachment",
     help="choose an attachment (default none)",
-    # default="none",
-    default="gripper",
+    default="none",
+    # default="gripper",
     choices=["none", "gripper", "launcher"],
 )
 args = parser.parse_args()
@@ -216,7 +216,6 @@ elif args.mode == "sensor_simulation":
     try:
         real_controller = MovementController(serial_instances)
         if args.attachment == "gripper":
-            # TODO attempt to init real gripper controller
             real_attachment_controller = GripperController(robot, serial_instances)
     except Exception as e:
         print(f"Caught error: {e}")
@@ -277,13 +276,11 @@ if args.mode == "simulation" or args.mode == "sensor_simulation":
     robot_brain.add_sensor(SimulatedVision(ExteriorTheWorld, robot_brain))
 else:
     try:
-        # TODO real hardware
-        # forward, right, left (TODO behind missing?)
-        # NOTE WHEN ADDING MISSING NEED TO ADD IT TO RobotBrain AS WELL
         robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 0, 1))
         robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 90, 0))
+        # TODO robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 180, 0))
         robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 270, 2))
-        # vision system
+        # TODO add_sensor vision system
     except Exception as e:
         running = False
         print(f"Caught error: {e}")
