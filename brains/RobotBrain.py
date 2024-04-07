@@ -37,7 +37,7 @@ class RobotBrain:
     def __init__(self, **kwargs):
         self.robot = kwargs.get("robot", None)
         self.attachment_controller = kwargs.get("attachment_controller", None)
-        self.controller = kwargs.get("controller", None)
+        self._controller = kwargs.get("controller", None)
         self.speed = kwargs.get("speed", 0.001)  # 1 mm/s
         self.turning_speed = kwargs.get("turning_speed", 1)  # 1 degrees/s
         assert isinstance(self.robot, WorldObject)
@@ -117,7 +117,7 @@ class RobotBrain:
     def process(self):
         """basic logic is to just not hit anything & respond to control input"""
         self.poll_sensors()
-        controller_ok = self.controller.poke()
+        controller_ok = self._controller.poke()
         if not controller_ok:
             print("UH OH! Lost connection with controller!!!")
         self.check_for_collision()
@@ -126,22 +126,20 @@ class RobotBrain:
         # do we always want to try and stop on collisions?
         # sometimes we'll let higher level logic take over
         if self.do_collision_detection == True and not self.collision is None:
-            self.controller.stop()
+            self.controller_stop()
 
         # print(self.sensor_measurements)
         if self.sensor_measurements["manual_control"]:
             if not self.state == ExecutionState.MANUAL_CONTROL:
                 self.last_state = self.state
                 self.state = ExecutionState.MANUAL_CONTROL
-            self.controller.set_plane_velocity(
+            self.set_plane_velocity(
                 [
                     self.sensor_measurements["sideways_vel"],
                     self.sensor_measurements["forward_vel"],
                 ]
             )
-            self.controller.set_angular_velocity(
-                self.sensor_measurements["angular_vel"]
-            )
+            self.set_angular_velocity(self.sensor_measurements["angular_vel"])
             # don't want to import so name check will have to do
             if not self.attachment_controller == None and (
                 type(self.attachment_controller).__name__
@@ -350,11 +348,11 @@ class RobotBrain:
             self.square_time = monotonic()
             self.square_distance = dist
             self.square_rotate_time = 0
-            self.controller.set_plane_velocity(alignment_vector)
+            self.set_plane_velocity(alignment_vector)
 
         elif time_at >= self.SQUARE_UP_DURATION and self.square_rotate_time == 0:
             # finished moving left, check and align
-            self.controller.stop()
+            self.controller_stop()
 
             base = speed * self.SQUARE_UP_DURATION
             height = self.square_distance - dist
@@ -374,17 +372,17 @@ class RobotBrain:
                 angle_to_wall / (self.turning_speed / 4)
             )
             if angle_to_wall < 0:
-                self.controller.set_angular_velocity(-self.turning_speed / 4)
+                self.set_angular_velocity(-self.turning_speed / 4)
             else:
-                self.controller.set_angular_velocity(self.turning_speed / 4)
+                self.set_angular_velocity(self.turning_speed / 4)
 
         elif (
             time_at >= self.SQUARE_UP_DURATION + self.square_rotate_time
-            and not self.controller.theta_vel == 0
+            and not self._controller.theta_vel == 0
         ):
             # finished rotating to align
-            self.controller.stop()
-            self.controller.set_plane_velocity(-alignment_vector)
+            self.controller_stop()
+            self.set_plane_velocity(-alignment_vector)
 
         elif time_at >= self.SQUARE_UP_DURATION * 2 + self.square_rotate_time:
             # finished moving back
@@ -399,8 +397,22 @@ class RobotBrain:
                 self.square_time = 0
 
     def square_up_cancel(self):
-        self.controller.stop()
+        self.controller_stop()
         self.square_time = 0
         self.square_rotate_time = 0
         self.square_up_pass = 0
         self.state = ExecutionState.PROGRAM_CONTROL
+
+    # set velocities here so that they can be adjusted based on sensor inputs
+    def set_angular_velocity(self, theta):
+        """set angular velocity in degrees per second"""
+        self._controller.set_angular_velocity(theta)
+
+    def set_plane_velocity(self, vel):
+        """velocity aligned to the robot (sideways, forwards)"""
+        assert len(vel) == 2, "plane velocity is always 2 components"
+        self._controller.set_plane_velocity(vel)
+
+    def controller_stop(self, exiting=False):
+        """stop moving"""
+        self._controller.stop(exiting)

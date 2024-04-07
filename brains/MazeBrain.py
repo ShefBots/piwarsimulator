@@ -37,7 +37,7 @@ class MazeBrain(RobotBrain):
             # entry into solving routine
             self.state = ExecutionState.MOVE_LEFT
             print("Moving left")
-            self.controller.set_plane_velocity([-self.speed, 0])
+            self.set_plane_velocity([-self.speed, 0])
 
         # check we're in range of some wall still
         if any(d is not None for d in self.distances):
@@ -49,7 +49,7 @@ class MazeBrain(RobotBrain):
                 not self.distance_left() is None
                 and self.distance_left() < self.WALL_STOP_DISTANCE
             ):
-                self.controller.set_plane_velocity([0, self.speed])
+                self.set_plane_velocity([0, self.speed])
                 self.state = ExecutionState.MOVE_FORWARD
                 print("Moving forward")
 
@@ -63,7 +63,7 @@ class MazeBrain(RobotBrain):
                     or self.distance_right() > self.WALL_STOP_DISTANCE
                 ):
                     # there's space on the right, go that way
-                    self.controller.set_plane_velocity([self.speed, 0])
+                    self.set_plane_velocity([self.speed, 0])
                     self.state = ExecutionState.MOVE_RIGHT
                     print("Moving right")
                 elif (
@@ -71,19 +71,19 @@ class MazeBrain(RobotBrain):
                     or self.distance_left() > self.WALL_STOP_DISTANCE
                 ):
                     # there's space on the left, go that way
-                    self.controller.set_plane_velocity([-self.speed, 0])
+                    self.set_plane_velocity([-self.speed, 0])
                     self.state = ExecutionState.MOVE_LEFT
                     print("Moving left")
                 else:
                     # possibly not square anymore? reenter alignment
-                    self.controller.stop()
+                    self.controller_stop()
                     self.state == ExecutionState.SQUARING_UP
 
             if monotonic() - self.last_reading > (0.03 / self.speed):
                 # stop if no walls have been seen for X seconds (30 cm distance equiv)
                 # this won't work, there are will always be something detected in reality
                 # TODO end based on a long distance to rear wall?
-                self.controller.stop()
+                self.controller_stop()
                 self.state = ExecutionState.PROGRAM_COMPLETE
 
         elif self.state == ExecutionState.MOVE_RIGHT:
@@ -91,6 +91,6 @@ class MazeBrain(RobotBrain):
                 not self.distance_right() is None
                 and self.distance_right() < self.WALL_STOP_DISTANCE
             ):
-                self.controller.set_plane_velocity([0, self.speed])
+                self.set_plane_velocity([0, self.speed])
                 self.state = ExecutionState.MOVE_FORWARD
                 print("Moving forward")

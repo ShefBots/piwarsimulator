@@ -41,9 +41,9 @@ class LineFollowingBrain(RobotBrain):
             # otherwise just stop
             if (
                 monotonic() - self.last_goal_time > (0.4 / self.speed)
-                and self.controller.moving
+                and self._controller.moving
             ):
-                self.controller.stop()
+                self.controller_stop()
                 self.state = ExecutionState.PROGRAM_CONTROL
             return
         self.last_goal_time = monotonic()
@@ -67,11 +67,11 @@ class LineFollowingBrain(RobotBrain):
 
         # turn towards the line
         if goal.heading > self.ANGLE_TOLERANCE:
-            self.controller.set_angular_velocity(self.turning_speed * speed_modifier)
+            self.set_angular_velocity(self.turning_speed * speed_modifier)
         elif goal.heading < -self.ANGLE_TOLERANCE:
-            self.controller.set_angular_velocity(-self.turning_speed * speed_modifier)
+            self.set_angular_velocity(-self.turning_speed * speed_modifier)
         else:
-            self.controller.set_angular_velocity(0)
+            self.set_angular_velocity(0)
 
         # find the far end of the detected line
         far_end = Point(0, 0)
@@ -102,7 +102,7 @@ class LineFollowingBrain(RobotBrain):
             else:
                 side_vel = -self.speed * speed_modifier
 
-        self.controller.set_plane_velocity([side_vel, forward_vel])
+        self.set_plane_velocity([side_vel, forward_vel])
 
     def find_goal(self):
         """find the closest LINE"""

@@ -68,18 +68,18 @@ class MinesweeperBrain(RobotBrain):
             speed_modifier = 1
             overlap = 0
 
-        if overlap > self.OVERLAP_TARGET and self.controller.moving:
-            self.controller.stop()
-            # self.controller.set_plane_velocity([0, 0])
+        if overlap > self.OVERLAP_TARGET and self._controller.moving:
+            self.controller_stop()
+            # self.set_plane_velocity([0, 0])
         elif overlap < self.OVERLAP_TARGET:
             if self.FUN_MODE:
                 # turn towards target
                 if goal.heading > self.ANGLE_TOLERANCE:
-                    self.controller.set_angular_velocity(self.turning_speed)
+                    self.set_angular_velocity(self.turning_speed)
                 elif goal.heading < -self.ANGLE_TOLERANCE:
-                    self.controller.set_angular_velocity(-self.turning_speed)
+                    self.set_angular_velocity(-self.turning_speed)
                 else:
-                    self.controller.set_angular_velocity(0)
+                    self.set_angular_velocity(0)
 
                 # move sideways towards
                 if goal.center[0] > self.TheWorld[0].center[0]:
@@ -125,16 +125,16 @@ class MinesweeperBrain(RobotBrain):
             ):
                 side_vel = -side_vel
 
-            self.controller.set_plane_velocity([side_vel, forward_vel])
+            self.set_plane_velocity([side_vel, forward_vel])
 
     def find_goal(self):
         """find the closest MINE"""
         goal = self.find_closest(ObjectType.MINE)
         if goal[0] is None:
             print("Hunting for mines!")
-            self.controller.set_plane_velocity([0, 0])
-            self.controller.set_angular_velocity(self.turning_speed)
+            self.set_plane_velocity([0, 0])
+            self.set_angular_velocity(self.turning_speed)
         else:
             self.last_mine_found = time()
-            self.controller.set_angular_velocity(0)
+            self.set_angular_velocity(0)
         return goal

@@ -110,19 +110,19 @@ class CheesedEcoDisasterBrain(RobotBrain):
             print("Homing...")
             # move to back left corner
             if tof_rear < self.rear_wall_target - self.WALL_MARGIN:
-                self.controller.set_plane_velocity([0, self.speed])
+                self.set_plane_velocity([0, self.speed])
             elif tof_rear > self.rear_wall_target:
                 # and not tof_rear > self.rear_wall_target + self.WALL_MARGIN: # for margin?
-                self.controller.set_plane_velocity([0, -self.speed])
+                self.set_plane_velocity([0, -self.speed])
             elif tof_left > self.LEFT_WALL_TARGET and self.found_barrel == 0:
                 # go to bottom left when not holding a barrel
-                self.controller.set_plane_velocity([-self.speed, 0])
+                self.set_plane_velocity([-self.speed, 0])
             elif tof_right > self.RIGHT_WALL_TARGET and self.found_barrel == 1:
                 # and bottom right when holding a barrel
                 # (so that when dropping off barrels barrels could get pushed left and detected earlier)
-                self.controller.set_plane_velocity([self.speed, 0])
+                self.set_plane_velocity([self.speed, 0])
             else:
-                self.controller.stop()
+                self.controller_stop()
                 if self.found_barrel == 0:
                     self.state = ExecutionState.MOVE_TO_BARREL
                 elif self.found_barrel == 1:
@@ -135,11 +135,11 @@ class CheesedEcoDisasterBrain(RobotBrain):
                 if tof_right < self.RIGHT_WALL_TARGET:
                     # go forwards and do another scan
                     self.rear_wall_target += 0.25
-                    self.controller.stop()
+                    self.controller_stop()
                     self.state = ExecutionState.PROGRAM_CONTROL
                     print("Drop it back down and reverse it...")
 
-                self.controller.set_plane_velocity([self.speed, 0])
+                self.set_plane_velocity([self.speed, 0])
 
             goal, goal_distance = self.find_goal()
             if goal is not None:
@@ -147,13 +147,13 @@ class CheesedEcoDisasterBrain(RobotBrain):
                 print("Barrel found...")
                 # if abs(goal.heading) < self.GRIPPER_ANGLE_TOLERANCE:
                 if abs(goal.center[0]) < self.GRIPPER_TOLERANCE / 2:
-                    self.controller.set_plane_velocity([0, self.speed])
+                    self.set_plane_velocity([0, self.speed])
 
             if self.found_barrel == 1:
                 print(goal_distance)
                 if goal_distance < self.GRIPPER_TOLERANCE:
                     # barrel is right in front of us (shorter distance goes first)
-                    self.controller.stop()
+                    self.controller_stop()
                     self.attachment_controller.close_gripper()
                     if (
                         not self.attachment_controller.gripper_state
@@ -167,12 +167,12 @@ class CheesedEcoDisasterBrain(RobotBrain):
                     )  # home, then we move to zone
                 elif goal_distance < 0.15:
                     # barrel is closer to in front of us
-                    self.controller.set_plane_velocity([0, self.speed / 4])
+                    self.set_plane_velocity([0, self.speed / 4])
                     # follw up open call to trigger gripper animation
                     self.attachment_controller.open_gripper()
                 elif goal_distance < 0.2:
                     # barrel is close to in front of us
-                    self.controller.set_plane_velocity([0, self.speed / 2])
+                    self.set_plane_velocity([0, self.speed / 2])
                     self.attachment_controller.open_gripper()
 
         elif self.state == ExecutionState.MOVE_TO_ZONE:
@@ -188,7 +188,7 @@ class CheesedEcoDisasterBrain(RobotBrain):
                 and len(self.holding) == 1
             ):  # + gripper size
                 # 1) approach up the right hand side wall
-                self.controller.set_plane_velocity([0, self.speed])
+                self.set_plane_velocity([0, self.speed])
             elif len(self.holding) == 0:
                 if tof_front < self.ZONE_HEIGHT + self.FRONT_WALL_TARGET:
                     if (
@@ -197,20 +197,20 @@ class CheesedEcoDisasterBrain(RobotBrain):
                     ):
                         return
                     # 5) no longer holding, go back a bit to back off
-                    self.controller.set_plane_velocity([0, -self.speed / 4])
+                    self.set_plane_velocity([0, -self.speed / 4])
                 elif (
                     not self.attachment_controller.gripper_state
                     == self.attachment_controller.GRIPPER_CLOSED
                 ):
-                    self.controller.stop()
+                    self.controller_stop()
                     self.attachment_controller.close_gripper()
                 else:
                     # 6) return to the right
                     if tof_right > self.RIGHT_WALL_TARGET:
-                        self.controller.set_plane_velocity([self.speed, 0])
+                        self.set_plane_velocity([self.speed, 0])
                     else:
                         # 7) done, we should now be able to go back to homing and restart the process
-                        self.controller.set_plane_velocity([0, -self.speed])
+                        self.set_plane_velocity([0, -self.speed])
                         # but we need to clean up state variables first
                         self.drop_off_x = None
                         self.drop_off_y = None
@@ -221,13 +221,13 @@ class CheesedEcoDisasterBrain(RobotBrain):
                 self.find_next_free_barrel_slot(self.get_barrel_color(self.holding[0]))
                 if x > self.drop_off_x:
                     # 2) scuttle left to the drop off location
-                    self.controller.set_plane_velocity([-self.speed, 0])
+                    self.set_plane_velocity([-self.speed, 0])
                 elif y < self.drop_off_y:
                     # 3) at location go forwards
-                    self.controller.set_plane_velocity([0, self.speed / 4])
+                    self.set_plane_velocity([0, self.speed / 4])
                 elif len(self.holding) == 1:
                     # 4) we're there, drop things off
-                    self.controller.stop()
+                    self.controller_stop()
                     self.attachment_controller.open_gripper()
                     self.holding.pop(0)
                     self.barrel_positions[self.drop_idx[0], self.drop_idx[1]] = 1

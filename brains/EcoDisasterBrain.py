@@ -167,14 +167,14 @@ class EcoDisasterBrain(RobotBrain):
             # if in range of barrel
             if goal_distance < self.GRIPPER_TOLERANCE:
                 print("Grabbing barrel")
-                self.controller.stop()
+                self.controller_stop()
                 if (
                     not self.attachment_controller.gripper_state
                     == self.attachment_controller.GRIPPER_OPEN
                     and len(self.holding) == 0
                 ):
                     # gripper needs to be open before we can grab it
-                    self.controller.stop()
+                    self.controller_stop()
                     return
                 self.attachment_controller.close_gripper()
                 if not goal.exterior.is_held == True:
@@ -186,13 +186,9 @@ class EcoDisasterBrain(RobotBrain):
             else:
                 # strafe towards barrel
                 if goal.heading > self.GRIPPER_ANGLE_TOLERANCE:
-                    self.controller.set_plane_velocity(
-                        [self.speed * speed_multiplier, 0]
-                    )
+                    self.set_plane_velocity([self.speed * speed_multiplier, 0])
                 elif goal.heading < -self.GRIPPER_ANGLE_TOLERANCE:
-                    self.controller.set_plane_velocity(
-                        [-self.speed * speed_multiplier, 0]
-                    )
+                    self.set_plane_velocity([-self.speed * speed_multiplier, 0])
                 else:
 
                     if (
@@ -200,18 +196,16 @@ class EcoDisasterBrain(RobotBrain):
                         and math.fabs(goal.heading) > 10
                     ):
                         # we're too close to fit in the gripper, backup
-                        self.controller.set_plane_velocity([0, -self.speed / 4])
+                        self.set_plane_velocity([0, -self.speed / 4])
                     elif math.fabs(goal.heading) > 10:
                         # so far off we probably need to just turn in place
-                        # self.controller.set_plane_velocity([0, 0])
-                        self.controller.set_plane_velocity(
+                        # self.set_plane_velocity([0, 0])
+                        self.set_plane_velocity(
                             [0, self.speed / 10]
                         )  # too easy to dead lock otherwise?
                     else:
                         # move towards goal
-                        self.controller.set_plane_velocity(
-                            [0, self.speed * speed_multiplier]
-                        )
+                        self.set_plane_velocity([0, self.speed * speed_multiplier])
 
             # TODO if the angles don't match, backup rotate, try to grab again
 
@@ -221,13 +215,13 @@ class EcoDisasterBrain(RobotBrain):
                 not self.attachment_controller.gripper_state
                 == self.attachment_controller.GRIPPER_CLOSED
             ):
-                self.controller.stop()
+                self.controller_stop()
                 return
 
             # if we're close switch to a homing mode to drop off the barrel
             if goal_distance < 0.1:
                 print("Close to target drop off zone, switching to drop off mode")
-                self.controller.stop()
+                self.controller_stop()
                 self.state = ExecutionState.DROP_OFF_BARREL
                 return
 
@@ -238,13 +232,13 @@ class EcoDisasterBrain(RobotBrain):
             ):
                 # 0.5*30 = 15 degrees?
                 if goal.heading > self.ZONE_ANGLE_TOLERANCE * 30:
-                    self.controller.set_angular_velocity(self.turning_speed / 4)
+                    self.set_angular_velocity(self.turning_speed / 4)
                 elif goal.heading < -self.ZONE_ANGLE_TOLERANCE * 30:
-                    self.controller.set_angular_velocity(-self.turning_speed / 4)
+                    self.set_angular_velocity(-self.turning_speed / 4)
                 else:
-                    self.controller.set_angular_velocity(0)
+                    self.set_angular_velocity(0)
             else:
-                self.controller.set_angular_velocity(0)
+                self.set_angular_velocity(0)
 
             # PLAN ROUTE BACK TO ZONE
             # general scheme is to break the world into grid (done in init)
@@ -368,52 +362,52 @@ class EcoDisasterBrain(RobotBrain):
                     self.time_since_good_move = time()
                     if next_move == Pathfinding.UP:
                         if move_after == Pathfinding.LEFT:
-                            self.controller.set_plane_velocity(
+                            self.set_plane_velocity(
                                 [-self.speed * 0.8, self.speed * 0.8]
                             )
                         elif move_after == Pathfinding.RIGHT:
-                            self.controller.set_plane_velocity(
+                            self.set_plane_velocity(
                                 [self.speed * 0.8, self.speed * 0.8]
                             )
                         else:
                             # print("Trying to move up")
-                            self.controller.set_plane_velocity([0, self.speed])
+                            self.set_plane_velocity([0, self.speed])
                     elif next_move == Pathfinding.DOWN:
                         if move_after == Pathfinding.LEFT:
-                            self.controller.set_plane_velocity(
+                            self.set_plane_velocity(
                                 [-self.speed * 0.8, -self.speed * 0.8]
                             )
                         elif move_after == Pathfinding.RIGHT:
-                            self.controller.set_plane_velocity(
+                            self.set_plane_velocity(
                                 [self.speed * 0.8, -self.speed * 0.8]
                             )
                         else:
                             # print("Trying to move down")
-                            self.controller.set_plane_velocity([0, -self.speed])
+                            self.set_plane_velocity([0, -self.speed])
                     elif next_move == Pathfinding.LEFT:
                         if move_after == Pathfinding.UP:
-                            self.controller.set_plane_velocity(
+                            self.set_plane_velocity(
                                 [-self.speed * 0.8, self.speed * 0.8]
                             )
                         elif move_after == Pathfinding.DOWN:
-                            self.controller.set_plane_velocity(
+                            self.set_plane_velocity(
                                 [-self.speed * 0.8, -self.speed * 0.8]
                             )
                         else:
                             # print("Trying to move left")
-                            self.controller.set_plane_velocity([-self.speed, 0])
+                            self.set_plane_velocity([-self.speed, 0])
                     elif next_move == Pathfinding.RIGHT:
                         if move_after == Pathfinding.UP:
-                            self.controller.set_plane_velocity(
+                            self.set_plane_velocity(
                                 [self.speed * 0.8, self.speed * 0.8]
                             )
                         elif move_after == Pathfinding.DOWN:
-                            self.controller.set_plane_velocity(
+                            self.set_plane_velocity(
                                 [self.speed * 0.8, -self.speed * 0.8]
                             )
                         else:
                             # print("Trying to move right")
-                            self.controller.set_plane_velocity([self.speed, 0])
+                            self.set_plane_velocity([self.speed, 0])
 
                 else:
                     print("NO NEW MOVE!!!")
@@ -436,7 +430,7 @@ class EcoDisasterBrain(RobotBrain):
 
             # are we in the goal? it counts as long as some part of the barrel is touching the zone
             if goal_distance < 0.005:
-                self.controller.stop()
+                self.controller_stop()
                 # wait for the gripper to open
                 self.attachment_controller.open_gripper()
                 if (
@@ -460,7 +454,7 @@ class EcoDisasterBrain(RobotBrain):
             if self.distance_forward() < 0.10:
                 # about to hit the wall with the gripper, don't move forward anymore!!!
                 v[1] = 0
-            self.controller.set_plane_velocity(v)
+            self.set_plane_velocity(v)
 
             pass
 
@@ -470,7 +464,7 @@ class EcoDisasterBrain(RobotBrain):
             # self.state = ExecutionState.SQUARING_UP
 
             # if goal.object_type == ObjectType.ZONE:
-            # self.controller.stop()
+            # self.controller_stop()
             # print("Dropping off barrel")
             # self.holding.pop(0)
 

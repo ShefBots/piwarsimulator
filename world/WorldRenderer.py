@@ -196,9 +196,9 @@ class WorldRenderer:
         # display velocities
         if not robot_brain is None:
             towrite = [
-                f"X-Velocity: {robot_brain.controller.vel[0]}",
-                f"Y-Velocity: {robot_brain.controller.vel[1]}",
-                f"θ-Velocity: {robot_brain.controller.theta_vel}",
+                f"X-Velocity: {robot_brain._controller.vel[0]}",
+                f"Y-Velocity: {robot_brain._controller.vel[1]}",
+                f"θ-Velocity: {robot_brain._controller.theta_vel}",
             ]
             for k, text in enumerate(towrite):
                 text = self.small_font.render(text, True, pygame.Color("gray"))
