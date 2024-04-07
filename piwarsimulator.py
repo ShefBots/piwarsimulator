@@ -326,6 +326,7 @@ while running:
                     Worlds=[robot_brain.TheWorld],
                     # yes this is a list in a list. deal with it.
                     Sensors=[[s.outline for s in robot_brain.sensors]],
+                    names=["Robot Perception"],
                     robot_brain=robot_brain,
                 )  # see the world as the robot sees it
             else:
@@ -335,6 +336,7 @@ while running:
                         [s.fov for s in robot_brain.sensors],
                         [s.outline for s in robot_brain.sensors],
                     ],
+                    names=["Simulation Environment", "Robot Perception"],
                     robot_brain=robot_brain,
                 )  # see the world as it is and as the robot sees it
 

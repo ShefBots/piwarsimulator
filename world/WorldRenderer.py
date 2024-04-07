@@ -49,7 +49,7 @@ class WorldRenderer:
         """transform vertical coordiant to pixels (flipping so y = 0 is bottom )"""
         return np.round(-c * scale + self.screen.get_height() - self.y_res / 2)
 
-    def update(self, Worlds=[], Sensors=[], robot_brain=None):
+    def update(self, Worlds=[], Sensors=[], names=[], robot_brain=None):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 print("Quit requested!")
@@ -57,8 +57,10 @@ class WorldRenderer:
 
         if (
             not isinstance(Worlds, list)
-            or not isinstance(Worlds, list)
+            or not isinstance(Sensors, list)
+            or not isinstance(names, list)
             or not len(Worlds) == len(Sensors)
+            or not len(Worlds) == len(names)
         ):
             raise Exception("WorldRenderer.update() inputs must be matched size lists")
 
@@ -70,6 +72,14 @@ class WorldRenderer:
         world_at = 0
         for k, TheWorld in enumerate(Worlds):
             # render each world
+
+            # put in the name of each world view
+            x = world_at * self.x_res + self.x_res * 0.5
+            c = "white"
+            if "imulation" in names[k]:
+                c = "red"
+            text = self.font.render(names[k], True, pygame.Color(c))
+            self.screen.blit(text, (int(x - text.get_width() / 2), 4))
 
             # the default scale works out so that about 2 m is shown
             # work out a scale that can see the whold world
