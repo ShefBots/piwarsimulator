@@ -76,11 +76,20 @@ class CheesedEcoDisasterBrain(RobotBrain):
 
         # use time of flight sensor readings to infer drop of zone locations
         # where are we relative to (0,0) if that was the center of the arena?
-        # TODO replace with .distance_left() etc calls
-        tof_front = self.sensor_measurements["tof_0"]
-        tof_rear = self.sensor_measurements["tof_180"]
-        tof_right = self.sensor_measurements["tof_90"]
-        tof_left = self.sensor_measurements["tof_270"]
+        tof_front = self.distance_forward()
+        tof_rear = self.distance_back()
+        tof_right = self.distance_right()
+        tof_left = self.distance_left()
+
+        # compatability with old tof measurement system
+        if tof_front is None:
+            tof_front = 9e99
+        if tof_rear is None:
+            tof_rear = 9e99
+        if tof_right is None:
+            tof_right = 9e99
+        if tof_left is None:
+            tof_left = 9e99
 
         yf = self.estimate_y_front(tof_front)
         yr = self.estimate_y_rear(tof_rear)
@@ -329,28 +338,31 @@ class CheesedEcoDisasterBrain(RobotBrain):
 
     def estimate_y_front(self, tof):
         # base off front sensor
-        if not tof == 9e99:
-            return 1.1 - (tof + self.robot.height / 2)
+        if not tof is None and not tof == 9e99:
+            # return 1.1 - (tof + self.robot.height / 2)
+            # distance forward includes gripper size, need to account for this
+            b = self.TheWorld[0].outline.bounds
+            return 1.1 - (tof + b[3])
         else:
             return None
 
     def estimate_y_rear(self, tof):
         # base off rear sensor
-        if not tof == 9e99:
+        if not tof is None and not tof == 9e99:
             return -1.1 + (tof + self.robot.height / 2)
         else:
             return None
 
     def estimate_x_right(self, tof):
         # base off right sensor
-        if not tof == 9e99:
+        if not tof is None and not tof == 9e99:
             return 1.1 - (tof + self.robot.width / 2)
         else:
             return None
 
     def estimate_x_left(self, tof):
         # base off left sensor
-        if not tof == 9e99:
+        if not tof is None and not tof == 9e99:
             return -1.1 + (tof + self.robot.width / 2)
         else:
             return None
