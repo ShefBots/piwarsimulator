@@ -29,7 +29,7 @@ class RobotBrain:
     SENSOR_HEADINGS = [0, 90, 180, 270]
 
     # how long between state changes to timeout for
-    EXECUTION_TIMEOUT = 30
+    EXECUTION_TIMEOUT = 60
 
     # seconds to move when doing square up procedure
     SQUARE_UP_DURATION = 1
@@ -131,6 +131,7 @@ class RobotBrain:
         # print(self.sensor_measurements)
         if self.sensor_measurements["manual_control"]:
             if not self.state == ExecutionState.MANUAL_CONTROL:
+                print("Storing execution state")
                 self.last_state = self.state
                 self.state = ExecutionState.MANUAL_CONTROL
             self.set_plane_velocity(
@@ -161,6 +162,7 @@ class RobotBrain:
         else:
             if self.state == ExecutionState.MANUAL_CONTROL:
                 # resume where we were
+                print("Restoring execution state")
                 self.state = self.last_state
 
         if self.sensor_measurements["do_quit"]:
@@ -169,7 +171,11 @@ class RobotBrain:
             return
 
         # timer on state to change to self.running = False
-        if not self.state == self.last_state:
+        if (
+            not self.state == self.last_state
+            and not self.state == ExecutionState.MANUAL_CONTROL
+        ):
+            print(f"Execution state changed")
             self.last_state = self.state
             self.last_state_change_time = time()
         elif (

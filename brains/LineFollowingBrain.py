@@ -17,9 +17,6 @@ class LineFollowingBrain(RobotBrain):
     ANGLE_TOLERANCE = 2  # try and be pointing towards the line
     NEAR_WALL = 0.1
 
-    # we (may?) need longer for this one
-    # EXECUTION_TIMEOUT = 60
-
     def __init__(self, **kwargs):
         super(LineFollowingBrain, self).__init__(**kwargs)
         self.state = ExecutionState.PROGRAM_CONTROL
