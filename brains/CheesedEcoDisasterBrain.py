@@ -2,11 +2,11 @@
 import math
 from shapely.affinity import scale
 from shapely.geometry import Point
+import algorithms.ecodisaster_find as ecodisaster_find
 from brains.ExecutionState import ExecutionState
 from brains.RobotBrain import RobotBrain
 from world.WorldObject import *
 from world.ObjectType import *
-
 
 # TODO use is_held and add held barrel to TheWorld
 # TODO split drop off code from move to zone code
@@ -72,10 +72,7 @@ class CheesedEcoDisasterBrain(RobotBrain):
             self.controller.stop()
             return
 
-        # some additional sensor processing
-
-        # use time of flight sensor readings to infer drop of zone locations
-        # where are we relative to (0,0) if that was the center of the arena?
+        # how far away things are from us
         tof_front = self.distance_forward()
         tof_rear = self.distance_back()
         tof_right = self.distance_right()
@@ -91,104 +88,9 @@ class CheesedEcoDisasterBrain(RobotBrain):
         if tof_left is None:
             tof_left = 9e99
 
-        yf = self.estimate_y_front(tof_front)
-        yr = self.estimate_y_rear(tof_rear)
-
-        xr = self.estimate_x_right(tof_right)
-        xl = self.estimate_x_left(tof_left)
-
-        # rely on closest reading of side sensors when close to the other side's wall
-        # this avoids issue where false readings from wall edge of wall mess up distances
-        x = None
-        y = None
-
-        if not yr is None and tof_rear < 0.15:  # and xr > 0.15 and xl > 0.15:
-            y = yr
-            if not xr is None and not xl is None:
-                if tof_left <= tof_right:
-                    x = xl
-                else:
-                    x = xr
-            elif not xr is None:
-                x = xr
-            elif not xl is None:
-                x = xl
-        elif not yf is None and tof_front < 0.15:  # and xr > 0.15 and xl > 0.15:
-            y = yf
-            if not xr is None and not xl is None:
-                if tof_left <= tof_right:
-                    x = xl
-                else:
-                    x = xr
-            elif not xr is None:
-                x = xr
-            elif not xl is None:
-                x = xl
-
-        if not xr is None and tof_right < 0.15:
-            x = xr
-            if not yf is None and not yr is None:
-                if tof_front <= tof_rear:
-                    y = yf
-                else:
-                    y = yr
-            elif not yf is None:
-                y = yf
-            elif not yr is None:
-                y = yr
-        elif not xl is None and tof_left < 0.15:
-            x = xl
-            if not yf is None and not yr is None:
-                if tof_front <= tof_rear:
-                    y = yf
-                else:
-                    y = yr
-            elif not yf is None:
-                y = yf
-            elif not yr is None:
-                y = yr
-
-        if y is None and (not yf is None or not yr is None):
-            if not yf is None:
-                y = yf
-            elif not yr is None:
-                y = yr
-            else:
-                y = (yf + yr) / 2
-
-        if x is None and (not xr is None or not xl is None):
-            if not xr is None:
-                x = xr
-            elif not xl is None:
-                x = xl
-            else:
-                x = (xl + xr) / 2
-
-        if y is None:
-            print("Y Localisation failed! (reusing old value, yikes)")
-            y = self.y
-        else:
-            self.y = y
-        if x is None:
-            print("X Localisation failed! (reusing old value, yikes)")
-            x = self.x
-        else:
-            self.x = x
-
-        # print([x, y])
-
-        # put in estimated target zone locations based on sensor readings
-        for xoff, color in self.DROP_ZONES:
-            self.TheWorld.append(
-                WorldObject(
-                    object_type=ObjectType.ZONE,
-                    x=xoff - x,
-                    y=1.0 - y,
-                    w=self.ZONE_WIDTH,
-                    h=self.ZONE_HEIGHT,
-                    color=color,
-                )
-            )
+        # use time of flight sensor readings to infer drop of zone locations
+        # where are we relative to (0,0) if that was the center of the arena?
+        x, y = self.localise(tof_front, tof_rear, tof_right, tof_left)
 
         # don't do anything if the manual override is triggered
         if self.sensor_measurements["manual_control"]:
@@ -336,6 +238,108 @@ class CheesedEcoDisasterBrain(RobotBrain):
         elif self.state == ExecutionState.DROP_OFF_BARREL:
             pass
 
+    def localise(self, tof_front, tof_rear, tof_right, tof_left):
+        # some additional sensor processing to figure out where we are
+
+        yf = self.estimate_y_front(tof_front)
+        yr = self.estimate_y_rear(tof_rear)
+
+        xr = self.estimate_x_right(tof_right)
+        xl = self.estimate_x_left(tof_left)
+
+        # rely on closest reading of side sensors when close to the other side's wall
+        # this avoids issue where false readings from wall edge of wall mess up distances
+        x = None
+        y = None
+
+        if not yr is None and tof_rear < 0.15:  # and xr > 0.15 and xl > 0.15:
+            y = yr
+            if not xr is None and not xl is None:
+                if tof_left <= tof_right:
+                    x = xl
+                else:
+                    x = xr
+            elif not xr is None:
+                x = xr
+            elif not xl is None:
+                x = xl
+        elif not yf is None and tof_front < 0.15:  # and xr > 0.15 and xl > 0.15:
+            y = yf
+            if not xr is None and not xl is None:
+                if tof_left <= tof_right:
+                    x = xl
+                else:
+                    x = xr
+            elif not xr is None:
+                x = xr
+            elif not xl is None:
+                x = xl
+
+        if not xr is None and tof_right < 0.15:
+            x = xr
+            if not yf is None and not yr is None:
+                if tof_front <= tof_rear:
+                    y = yf
+                else:
+                    y = yr
+            elif not yf is None:
+                y = yf
+            elif not yr is None:
+                y = yr
+        elif not xl is None and tof_left < 0.15:
+            x = xl
+            if not yf is None and not yr is None:
+                if tof_front <= tof_rear:
+                    y = yf
+                else:
+                    y = yr
+            elif not yf is None:
+                y = yf
+            elif not yr is None:
+                y = yr
+
+        if y is None and (not yf is None or not yr is None):
+            if not yf is None:
+                y = yf
+            elif not yr is None:
+                y = yr
+            else:
+                y = (yf + yr) / 2
+
+        if x is None and (not xr is None or not xl is None):
+            if not xr is None:
+                x = xr
+            elif not xl is None:
+                x = xl
+            else:
+                x = (xl + xr) / 2
+
+        if y is None:
+            print("Y Localisation failed! (reusing old value, yikes)")
+            y = self.y
+        else:
+            self.y = y
+        if x is None:
+            print("X Localisation failed! (reusing old value, yikes)")
+            x = self.x
+        else:
+            self.x = x
+
+        # put in estimated target zone locations based on sensor readings
+        for xoff, color in self.DROP_ZONES:
+            self.TheWorld.append(
+                WorldObject(
+                    object_type=ObjectType.ZONE,
+                    x=xoff - x,
+                    y=1.0 - y,
+                    w=self.ZONE_WIDTH,
+                    h=self.ZONE_HEIGHT,
+                    color=color,
+                )
+            )
+
+        return (x, y)
+
     def estimate_y_front(self, tof):
         # base off front sensor
         if not tof is None and not tof == 9e99:
@@ -407,136 +411,5 @@ class CheesedEcoDisasterBrain(RobotBrain):
             )
             print(f"Aiming to drop off at {self.drop_off_x}, {self.drop_off_y}")
 
-    ### TODO OLD CODE BELOW HERE, WILL NEED OPTIMISATION/SIMPLIFICATION ###
-
-    def find_in_front(self, object_type, color="", exclude=[], relative_to="outline"):
-        """
-        find something somewhat in front of the robot
-        based on find_closest
-        note color should be a pygame.color.Color
-        exclude a list of WorldObjects
-        if relative_to is a tuple or list, treat that as an offset from the center of the robot
-        """
-        closest = None
-        closest_distance = 9e99
-        for obj in self.TheWorld[1:]:  # skip the robot and check everything else
-            dist = self.TheWorld[0].get_distance(obj, relative_to=relative_to)
-            t = obj.center[1]
-            if isinstance(relative_to, (tuple, list, np.ndarray)):
-                t = obj.center - relative_to
-            else:
-                raise Exception("can only find closest points in front")
-            if (
-                obj.object_type == object_type
-                and (color == "" or obj.color == color)
-                and not self.is_holding(obj)
-                and not any(RobotBrain.match_objects(obj, obj2) for obj2 in exclude)
-                and t[1] > 0  # this should filter for objects in front
-                and abs(t[0]) < 0.25  # only straight ahead
-            ):
-                if dist < closest_distance:
-                    # I'd like to dist > self.TheWorld[0].height/2 but then it looses tracking
-                    closest = obj
-                    closest_distance = dist
-
-        return (closest, closest_distance)
-
     def find_goal(self):
-        """find the closest TARGET or ZONE depending on execution state"""
-
-        if len(self.holding) > 0:
-            barrel = self.holding[0]
-            if barrel.color == Color("darkgreen"):
-                holding_color = "darkgreen"
-            elif barrel.color == Color("red"):
-                holding_color = "red"
-            else:
-                print("yikes shouldn't get here")
-            goal_color = Color(self.GOAL_MAPPING[holding_color])
-        else:
-            goal_color = None
-        # treat the middle of the gripper as the center
-        gripper_center = (0, self.robot.height / 2 + 0.025)
-
-        if self.state == ExecutionState.MOVE_TO_ZONE:
-            # TODO need to ignore barrels in/near zones
-            return self.find_closest(ObjectType.ZONE, color=goal_color)
-
-        elif self.state == ExecutionState.MOVE_TO_BARREL:
-            # treat the middle of the gripper as the center, so find barrel closest
-            # to the front of the robot, 0.025 = barrel radius
-            # finds the closest barrel that's in a straight line
-            # return self.find_in_front(ObjectType.BARREL, relative_to=gripper_center)
-            # TODO fall back to flosest if there's nothing in front?
-            return self.find_closest(ObjectType.BARREL, relative_to=gripper_center)
-
-        elif self.state == ExecutionState.DROP_OFF_BARREL:
-            # we have a barrel and we're near the zone, find the bit of the zone
-            # closet to where we are to put the barrel
-
-            # the zone
-            zone, _ = self.find_closest(ObjectType.ZONE, color=goal_color)
-
-            barrel_center_point = Point(barrel.center)
-            # the closest part of the zone to the barrel
-            zone_intersection_point = zone.outline.exterior.interpolate(
-                zone.outline.exterior.project(barrel_center_point)
-            )
-
-            # if we're not inside the zone, find a point inside it to aim towards
-
-            # the line between the barrel and edge of zone
-            line_to_zone = LineString([barrel_center_point, zone_intersection_point])
-
-            if not zone.outline.intersects(barrel_center_point):
-                # barrel is not inside the zone
-                # scaled by *2 because scaling both ends
-                fact = (barrel.radius * 3 + line_to_zone.length) / line_to_zone.length
-                scaled_line = scale(line_to_zone, xfact=fact, yfact=fact)
-                drop_point = scaled_line.coords[1]
-            elif zone.outline.contains(barrel.outline):
-                # the barrel is entirely in the zone, we're done
-                return (barrel, 0)
-            else:
-                # slightly inside the zone
-                # trying to find some point slightly inside the zone still
-                # but more likely just some point slightly ahead of where we are
-                drop_point = line_to_zone.interpolate(
-                    line_to_zone.length - barrel.radius * 3
-                )
-                drop_point = (drop_point.x, drop_point.y)
-                # if we're just inside the zone then the interpolated location along
-                # the line ends up being the end of the line instead of the correct barrel location
-                # so we need to extrapolate instead
-                if all(barrel.center == drop_point):
-                    fact = (barrel.radius * 3) / line_to_zone.length
-                    scaled_line = scale(line_to_zone, xfact=fact, yfact=fact)
-                    drop_point = scaled_line.coords[0]
-
-            # temporary world object to move towards
-            barrel_drop = WorldObject(
-                object_type=ObjectType.DROP_SPOT,
-                x=drop_point[0],
-                y=drop_point[1],
-                radius=barrel.radius,
-                color="gray",
-            )
-            # work out the heading
-            # possibly more useful to use the heading between the barrel and
-            # drop off point instead of the robot and drop off point?
-            offset_drop = drop_point - barrel.center
-            barrel_drop.heading = math.degrees(
-                # math.atan2(barrel_drop.center[0], barrel_drop.center[1])
-                math.atan2(offset_drop[0], offset_drop[1])
-            )
-
-            self.TheWorld.append(barrel_drop)
-            return (
-                barrel_drop,
-                self.TheWorld[0].get_distance(
-                    barrel_drop,
-                    relative_to=gripper_center,
-                ),
-            )
-        else:
-            return (None, 9e99)
+        return ecodisaster_find.find_goal(self)
