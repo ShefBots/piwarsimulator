@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from time import monotonic as time
 from controllers.SimulatedGripperController import SimulatedGripperController
 from world.ObjectType import *
