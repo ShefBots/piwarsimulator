@@ -29,7 +29,9 @@ class SimulatedGripperController(Controller, Thread):
     GRIPPER_OPENING = 4
 
     def __init__(self, robot, secondary_controller=None):
-        print("Initialising SimulatedGripperController...")
+        if type(self).__name__ == "SimulatedGripperController":
+            # avout printing out initialising when a parent class...?
+            print("Initialising SimulatedGripperController...")
         # https://stackoverflow.com/questions/13380819/multiple-inheritance-along-with-threading-in-python
         super(SimulatedGripperController, self).__init__()
 
