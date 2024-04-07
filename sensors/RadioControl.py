@@ -26,30 +26,30 @@ class RadioControl(Sensor):
 
     def __init__(self, speed, turning_speed):
         super().__init__()
-        print("Activating radio controller sensor...")
+        print("Activating radio remote controller sensor...")
         self.speed = speed
         self.turning_speed = turning_speed
 
         # Based on @ZodiusUnfusers's piwarsengine remote_controlled.py example
-        self.controller = SBusReceiver(
+        self.remote = SBusReceiver(
             self.SBUS_PORT, self.SBUS_CHANNELS, self.SBUS_TIMEOUT
         )
         # Forward/Backward
-        self.controller.assign_channel_decoder(self.FORWARD_CHANNEL, analog_decoder)
+        self.remote.assign_channel_decoder(self.FORWARD_CHANNEL, analog_decoder)
         # Right/Left
-        self.controller.assign_channel_decoder(self.RIGHT_CHANNEL, analog_decoder)
+        self.remote.assign_channel_decoder(self.RIGHT_CHANNEL, analog_decoder)
         # Angular
-        self.controller.assign_channel_decoder(self.TURN_CHANNEL, analog_decoder)
+        self.remote.assign_channel_decoder(self.TURN_CHANNEL, analog_decoder)
         # Enable channel
-        self.controller.assign_channel_decoder(self.EN_CHANNEL, binary_decoder)
+        self.remote.assign_channel_decoder(self.EN_CHANNEL, binary_decoder)
         # Speed
-        self.controller.assign_channel_decoder(
+        self.remote.assign_channel_decoder(
             self.SPEED_CHANNEL, analog_biased_decoder
         )
 
         print("Establishing Connection...")
-        while not self.controller.is_connected():
-            self.controller.check_receive()
+        while not self.remote.is_connected():
+            self.remote.check_receive()
         print("Connection Established.")
 
     def do_scan(self):
@@ -58,26 +58,26 @@ class RadioControl(Sensor):
         angular_vel = 0
         manual_control = False
 
-        if self.controller.is_connected() and self.controller.check_receive():
-            manual_control = not self.controller.read_channel(self.EN_CHANNEL)
+        if self.remote.is_connected() and self.remote.check_receive():
+            manual_control = not self.remote.read_channel(self.EN_CHANNEL)
 
             if manual_control:
-                speed_scale = self.controller.read_channel(self.SPEED_CHANNEL)
+                speed_scale = self.remote.read_channel(self.SPEED_CHANNEL)
 
                 # note all speeds here are scaled according to the max speed
                 # control and then the max speed (& turning speed) of robot
                 forward_vel = (
-                    self.controller.read_channel(self.FORWARD_CHANNEL)
+                    self.remote.read_channel(self.FORWARD_CHANNEL)
                     * self.speed
                     * speed_scale
                 )
                 sideways_vel = (
-                    self.controller.read_channel(self.RIGHT_CHANNEL)
+                    self.remote.read_channel(self.RIGHT_CHANNEL)
                     * self.speed
                     * speed_scale
                 )
                 angular_vel = (
-                    self.controller.read_channel(self.TURN_CHANNEL)
+                    self.remote.read_channel(self.TURN_CHANNEL)
                     * self.turning_speed
                     * speed_scale
                 )
