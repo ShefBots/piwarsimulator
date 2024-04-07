@@ -11,6 +11,7 @@ from world.ObjectType import *
 # TODO use is_held and add held barrel to TheWorld
 # TODO split drop off code from move to zone code
 # TODO verify zone colour on drop off?
+# TODO print out fewer messages
 
 
 class CheesedEcoDisasterBrain(RobotBrain):
@@ -26,13 +27,13 @@ class CheesedEcoDisasterBrain(RobotBrain):
     GOAL_MAPPING = {"darkgreen": "blue", "red": "yellow"}
 
     # how close to be to target before activating gripper
-    GRIPPER_ANGLE_TOLERANCE = 2  # degree
-    GRIPPER_TOLERANCE = 0.04  # m, if this isn't big bad things happen
+    GRIPPER_ANGLE_TOLERANCE = 10  # degree, this should be wide
+    GRIPPER_TOLERANCE = 0.02  # m, this should be small
 
     # how close to get to walls before stopping
     LEFT_WALL_TARGET = 0.12  # puts robot on edge of zone where no barrels may be
     RIGHT_WALL_TARGET = 0.12
-    FRONT_WALL_TARGET = 0.12
+    FRONT_WALL_TARGET = 0.06  # need to account for the gripper some
     # how much further than the target is OK
     WALL_MARGIN = 0.02
 
@@ -76,16 +77,6 @@ class CheesedEcoDisasterBrain(RobotBrain):
         tof_rear = self.distance_back()
         tof_right = self.distance_right()
         tof_left = self.distance_left()
-
-        # compatability with old tof measurement system
-        if tof_front is None:
-            tof_front = 9e99
-        if tof_rear is None:
-            tof_rear = 9e99
-        if tof_right is None:
-            tof_right = 9e99
-        if tof_left is None:
-            tof_left = 9e99
 
         # use time of flight sensor readings to infer drop of zone locations
         # where are we relative to (0,0) if that was the center of the arena?
@@ -145,9 +136,14 @@ class CheesedEcoDisasterBrain(RobotBrain):
             if goal is not None:
                 self.found_barrel = 1
                 print("Barrel found...")
-                # if abs(goal.heading) < self.GRIPPER_ANGLE_TOLERANCE:
                 if abs(goal.center[0]) < self.GRIPPER_TOLERANCE / 2:
                     self.set_plane_velocity([0, self.speed])
+                elif (
+                    abs(goal.heading) < self.GRIPPER_ANGLE_TOLERANCE
+                    and np.max(np.abs(self._controller.vel)) > self.speed / 4
+                ):
+                    print("Slowing down!")
+                    self.set_plane_velocity(self._controller.vel / 2)
 
             if self.found_barrel == 1:
                 print(goal_distance)
@@ -165,14 +161,8 @@ class CheesedEcoDisasterBrain(RobotBrain):
                     self.state = (
                         ExecutionState.PROGRAM_CONTROL
                     )  # home, then we move to zone
-                elif goal_distance < 0.15:
-                    # barrel is closer to in front of us
-                    self.set_plane_velocity([0, self.speed / 4])
-                    # follw up open call to trigger gripper animation
-                    self.attachment_controller.open_gripper()
                 elif goal_distance < 0.2:
                     # barrel is close to in front of us
-                    self.set_plane_velocity([0, self.speed / 2])
                     self.attachment_controller.open_gripper()
 
         elif self.state == ExecutionState.MOVE_TO_ZONE:

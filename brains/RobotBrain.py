@@ -9,11 +9,6 @@ from world.WorldObject import *
 from world.ObjectType import *
 
 
-# TODO move setting velocities into here so that the robot can be made to slow down
-#     if the gripper is open
-#     if it is approaching a wall
-
-
 class RobotBrain:
     """
     the basics of every brain
@@ -122,6 +117,7 @@ class RobotBrain:
             print("UH OH! Lost connection with controller!!!")
         self.check_for_collision()
         self.find_distances()
+        self.velocity_modify()  # check if we should slow & do so
 
         # do we always want to try and stop on collisions?
         # sometimes we'll let higher level logic take over
@@ -301,6 +297,9 @@ class RobotBrain:
                 if obj.heading == self.SENSOR_HEADINGS[k]:
                     self.distances[k] = self.TheWorld[0].get_distance(obj)
                     break
+            # fall back to a real number for comparisons
+            if self.distances[k] is None:
+                self.distances[k] = 9e99
 
     def distance_forward(self):
         """return the distance to ahead wall"""
@@ -409,6 +408,44 @@ class RobotBrain:
         self.square_up_pass = 0
         self.state = ExecutionState.PROGRAM_CONTROL
 
+    def velocity_modify(self, speed_limit=None):
+        # we should slow down if the gripper is open or if approaching a wall
+
+        if speed_limit is None:
+            speed_limit = self.speed / 2
+
+        vel = self._controller.vel
+
+        # is the gripper not closed?
+        if (
+            not self.attachment_controller == None
+            and (
+                type(self.attachment_controller).__name__
+                == "SimulatedGripperController"
+                or type(self.attachment_controller).__name__ == "GripperController"
+            )
+            and not self.attachment_controller.gripper_state
+            == self.attachment_controller.GRIPPER_CLOSED
+        ):
+            clamp = lambda v: min(max(v, -speed_limit / 2), speed_limit / 2)
+            vel = [clamp(v) for v in vel]
+            self._controller.set_plane_velocity(vel)
+
+        # force the robot to slow down if the gripper is open or if it is approaching a wall
+        if self.distance_forward() < 0.2 and vel[1] > speed_limit:
+            vel[1] = speed_limit
+        elif self.distance_back() < 0.2 and vel[1] < -speed_limit:
+            vel[1] = -speed_limit
+
+        if self.distance_right() < 0.2 and vel[0] > speed_limit:
+            vel[0] = speed_limit
+        elif self.distance_left() < 0.2 and vel[0] < -speed_limit:
+            vel[0] = -speed_limit
+
+        if not np.any(vel == self._controller.vel):
+            print("Modifying velocity")
+            self._controller.set_plane_velocity(vel)
+
     # set velocities here so that they can be adjusted based on sensor inputs
     def set_angular_velocity(self, theta):
         """set angular velocity in degrees per second"""
@@ -418,6 +455,7 @@ class RobotBrain:
         """velocity aligned to the robot (sideways, forwards)"""
         assert len(vel) == 2, "plane velocity is always 2 components"
         self._controller.set_plane_velocity(vel)
+        self.velocity_modify()
 
     def controller_stop(self, exiting=False):
         """stop moving"""
