@@ -123,6 +123,8 @@ class DistanceSensor(Sensor):
         closest_distance = self.io_controller.read_tof(self.index) / 100
         closest_distance -= self.offset
 
+        # TODO three or 5 point median filter?
+
         # construct the wall the scanned object could be
         if closest_distance > 0:
             # how long half of the wall segment is

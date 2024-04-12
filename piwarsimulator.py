@@ -18,6 +18,7 @@ from world.WorldObject import WorldObject
 # TODO      launcher control?
 # TODO update readme
 # TODO nice program end points
+# TODO launch scripts for specific challenge configurations (passing an argument for simulation/control?)
 
 # note this runs about 6 times slower on the Pi under Python 3.7?
 # FPS to TPS for thoughts per second ? :)
@@ -77,14 +78,13 @@ parser.add_argument(
 parser.add_argument(
     "--map",
     help=f"map (default {maps[0]})",
-    # default=maps[0],
+    default=maps[0],
     # default="MinesweeperMap",
-    default="EscapeRouteMap",
+    # default="EscapeRouteMap",
     # default="LavaPalavaMap",
     # default="SimpleEcoDisasterMap",
     # default="RandomEcoDisasterMap",
     choices=maps,
-    # "--map", help=f"map (default {maps[0]})", default="LavaPalavaMap", choices=maps
 )
 parser.add_argument(
     "--mode",
