@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CHALLENGENAME="Lava Palav"
+CHALLENGENAME="Eco-Disaster"
 
 # Get the directory containing the script
 SCRIPT_DIR=$(dirname "$0")
@@ -29,4 +29,6 @@ else
     exit 1
 fi
 
+echo "Launching $CHALLENGENAME..."
+echo python3 $PYARGS "${@:2}"
 python3 $PYARGS "${@:2}"
