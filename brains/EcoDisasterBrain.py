@@ -136,6 +136,11 @@ class EcoDisasterBrain(RobotBrain):
             # nothing smart to do while squaring up
             return
 
+        # if there's no beam, set the sensor measurement to false as if there was one not detecting anything
+        if not "beam" in self.sensor_measurements.keys():
+            # This only gets hit once as the dictionary isn't reset
+            self.sensor_measurements["beam"] = False
+
         # could try plotting routes to both zones here in order to pick barrel
         # with easiest route back to zone
 
@@ -165,7 +170,10 @@ class EcoDisasterBrain(RobotBrain):
                 speed_multiplier = 1
 
             # if in range of barrel
-            if goal_distance < self.GRIPPER_TOLERANCE:
+            if (
+                goal_distance < self.GRIPPER_TOLERANCE
+                or self.sensor_measurements["beam"]
+            ):
                 print("Grabbing barrel")
                 self.controller_stop()
                 if (
