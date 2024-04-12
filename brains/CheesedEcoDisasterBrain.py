@@ -72,6 +72,11 @@ class CheesedEcoDisasterBrain(RobotBrain):
         if np.sum(self.barrel_positions) == 12:
             self.state = ExecutionState.PROGRAM_COMPLETE
 
+        # if there's no beam, set the sensor measurement to false as if there was one not detecting anything
+        if not "beam" in self.sensor_measurements.keys():
+            # This only gets hit once as the dictionary isn't reset
+            self.sensor_measurements["beam"] = False
+
         # how far away things are from us
         tof_front = self.distance_forward()
         tof_rear = self.distance_back()
@@ -89,7 +94,6 @@ class CheesedEcoDisasterBrain(RobotBrain):
         if self.state == ExecutionState.PROGRAM_COMPLETE:
             return
         elif self.state == ExecutionState.PROGRAM_INIT:
-            # TODO squaring up?
             self.state = ExecutionState.PROGRAM_CONTROL
         elif self.state == ExecutionState.SQUARING_UP:
             # nothing smart to do while squaring up
@@ -113,6 +117,8 @@ class CheesedEcoDisasterBrain(RobotBrain):
                 # (so that when dropping off barrels barrels could get pushed left and detected earlier)
                 self.set_plane_velocity([self.speed, 0])
             else:
+                # should be in home location now
+                # TODO squaring up?
                 self.controller_stop()
                 if self.found_barrel == 0:
                     self.state = ExecutionState.MOVE_TO_BARREL
@@ -147,7 +153,10 @@ class CheesedEcoDisasterBrain(RobotBrain):
 
             if self.found_barrel == 1:
                 print(goal_distance)
-                if goal_distance < self.GRIPPER_TOLERANCE:
+                if (
+                    goal_distance < self.GRIPPER_TOLERANCE
+                    or self.sensor_measurements["beam"]
+                ):
                     # barrel is right in front of us (shorter distance goes first)
                     self.controller_stop()
                     self.attachment_controller.close_gripper()

@@ -24,11 +24,11 @@ class SimulatedBeamSensor(Sensor):
         self.outline = LineString(
             [
                 (
-                    -robot.width / 2 + 0.02,
+                    -robot.width / 2 + 0.035,
                     robot.height / 2 + 0.03,
                 ),
                 (
-                    robot.width / 2 - 0.02,
+                    robot.width / 2 - 0.035,
                     robot.height / 2 + 0.03,
                 ),
             ]
@@ -51,7 +51,6 @@ class SimulatedBeamSensor(Sensor):
         for obj in self.ExteriorTheWorld[1:]:  # ignore the robot in 0
             if obj.object_type == ObjectType.BARREL:
                 if self.fov.intersects(obj.outline):
-                    print("Beam hit something!")
                     return [], {"beam": True}
 
         return [], {"beam": False}
