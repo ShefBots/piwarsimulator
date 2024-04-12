@@ -9,7 +9,6 @@ from world.WorldObject import *
 from world.ObjectType import *
 
 # TODO use is_held and add held barrel to TheWorld
-# TODO split drop off code from move to zone code
 # TODO verify zone colour on drop off?
 # TODO print out fewer messages
 
@@ -217,24 +216,24 @@ class CheesedEcoDisasterBrain(RobotBrain):
                         self.state = ExecutionState.PROGRAM_CONTROL
                         return
             else:
-                self.find_next_free_barrel_slot(self.get_barrel_color(self.holding[0]))
-                if x > self.drop_off_x:
-                    # 2) scuttle left to the drop off location
-                    self.set_plane_velocity([-self.speed, 0])
-                elif y < self.drop_off_y:
-                    # 3) at location go forwards
-                    self.set_plane_velocity([0, self.speed / 4])
-                elif len(self.holding) == 1:
-                    # 4) we're there, drop things off
-                    self.controller_stop()
-                    self.attachment_controller.open_gripper()
-                    self.holding.pop(0)
-                    self.barrel_positions[self.drop_idx[0], self.drop_idx[1]] = 1
-
-            # TODO split the relevant part of above out into DROP_OFF_BARREL
+                self.state = ExecutionState.DROP_OFF_BARREL
 
         elif self.state == ExecutionState.DROP_OFF_BARREL:
-            pass
+            self.find_next_free_barrel_slot(self.get_barrel_color(self.holding[0]))
+            if x > self.drop_off_x:
+                # 2) scuttle left to the drop off location
+                self.set_plane_velocity([-self.speed, 0])
+            elif y < self.drop_off_y:
+                # 3) at location go forwards
+                self.set_plane_velocity([0, self.speed / 4])
+            elif len(self.holding) == 1:
+                # 4) we're there, drop things off
+                self.controller_stop()
+                self.attachment_controller.open_gripper()
+                self.holding.pop(0)
+                self.barrel_positions[self.drop_idx[0], self.drop_idx[1]] = 1
+                # go back to zone routine for travel back to homing
+                self.state = ExecutionState.MOVE_TO_ZONE
 
     def localise(self, tof_front, tof_rear, tof_right, tof_left):
         # some additional sensor processing to figure out where we are
@@ -393,12 +392,8 @@ class CheesedEcoDisasterBrain(RobotBrain):
         self.drop_idx = (k, ii)
 
         # find actual location of zone (check TheWorld)
-        goal, _ = self.find_goal()
-        if (
-            not goal is None
-            and goal.object_type == ObjectType.ZONE
-            and goal.color == Color(target_zone_color)
-        ):
+        goal, _ = self.find_closest(ObjectType.ZONE, color=Color(target_zone_color))
+        if not goal is None:
             # t = goal.center - np.array([self.ZONE_WIDTH/2, self.ZONE_HEIGHT/2])
             # set cordinates relative to robot as local variable
             # we need to compare x,y location to these, not to tof readings!
