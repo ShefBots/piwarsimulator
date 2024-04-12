@@ -75,3 +75,10 @@ def create_serial_instances(port_list):
         except SerialException as e:
             raise Exception(f"Error opening serial port {port}: {e}")
     return serial_instances
+
+
+def is_true(var):
+    """check if an argument is true"""
+    if var.lower() == "true" or var == "1":
+        return True
+    return False

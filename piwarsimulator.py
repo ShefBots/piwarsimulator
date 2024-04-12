@@ -122,23 +122,23 @@ parser.add_argument(
 args = parser.parse_args()
 
 # imports for hardware etc based on settings
-if args.rendering == "true":
+if util.is_true(args.rendering):
     from sensors.Keyboard import Keyboard
-if args.radio == "true":
+if util.is_true(args.radio):
     from sensors.RadioControl import RadioControl
-if args.mode == "simulation":
+if args.mode.lower() == "simulation":
     # fake control hardware, fake sensors
     from controllers.SimulatedMovementController import SimulatedMovementController
     from controllers.SimulatedGripperController import SimulatedGripperController
     from sensors.SimulatedLineOfSight import SimulatedLineOfSight
 
-    if args.simplevision == "false":
+    if not util.is_true(args.simplevision):
         from sensors.SimulatedVision360 import SimulatedVision360 as SimulatedVision
     else:
         from sensors.SimulatedReducedVision import (
             SimulatedReducedVision as SimulatedVision,
         )
-elif args.mode == "sensor_simulation":
+elif args.mode.lower() == "sensor_simulation":
     # real control hardware, fake sensors
     from controllers.SimulatedMovementController import SimulatedMovementController
     from controllers.SimulatedGripperController import SimulatedGripperController
@@ -146,24 +146,24 @@ elif args.mode == "sensor_simulation":
     from controllers.GripperController import GripperController
     from sensors.SimulatedLineOfSight import SimulatedLineOfSight
 
-    if args.simplevision == "false":
+    if not util.is_true(args.simplevision):
         from sensors.SimulatedVision360 import SimulatedVision360 as SimulatedVision
     else:
         from sensors.SimulatedReducedVision import (
             SimulatedReducedVision as SimulatedVision,
         )
-elif args.mode == "control":
+elif args.mode.lower() == "control":
     # real control hardware, real sensors
     from controllers.MovementController import MovementController
     from controllers.GripperController import GripperController
     from sensors.DistanceSensor import DistanceSensor
-elif args.mode == "control_simulation":
+elif args.mode.lower() == "control_simulation":
     # TODO fake control hardware, real sensors
     from controllers.SimulatedMovementController import SimulatedMovementController
     from controllers.SimulatedGripperController import SimulatedGripperController
 
 # do serial stuff if needed
-if not args.mode == "simulation":
+if not args.mode.lower() == "simulation":
     print("Preparing serial comms...")
     # we want controller input even if simulating
     # or otherwise it's someting with hardware and we will want serial
@@ -193,7 +193,7 @@ robot = WorldObject(
     # object_type=ObjectType.ROBOT, x=0, y=0, w=0.18, h=0.235, angle=1
 )  # units metres and degress
 
-if args.mode == "simulation" or args.mode == "sensor_simulation":
+if args.mode.lower() == "simulation" or args.mode.lower() == "sensor_simulation":
     # objects for rendering
     # the order this is constructed in is also the rendering order...
     ExteriorTheWorld = [robot]  # robot should always be index 0!
@@ -208,14 +208,14 @@ if args.mode == "simulation" or args.mode == "sensor_simulation":
 # logic for the robot
 print("Loading robot controllers...")
 attachment_controller = None
-if args.mode == "simulation":
+if args.mode.lower() == "simulation":
     controller = SimulatedMovementController(robot)
-    if args.attachment == "gripper":
+    if args.attachment.lower() == "gripper":
         attachment_controller = SimulatedGripperController(robot)
-elif args.mode == "sensor_simulation":
+elif args.mode.lower() == "sensor_simulation":
     try:
         real_controller = MovementController(serial_instances)
-        if args.attachment == "gripper":
+        if args.attachment.lower() == "gripper":
             real_attachment_controller = GripperController(robot, serial_instances)
     except Exception as e:
         print(f"Caught error: {e}")
@@ -225,17 +225,16 @@ elif args.mode == "sensor_simulation":
     controller = SimulatedMovementController(
         robot, secondary_controller=real_controller
     )
-    if args.attachment == "gripper":
+    if args.attachment.lower() == "gripper":
         attachment_controller = SimulatedGripperController(
             robot, secondary_controller=real_attachment_controller
         )
-elif args.mode == "control":
+elif args.mode.lower() == "control":
     try:
-        # controller = SimulatedMovementController(robot)
         controller = MovementController(serial_instances)
-        if args.attachment == "gripper":
+        if args.attachment.lower() == "gripper":
             attachment_controller = GripperController(robot, serial_instances)
-        elif args.attachment == "launcher":
+        elif args.attachment.lower() == "launcher":
             # TODO attempt to init real launcher controller
             attachment_controller = None
     except Exception as e:
@@ -243,7 +242,7 @@ elif args.mode == "control":
         controller = None
         print(f"Caught error: {e}")
         print(traceback.format_exc())
-elif args.mode == "control_simulation":
+elif args.mode.lower() == "control_simulation":
     # TODO
     pass
 
@@ -257,17 +256,17 @@ robot_brain = brain(
     turning_speed=TURNING_SPEED,
     attachment_controller=attachment_controller,
 )
-if args.mode == "simulation" or args.mode == "sensor_simulation":
+if args.mode.lower() == "simulation" or args.mode.lower() == "sensor_simulation":
     # this works because lists are references
     controller.holding = robot_brain.holding
-if not args.attachment == "none" and not attachment_controller is None:
+if not args.attachment.lower() == "none" and not attachment_controller is None:
     print("Attaching brain to attachment")
     attachment_controller.set_brain(robot_brain)
 
 print("Attaching sensors...")
-if args.rendering == "true":
+if util.is_true(args.rendering):
     robot_brain.add_sensor(Keyboard(robot_brain.speed, robot_brain.turning_speed))
-if args.mode == "simulation" or args.mode == "sensor_simulation":
+if args.mode.lower() == "simulation" or args.mode.lower() == "sensor_simulation":
     # forward, right, behind, left
     robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 0))
     robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 90))
@@ -286,7 +285,7 @@ else:
         running = False
         print(f"Caught error: {e}")
         print(traceback.format_exc())
-if args.radio == "true":
+if util.is_true(args.radio):
     try:
         robot_brain.add_sensor(
             RadioControl(robot_brain.speed, robot_brain.turning_speed)
@@ -296,14 +295,14 @@ if args.radio == "true":
         print(f"Caught error: {e}")
         print(traceback.format_exc())
 
-if args.rendering == "true" and running == True:
+if util.is_true(args.rendering) and running == True:
     from world.WorldRenderer import *
 
     # default 0,0 is centre of screen
     renderer = WorldRenderer(
         x_res=900,
         y_res=900,
-        num_worlds=1 if args.mode == "control" else 2,
+        num_worlds=1 if args.mode.lower() == "control" else 2,
     )
     renderer.update()
 
@@ -320,9 +319,9 @@ while running:
 
     robot_brain.process()
 
-    if args.rendering == "true":
+    if util.is_true(args.rendering):
         try:
-            if args.mode == "control":
+            if args.mode.lower() == "control":
                 renderer.update(
                     Worlds=[robot_brain.TheWorld],
                     # yes this is a list in a list. deal with it.
