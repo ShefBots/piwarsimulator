@@ -119,6 +119,13 @@ parser.add_argument(
     # default="gripper",
     choices=["none", "gripper", "launcher"],
 )
+parser.add_argument(
+    "--beam",
+    help="is the gripper equipped with the beam sensor (default false)",
+    default="false",
+    # default="true",
+    choices=["true", "false"],
+)
 args = parser.parse_args()
 
 # imports for hardware etc based on settings
@@ -131,6 +138,7 @@ if args.mode.lower() == "simulation":
     from controllers.SimulatedMovementController import SimulatedMovementController
     from controllers.SimulatedGripperController import SimulatedGripperController
     from sensors.SimulatedLineOfSight import SimulatedLineOfSight
+    from sensors.SimulatedBeamSensor import SimulatedBeamSensor
 
     if not util.is_true(args.simplevision):
         from sensors.SimulatedVision360 import SimulatedVision360 as SimulatedVision
@@ -145,6 +153,7 @@ elif args.mode.lower() == "sensor_simulation":
     from controllers.MovementController import MovementController
     from controllers.GripperController import GripperController
     from sensors.SimulatedLineOfSight import SimulatedLineOfSight
+    from sensors.SimulatedBeamSensor import SimulatedBeamSensor
 
     if not util.is_true(args.simplevision):
         from sensors.SimulatedVision360 import SimulatedVision360 as SimulatedVision
@@ -273,6 +282,8 @@ if args.mode.lower() == "simulation" or args.mode.lower() == "sensor_simulation"
     robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 180))
     robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 270))
     robot_brain.add_sensor(SimulatedVision(ExteriorTheWorld, robot_brain))
+    if args.attachment.lower() == "gripper" and util.is_true(args.beam):
+        robot_brain.add_sensor(SimulatedBeamSensor(ExteriorTheWorld))
 else:
     try:
         # TODO put in the correct offset values (how far inside the edge of the robot they are)
