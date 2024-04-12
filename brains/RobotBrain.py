@@ -149,12 +149,17 @@ class RobotBrain:
                     == self.attachment_controller.GRIPPER_OPEN
                 ):
                     self.attachment_controller.open_gripper()
+                    if len(self.holding) == 1:
+                        # we're holding something, drop it off
+                        self.holding.pop(0)
                 elif (
                     not self.sensor_measurements["gripper_toggle"]  # closing
                     and not self.attachment_controller.gripper_state
                     == self.attachment_controller.GRIPPER_CLOSED
                 ):
                     self.attachment_controller.close_gripper()
+                    # TODO grab something if it's in the gripper
+                    # find if something is in TheWorld within a certain distance of the gripper and grab?
         else:
             if self.state == ExecutionState.MANUAL_CONTROL:
                 # resume where we were
@@ -410,6 +415,7 @@ class RobotBrain:
 
     def velocity_modify(self, speed_limit=None):
         # we should slow down if the gripper is open or if approaching a wall
+        # (because momentum is a thing)
 
         if speed_limit is None:
             speed_limit = self.speed / 2
