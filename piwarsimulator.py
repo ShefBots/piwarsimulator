@@ -276,6 +276,7 @@ if args.mode == "simulation" or args.mode == "sensor_simulation":
     robot_brain.add_sensor(SimulatedVision(ExteriorTheWorld, robot_brain))
 else:
     try:
+        # TODO put in the correct offset values (how far inside the edge of the robot they are)
         robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 0, 1))
         robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 90, 0))
         # TODO robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 180, 0))

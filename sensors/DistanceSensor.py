@@ -20,7 +20,7 @@ class DistanceSensor(Sensor):
     # field of view is halved to either side from centreline, but things to
     # that side read further away than they actually are
 
-    def __init__(self, serial_instances, robot, angle, index):
+    def __init__(self, serial_instances, robot, angle, index, offset=0.02):
         super().__init__()
         self.robot = robot
         assert robot.object_type == ObjectType.ROBOT
@@ -32,6 +32,9 @@ class DistanceSensor(Sensor):
         self.angle = angle
         assert index >= 0 and index < 3
         self.index = index
+
+        # how far inside from the edge of the robot is the TOF sensor?
+        self.offset = offset
 
         self.io_controller = None
 
@@ -116,7 +119,9 @@ class DistanceSensor(Sensor):
         #     # could return unknown object type instead?
         #     return scan_result, {}
 
-        closest_distance = self.io_controller.read_tof(self.index) / 100  # convert cm to m
+        # it's /100 to convert cm to m
+        closest_distance = self.io_controller.read_tof(self.index) / 100
+        closest_distance -= self.offset
 
         # construct the wall the scanned object could be
         if closest_distance > 0:
