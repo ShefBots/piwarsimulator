@@ -1,24 +1,27 @@
 #!/bin/bash
 
+# The name of this challenge
 CHALLENGENAME="Lava Palava"
-
-# Get the directory containing the script
-SCRIPT_DIR=$(dirname "$0")
 
 # The basic command for this challenge
 PYARGS="piwarsimulator.py --brain LineFollowingBrain"
 
-# How to use
-USAGE="Usage: $0 [ctrl|sim (default)]"
+# Get the directory containing the script
+SCRIPT_DIR=$(dirname "$0")
+
+# Load shared functions
+cd "$SCRIPT_DIR"
+source shared.sh
 
 # Change to the parent directory of the script
 cd "$SCRIPT_DIR"/..
 
 # Check the first argument
 if [ "$1" = "ctrl" ]; then
-    PYARGS+=" --mode control"
+    ctrl_shared
 elif [ "$1" = "sim" ] || [ $# -eq 0 ]; then
     PYARGS+=" --map LavaPalavaMap"
+    sim_shared
 elif [ "$1" = "-h" ]; then
     # Display usage information
     echo $USAGE
