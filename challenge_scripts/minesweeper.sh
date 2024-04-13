@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # The name of this challenge
-CHALLENGENAME="Escape Route"
+CHALLENGENAME="Minesweeper"
 
 # The basic command for this challenge
-PYARGS="piwarsimulator.py --brain MazeBrain"
+PYARGS="piwarsimulator.py --brain MinesweeperBrain"
 
 # Get the directory containing the script
 SCRIPT_DIR=$(dirname "$0")
@@ -20,7 +20,7 @@ cd ..
 if [ "$1" = "ctrl" ]; then
     ctrl_shared
 elif [ "$1" = "sim" ] || [ $# -eq 0 ]; then
-    PYARGS+=" --map EscapeRouteMap"
+    PYARGS+=" --map MinesweeperMap"
     sim_shared
 elif [ "$1" = "-h" ]; then
     # Display usage information
