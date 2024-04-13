@@ -18,7 +18,7 @@ from world.WorldObject import WorldObject
 # TODO      launcher control?
 # TODO update readme
 # TODO nice program end points
-# TODO launch scripts for specific challenge configurations (passing an argument for simulation/control?)
+# TODO stop button
 
 # note this runs about 6 times slower on the Pi under Python 3.7?
 # FPS to TPS for thoughts per second ? :)
@@ -42,6 +42,12 @@ DEFAULT_ROBOT_SPEED = 0.3
 DEFAULT_TURNING_SPEED = 45
 
 SERIAL_PATTERN = "/dev/ttyACM*"  # serial ports to scan for hardware
+
+# Time of flight sensor angles, indexes, and offsets
+# forward, right, behind, left
+HIGH_TOFS = [(0, 1, 0.06), (90, 0, 0.05), (180, 3, 0.02), (270, 2, 0.03)]
+LOW_TOFS = [(0, 1, 0.03), (90, 0, 0.01), (270, 2, 0.01)]
+TOF_POSITIONS = {"high": HIGH_TOFS, "low": LOW_TOFS}
 
 
 def sigint_handler(signal_received, frame):
@@ -139,6 +145,13 @@ parser.add_argument(
     type=lambda s: util.check_positive(s, MAX_TURNING_SPEED),
     default=DEFAULT_TURNING_SPEED,
 )
+parser.add_argument(
+    "--tof_position",
+    help="tof sensors are mounted low or high (default high)",
+    default=list(TOF_POSITIONS.keys())[0],
+    # default="low",
+    choices=TOF_POSITIONS.keys(),
+)
 args = parser.parse_args()
 
 # imports for hardware etc based on settings
@@ -210,9 +223,6 @@ robot = WorldObject(
     w=0.215,  # with bumpers
     h=0.235,
     angle=0,
-    # object_type=ObjectType.ROBOT, x=0.1, y=-0.3, w=0.18, h=0.235, angle=20
-    # object_type=ObjectType.ROBOT, x=0.1, y=-0.3, w=0.18, h=0.235, angle=20
-    # object_type=ObjectType.ROBOT, x=0, y=0, w=0.18, h=0.235, angle=1
 )  # units metres and degress
 
 if args.mode.lower() == "simulation" or args.mode.lower() == "sensor_simulation":
@@ -289,21 +299,23 @@ print("Attaching sensors...")
 if util.is_true(args.rendering):
     robot_brain.add_sensor(Keyboard(robot_brain.speed, robot_brain.turning_speed))
 if args.mode.lower() == "simulation" or args.mode.lower() == "sensor_simulation":
-    # forward, right, behind, left
-    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 0))
-    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 90))
-    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 180))
-    robot_brain.add_sensor(SimulatedLineOfSight(ExteriorTheWorld, robot_brain, 270))
+    # add the simulated time of flight sensors
+    for _, v in enumerate(TOF_POSITIONS[args.tof_position.lower()]):
+        robot_brain.add_sensor(
+            SimulatedLineOfSight(ExteriorTheWorld, robot_brain, v[0])
+        )
     robot_brain.add_sensor(SimulatedVision(ExteriorTheWorld, robot_brain))
     if args.attachment.lower() == "gripper" and util.is_true(args.beam):
         robot_brain.add_sensor(SimulatedBeamSensor(ExteriorTheWorld))
 else:
     try:
-        # TODO put in the correct offset values (how far inside the edge of the robot they are)
-        robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 0, 1))
-        robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 90, 0))
-        # TODO robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 180, 0))
-        robot_brain.add_sensor(DistanceSensor(serial_instances, robot, 270, 2))
+        # add the time of flight sensors
+        for _, v in enumerate(TOF_POSITIONS[args.tof_position.lower()]):
+            robot_brain.add_sensor(
+                SimulatedLineOfSight(
+                    DistanceSensor(serial_instances, robot, v[0], v[1], offset=v[2])
+                )
+            )
         # TODO add_sensor vision system
     except Exception as e:
         running = False
