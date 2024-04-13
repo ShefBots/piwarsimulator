@@ -69,6 +69,9 @@ class RobotBrain:
             "manual_control": False
         }  # direct sensor measurements
 
+        # keep track of objects in case of sensors that drop out
+        self.sensor_objects = []
+
         # are we close to colliding with something?
         self.collision = None
         self.do_collision_detection = True
@@ -82,6 +85,7 @@ class RobotBrain:
 
     def add_sensor(self, sensor):
         self.sensors.append(sensor)
+        self.sensor_objects.append([])
 
     def poll_sensors(self):
         """poll all sensors attached to the robot and check for collisions"""
@@ -108,6 +112,10 @@ class RobotBrain:
             self.TheWorld += objects
             for k, v in readings.items():
                 self.sensor_measurements[k] = v
+        # TODO for each sensor store its objects
+        # if objects on the curret scan is empty, reuse the previous objets with an offset applied
+        # base the offset on the current velocity & rotation speed to estimate the new object locations
+        # store the new estimate in the saved reading for the next time around
 
     def process(self):
         """basic logic is to just not hit anything & respond to control input"""
