@@ -1,28 +1,47 @@
 # piwarsimulator
-Robot simulator to work on PiWars logic. This is a work in progress, revivified for 2024. The software for most of the challenges is complete, with Eco-Disaster being the most incomplete. Manual robot control can be engaged by pressing spacebar and then driving with WASD/arrow for strafe and QE for rotate.
+Robot simulator to work on PiWars logic. This is a work in progress, revivified for 2024. The software for most of the challenges is complete,. Manual robot control can be engaged by pressing spacebar and then driving with WASD/arrow for strafe and QE for rotate. G will activate the gripper when attached (although objects cannot be picked up manually).
 Manual control on real hardware may be engaged using `--radio true` and then flicking the enable channel switch.
 
 ```
 $ ./piwarsimulator.py -h
-pygame 2.5.2 (SDL 2.28.3, Python 3.11.7)
+pygame 2.5.2 (SDL 2.28.2, Python 3.11.0)
 Hello from the pygame community. https://www.pygame.org/contribute.html
-usage: piwarsimulator.py [-h] [--brain {EcoDisasterBrain,LineFollowingBrain,MazeBrain,MinesweeperBrain,RobotBrain}] [--map {EscapeRouteMap,LavaPalavaMap,MinesweeperMap,SimpleEcoDisasterMap}]
-                         [--mode {simulation,sensor_simulation,control}] [--rendering {true,false}]
+usage: piwarsimulator.py [-h]
+                         [--brain {CheesedEcoDisasterBrain,EcoDisasterBrain,LineFollowingBrain,MazeBrain,MinesweeperBrain,RobotBrain}]
+                         [--map {EmptyMap,EscapeRouteMap,LavaPalavaMap,MinesweeperMap,RandomEcoDisasterMap,SimpleEcoDisasterMap}]
+                         [--mode {simulation,sensor_simulation,control}] [--radio {true,false}]
+                         [--rendering {true,false}] [--simplevision {true,false}] [--attachment {none,gripper,launcher}]
+                         [--beam {true,false}] [--robot_speed ROBOT_SPEED] [--turning_speed TURNING_SPEED]
+                         [--tof_position {high,low}]
 
-Simulator/controller for ShefBots Mark 1b for PiWars 2024. Press SPACE to engage manual control, WASD/Arrow keys for strafe, and QE for rotate.
+Simulator/controller for the ShefBots robot for PiWars 2024. Press SPACE to engage manual control, WASD/Arrow keys for
+strafe, and QE for rotate. G will activate the gripper if attached.
 
 options:
   -h, --help            show this help message and exit
-  --brain {EcoDisasterBrain,LineFollowingBrain,MazeBrain,MinesweeperBrain,RobotBrain}
+  --brain {CheesedEcoDisasterBrain,EcoDisasterBrain,LineFollowingBrain,MazeBrain,MinesweeperBrain,RobotBrain}
                         robot brain/challenge (default RobotBrain)
-  --map {EscapeRouteMap,LavaPalavaMap,MinesweeperMap,RandomEcoDisasterMap,SimpleEcoDisasterMap}
-                        map (default EscapeRouteMap)
+  --map {EmptyMap,EscapeRouteMap,LavaPalavaMap,MinesweeperMap,RandomEcoDisasterMap,SimpleEcoDisasterMap}
+                        map (default EmptyMap)
   --mode {simulation,sensor_simulation,control}
                         operation mode (default simulation)
   --radio {true,false}  use radio receiever for control (default false)
   --rendering {true,false}
                         render world on screen (default true)
+  --simplevision {true,false}
+                        rely on simpler vision system (default false)
+  --attachment {none,gripper,launcher}
+                        choose an attachment (default none)
+  --beam {true,false}   is the gripper equipped with the beam sensor (default false)
+  --robot_speed ROBOT_SPEED
+                        the top robot speed (max=0.6, default 0.3)
+  --turning_speed TURNING_SPEED
+                        the top robot speed (max=90, default 45)
+  --tof_position {high,low}
+                        tof sensors are mounted low or high (default high)
 ```
+
+Note the `CheesedEcoDisasterBrain` applies a simpler (although less robust) algorithm to solve the challenge and is to be preferred. The more complex `EcoDisasterBrain` routine is incomplete. 
 
 ## Getting started
 
@@ -102,7 +121,7 @@ Operating in control mode the robot:
 * Acts through a Controller
 * (optional) World rendering
 
-Operating in simulation, virtual sensors are using an ExteriorTheWorld list consisting of the things in the world, where element 0 is the robot. Then:
+Operating in simulation, virtual sensors use an ExteriorTheWorld list consisting of the things in the world, where element 0 is the robot. Then:
 
 Operating in simulation:
 
@@ -110,6 +129,6 @@ Operating in simulation:
 * The RobotBrain builds TheWorld
 * The RobotBrain makes decisions
 * Acts through changing its location in ExteriorTheWorld via SimulationController
-* World rendering
+* (optional) World rendering
 
-SimulationController "implements runnable" (but Python equivalent) to move the location at specified speeds. Only does one movement and/or one rotation at a time. 
+SimulationController "implements runnable" (but Python equivalent) to move the location at the specified velocities. It only moves the robot at the set speed, it cannot queue a list of movements to make.
