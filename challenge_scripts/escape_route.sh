@@ -4,7 +4,7 @@
 CHALLENGENAME="Escape Route"
 
 # The basic command for this challenge
-PYARGS="piwarsimulator.py --brain MazeBrain"
+PYARGS="piwarsimulator.py --brain MazeBrain --tof_position low"
 
 # Get the directory containing the script
 SCRIPT_DIR=$(dirname "$0")

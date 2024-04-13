@@ -18,6 +18,7 @@ class MazeBrain(RobotBrain):
         self.state = ExecutionState.SQUARING_UP
         self.square_up_heading = 0  # align to wall in front
         self.last_reading = monotonic()
+        self.move_count = 0  # when this hits like... 20 we should definetely be done
 
     def process(self):
         """do the basic brain stuff then do specific escape route things"""
@@ -32,15 +33,19 @@ class MazeBrain(RobotBrain):
         if self.state == ExecutionState.PROGRAM_COMPLETE:
             return
 
+        if self.move_count == 20:
+            self.state = ExecutionState.PROGRAM_COMPLETE
+
         # make sure we're parallel to a wall
         if self.state == ExecutionState.PROGRAM_CONTROL:
             # entry into solving routine
             self.state = ExecutionState.MOVE_LEFT
+            self.move_count += 1
             print("Moving left")
             self.set_plane_velocity([-self.speed, 0])
 
         # check we're in range of some wall still
-        if any(d is not None for d in self.distances):
+        if any(d is not None and not d == 9e99 for d in self.distances):
             self.last_reading = monotonic()
 
         # move in directions with space after getting close-ish to a wall
@@ -51,6 +56,7 @@ class MazeBrain(RobotBrain):
             ):
                 self.set_plane_velocity([0, self.speed])
                 self.state = ExecutionState.MOVE_FORWARD
+                self.move_count += 1
                 print("Moving forward")
 
         elif self.state == ExecutionState.MOVE_FORWARD:
@@ -65,6 +71,7 @@ class MazeBrain(RobotBrain):
                     # there's space on the right, go that way
                     self.set_plane_velocity([self.speed, 0])
                     self.state = ExecutionState.MOVE_RIGHT
+                    self.move_count += 1
                     print("Moving right")
                 elif (
                     self.distance_left() is None
@@ -73,6 +80,7 @@ class MazeBrain(RobotBrain):
                     # there's space on the left, go that way
                     self.set_plane_velocity([-self.speed, 0])
                     self.state = ExecutionState.MOVE_LEFT
+                    self.move_count += 1
                     print("Moving left")
                 else:
                     # possibly not square anymore? reenter alignment
@@ -93,4 +101,5 @@ class MazeBrain(RobotBrain):
             ):
                 self.set_plane_velocity([0, self.speed])
                 self.state = ExecutionState.MOVE_FORWARD
+                self.move_count += 1
                 print("Moving forward")
