@@ -20,11 +20,16 @@ class DistanceSensor(Sensor):
     # field of view is halved to either side from centreline, but things to
     # that side read further away than they actually are
 
+    # DO_MEDIAN_FILTER = 0  # disable
+    DO_MEDIAN_FILTER = 5  # five points
+
     def __init__(self, serial_instances, robot, angle, index, offset=0.02):
         super().__init__()
         self.robot = robot
         assert robot.object_type == ObjectType.ROBOT
-        print(f"Activating time of flight sensor, pointing at {angle}'")
+        print(
+            f"Activating time of flight sensor, pointing at {angle} with offset {offset}'"
+        )
 
         # construct a triangle reprsenting the sensor field of view
         # this is relative to the robot's center
@@ -100,6 +105,11 @@ class DistanceSensor(Sensor):
         self.x0 = self.outline.exterior.coords[0][0]
         self.y0 = self.outline.exterior.coords[0][1]
 
+        if self.DO_MEDIAN_FILTER > 0:
+            print(f"    Using a {self.DO_MEDIAN_FILTER} point median filter")
+            self.readings = np.zeros(self.DO_MEDIAN_FILTER)
+            self.filterat = 0
+
     def do_scan(self):
         """return the nearest barrel or wall from TheExteriorWorld within the field of view"""
 
@@ -128,7 +138,13 @@ class DistanceSensor(Sensor):
         closest_distance = closest_distance / 100
         closest_distance -= self.offset
 
-        # TODO three or 5 point median filter?
+        # return the median of the last N readings in order to avoid spurious readings
+        if self.DO_MEDIAN_FILTER > 0:
+            self.readings[self.filterat] = closest_distance
+            self.filterat += 1
+            if self.filterat == self.DO_MEDIAN_FILTER:
+                self.filterat = 0
+            closest_distance = np.median(self.readings)
 
         # construct the wall the scanned object could be
         if closest_distance > 0:

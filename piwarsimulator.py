@@ -312,9 +312,7 @@ else:
         # add the time of flight sensors
         for _, v in enumerate(TOF_POSITIONS[args.tof_position.lower()]):
             robot_brain.add_sensor(
-                SimulatedLineOfSight(
-                    DistanceSensor(serial_instances, robot, v[0], v[1], offset=v[2])
-                )
+                DistanceSensor(serial_instances, robot, v[0], v[1], offset=v[2])
             )
         # TODO add_sensor vision system
     except Exception as e:
