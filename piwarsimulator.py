@@ -16,7 +16,6 @@ from world.WorldObject import WorldObject
 
 # TODO classes for real hardware
 # TODO      launcher control?
-# TODO update readme
 # TODO nice program end points
 # TODO stop button
 
