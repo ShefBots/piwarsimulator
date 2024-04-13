@@ -55,13 +55,13 @@ dtoverlay=dwc2
 ```
 to the end of the file. Note the `[all]` section may already exist, in which case just add `dtoverlay=dwc2` to that section.
 
-2. Edit `/boot/firmware/cmdline.txt` and add `modules-load=dwc2,g_ether` to the end of the kernel arguments.
+2. Edit `/boot/firmware/cmdline.txt` and add `modules-load=dwc2,g_ether g_ether.host_addr=AA:BB:CC:DD:EE:FA g_ether.dev_addr=AA:BB:CC:DD:EE:FB` to the end of the kernel arguments.
 
 3. Create ` /etc/network/interfaces.d/usb0` with the contents
 ```
 auto usb0
 allow-hotplug usb0
-face usb0 inet static
+iface usb0 inet static
 address 192.168.XX.YY
 netmask 255.255.255.0
 ```
@@ -77,6 +77,12 @@ which will let the ifup script we just wrote work.
 5. Reboot and you should be good to go. Note the keyboard may not work any more until you reverse step 1.
 
 For the host pi, only steps 3 and 4 are needed. Be sure to use a different IP address in the same subnet (only change the last octet).
+
+You may also want persistent device naming on your Linux PC which can be acheived by adding `/etc/udev/rules.d/71-persistent-net.rules` with the content:
+```
+SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="AA:BB:CC:DD:EE:FA", ATTR{type}=="1", KERNEL=="*", NAME="usb0"
+```
+afterwhich the USB gadget Ethernet device will always be usb0.
 
 ## Architecture
 
