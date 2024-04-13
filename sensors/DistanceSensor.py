@@ -119,8 +119,13 @@ class DistanceSensor(Sensor):
         #     # could return unknown object type instead?
         #     return scan_result, {}
 
+        closest_distance = self.io_controller.read_tof(self.index)
+        if closest_distance < 0:
+            # error, skip reading
+            return scan_result, {}
+
         # it's /100 to convert cm to m
-        closest_distance = self.io_controller.read_tof(self.index) / 100
+        closest_distance = closest_distance / 100
         closest_distance -= self.offset
 
         # TODO three or 5 point median filter?
