@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import numpy as np
 import shapely
 from glob import glob
@@ -75,6 +76,20 @@ def create_serial_instances(port_list):
         except SerialException as e:
             raise Exception(f"Error opening serial port {port}: {e}")
     return serial_instances
+
+
+def check_positive(value, mx):
+    e = argparse.ArgumentTypeError(
+        f"{value} is invalid (must be between float 0 and {mx})"
+    )
+    try:
+        ivalue = float(value)
+    except:
+        raise e
+    print(ivalue)
+    if ivalue >= 0 and ivalue <= mx:
+        return ivalue
+    raise e
 
 
 def is_true(var):

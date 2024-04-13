@@ -35,10 +35,11 @@ running = True  # state of simulator
 ctrlc_count = 0  # if hitting 3 try and sys.exit
 target_frame_time = 1 / 60.0  # aim for 60 fps simulation/processing
 
-# ROBOT_SPEED = 0.05
-# TURNING_SPEED = 10
-ROBOT_SPEED = 0.3
-TURNING_SPEED = 45
+MAX_ROBOT_SPEED = 0.6
+MAX_TURNING_SPEED = 90
+
+DEFAULT_ROBOT_SPEED = 0.3
+DEFAULT_TURNING_SPEED = 45
 
 SERIAL_PATTERN = "/dev/ttyACM*"  # serial ports to scan for hardware
 
@@ -125,6 +126,18 @@ parser.add_argument(
     default="false",
     # default="true",
     choices=["true", "false"],
+)
+parser.add_argument(
+    "--robot_speed",
+    help=f"the top robot speed (max={MAX_ROBOT_SPEED}, default {DEFAULT_ROBOT_SPEED})",
+    type=lambda s: util.check_positive(s, MAX_ROBOT_SPEED),
+    default=DEFAULT_ROBOT_SPEED,
+)
+parser.add_argument(
+    "--turning_speed",
+    help=f"the top robot speed (max={MAX_TURNING_SPEED}, default {DEFAULT_TURNING_SPEED})",
+    type=lambda s: util.check_positive(s, MAX_TURNING_SPEED),
+    default=DEFAULT_TURNING_SPEED,
 )
 args = parser.parse_args()
 
@@ -261,8 +274,8 @@ brain = getattr(importlib.import_module("brains." + args.brain), args.brain)
 robot_brain = brain(
     robot=robot,
     controller=controller,
-    speed=ROBOT_SPEED,
-    turning_speed=TURNING_SPEED,
+    speed=args.robot_speed,
+    turning_speed=args.turning_speed,
     attachment_controller=attachment_controller,
 )
 if args.mode.lower() == "simulation" or args.mode.lower() == "sensor_simulation":
