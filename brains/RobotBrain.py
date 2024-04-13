@@ -126,6 +126,7 @@ class RobotBrain:
 
         # print(self.sensor_measurements)
         if self.sensor_measurements["manual_control"]:
+            self.last_state_change_time = time()
             if not self.state == ExecutionState.MANUAL_CONTROL:
                 print("Storing execution state")
                 self.last_state = self.state
