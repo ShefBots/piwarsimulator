@@ -14,7 +14,7 @@ cd "$SCRIPT_DIR"
 source shared.sh
 
 # Change to the parent directory of the script
-cd "$SCRIPT_DIR"/..
+cd ..
 
 # Check the first argument
 if [ "$1" = "ctrl" ]; then

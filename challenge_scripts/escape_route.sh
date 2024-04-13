@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # The name of this challenge
-CHALLENGENAME="Eco-Disaster"
+CHALLENGENAME="Escape Route"
 
 # The basic command for this challenge
-PYARGS="piwarsimulator.py --brain CheesedEcoDisasterBrain --attachment gripper"
+PYARGS="piwarsimulator.py --brain MazeBrain --attachment gripper"
 
 # Get the directory containing the script
 SCRIPT_DIR=$(dirname "$0")
@@ -20,7 +20,7 @@ cd ..
 if [ "$1" = "ctrl" ]; then
     ctrl_shared
 elif [ "$1" = "sim" ] || [ $# -eq 0 ]; then
-    PYARGS+=" --map RandomEcoDisasterMap"
+    PYARGS+=" --map EscapeRouteMap"
     sim_shared
 elif [ "$1" = "-h" ]; then
     # Display usage information
