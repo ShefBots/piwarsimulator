@@ -37,7 +37,9 @@ class WorldRenderer:
         self.font = pygame.font.Font(None, self.y_res // 32)  # default font
         self.small_font = pygame.font.Font(None, self.y_res // 42)  # smaller font
         self.last_time = monotonic()
-        self.fps = np.ones(30) * (1 / 60)
+        target_fps = kwargs.get("target_fps", 60)
+        # use 0.5s worth of frames to calculate FPS
+        self.fps = np.ones(int(target_fps / 2)) * float(target_fps)
         self.fps_at = 0
         self.frame = 0
 

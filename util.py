@@ -78,7 +78,7 @@ def create_serial_instances(port_list):
     return serial_instances
 
 
-def check_positive(value, mx):
+def check_in_range(value, mi, mx):
     e = argparse.ArgumentTypeError(
         f"{value} is invalid (must be between float 0 and {mx})"
     )
@@ -87,7 +87,7 @@ def check_positive(value, mx):
     except:
         raise e
     print(ivalue)
-    if ivalue >= 0 and ivalue <= mx:
+    if ivalue >= mi and ivalue <= mx:
         return ivalue
     raise e
 

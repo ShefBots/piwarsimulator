@@ -30,12 +30,14 @@ from world.WorldObject import WorldObject
 # @profile
 # python -m kernprof -lvr piwarsimulator.py
 
-running = True  # state of simulator
-ctrlc_count = 0  # if hitting 3 try and sys.exit
-target_frame_time = 1 / 60.0  # aim for 60 fps simulation/processing
+MIN_FRAME_RATE = 10.0
+MAX_FRAME_RATE = 120.0
+DEFAULT_FRAME_RATE = 60.0  # aim for 60 fps simulation/processing by default
 
+MIN_ROBOT_SPEED = 0.1
 MAX_ROBOT_SPEED = 0.6
-MAX_TURNING_SPEED = 90
+MIN_TURNING_SPEED = 22.5
+MAX_TURNING_SPEED = 90.0
 
 DEFAULT_ROBOT_SPEED = 0.3
 DEFAULT_TURNING_SPEED = 45
@@ -47,6 +49,9 @@ SERIAL_PATTERN = "/dev/ttyACM*"  # serial ports to scan for hardware
 HIGH_TOFS = [(0, 1, 0.06), (90, 0, 0.05), (180, 3, 0.02), (270, 2, 0.03)]
 LOW_TOFS = [(0, 1, 0.03), (90, 0, 0.01), (270, 2, 0.01)]
 TOF_POSITIONS = {"high": HIGH_TOFS, "low": LOW_TOFS}
+
+running = True  # state of simulator
+ctrlc_count = 0  # if hitting 3 try and sys.exit
 
 
 def sigint_handler(signal_received, frame):
@@ -135,15 +140,21 @@ parser.add_argument(
 )
 parser.add_argument(
     "--robot_speed",
-    help=f"the top robot speed (max={MAX_ROBOT_SPEED}, default {DEFAULT_ROBOT_SPEED})",
-    type=lambda s: util.check_positive(s, MAX_ROBOT_SPEED),
+    help=f"the top robot speed (min={MIN_ROBOT_SPEED}, max={MAX_ROBOT_SPEED}, default {DEFAULT_ROBOT_SPEED})",
+    type=lambda s: util.check_in_range(s, MIN_ROBOT_SPEED, MAX_ROBOT_SPEED),
     default=DEFAULT_ROBOT_SPEED,
 )
 parser.add_argument(
     "--turning_speed",
-    help=f"the top robot speed (max={MAX_TURNING_SPEED}, default {DEFAULT_TURNING_SPEED})",
-    type=lambda s: util.check_positive(s, MAX_TURNING_SPEED),
+    help=f"the top robot speed (min={MIN_TURNING_SPEED}, max={MAX_TURNING_SPEED}, default {DEFAULT_TURNING_SPEED})",
+    type=lambda s: util.check_in_range(s, MIN_TURNING_SPEED, MAX_TURNING_SPEED),
     default=DEFAULT_TURNING_SPEED,
+)
+parser.add_argument(
+    "--frame_rate",
+    help=f"number of times update (call process()) per second (min={MIN_FRAME_RATE}, max={MAX_FRAME_RATE}, default {DEFAULT_FRAME_RATE})",
+    type=lambda s: util.check_in_range(s, MIN_FRAME_RATE, MAX_FRAME_RATE),
+    default=DEFAULT_FRAME_RATE,
 )
 parser.add_argument(
     "--tof_position",
@@ -337,15 +348,14 @@ if util.is_true(args.rendering) and running == True:
         x_res=900,
         y_res=900,
         num_worlds=1 if args.mode.lower() == "control" else 2,
+        target_fps=args.frame_rate,
     )
     renderer.update()
 
 print("Waiting...")
 time.sleep(1)  # wait for things to settle
 
-# controller.set_plane_velocity([0, 0.15])
-# controller.set_angular_velocity(12)
-
+target_frame_time = 1.0 / args.frame_rate
 start_time = time.monotonic()
 print(f"Running... ({running})")
 while running:

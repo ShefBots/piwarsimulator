@@ -34,9 +34,11 @@ options:
                         choose an attachment (default none)
   --beam {true,false}   is the gripper equipped with the beam sensor (default false)
   --robot_speed ROBOT_SPEED
-                        the top robot speed (max=0.6, default 0.3)
+                        the top robot speed (min=0.1, max=0.6, default 0.3)
   --turning_speed TURNING_SPEED
-                        the top robot speed (max=90, default 45)
+                        the top robot speed (min=22.5, max=90.0, default 45)
+  --frame_rate FRAME_RATE
+                        number of times update (call process()) per second (min=10.0, max=120.0, default 60.0)
   --tof_position {high,low}
                         tof sensors are mounted low or high (default high)
 ```
