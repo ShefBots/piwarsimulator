@@ -54,7 +54,7 @@ class WorldRenderer:
     def update(self, Worlds=[], Sensors=[], names=[], robot_brain=None):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                print("Quit requested!")
+                print("Quit requested via Quit!")
                 self.running = False
 
         if (

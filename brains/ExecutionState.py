@@ -18,6 +18,7 @@ class ExecutionState(Enum):
     MOVE_LEFT = 10
     MOVE_FORWARD = 11
     MOVE_RIGHT = 12
+    FIND_WALL = 13
 
     # eco disaster
     MOVE_TO_BARREL = 20
