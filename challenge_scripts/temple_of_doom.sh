@@ -4,7 +4,7 @@
 CHALLENGENAME="Temple of Doom"
 
 # The basic command for this challenge
-PYARGS="piwarsimulator.py --brain RobotBrain"
+PYARGS="piwarsimulator.py --brain RobotBrain --attachment launcher"
 
 # Get the directory containing the script
 SCRIPT_DIR=$(dirname "$0")

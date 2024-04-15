@@ -68,6 +68,10 @@ class RadioControl(Sensor):
         angular_vel = 0
         manual_control = False
 
+        brushless_speed = None
+        tilt = None
+        fire = None
+
         if self.remote.is_connected() and self.remote.check_receive():
             manual_control = self.remote.read_channel(self.EN_CHANNEL)
 
@@ -82,18 +86,25 @@ class RadioControl(Sensor):
                 )
 
                 # for launcher control
+                # brushless and tilt will be 0 to 1
                 brushless_speed = self.remote.read_channel(self.BRUSHLESS_CHANNEL)
                 tilt = self.remote.read_channel(self.TILT_CHANNEL)
-                fire = self.remote.read_channel(self.FIRE_CHANNEL)
+                fire = self.remote.read_channel(self.FIRE_CHANNEL)  # 1 for fire
 
         inputs = {
             "forward_vel": forward_vel,
             "sideways_vel": sideways_vel,
             "angular_vel": angular_vel,
             "manual_control": manual_control,
-            "brushless_speed": brushless_speed,
-            "tilt": tilt,
-            "fire": fire,
         }
+
+        if not brushless_speed is None:
+            inputs["brushless_speed"] = brushless_speed
+
+        if not tilt is None:
+            inputs["tilt"] = tilt
+
+        if not fire is None:
+            inputs["fire"] = fire
 
         return [], inputs

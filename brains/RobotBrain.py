@@ -146,6 +146,7 @@ class RobotBrain:
                 ]
             )
             self.set_angular_velocity(self.sensor_measurements["angular_vel"])
+
             # don't want to import so name check will have to do
             if not self.attachment_controller == None and (
                 type(self.attachment_controller).__name__
@@ -169,6 +170,24 @@ class RobotBrain:
                     self.attachment_controller.close_gripper()
                     # TODO grab something if it's in the gripper
                     # find if something is in TheWorld within a certain distance of the gripper and grab?
+
+            if not self.attachment_controller == None and (
+                type(self.attachment_controller).__name__ == "LauncherController"
+            ):
+                # send commands to the launcher if attached and those commands are received
+                if "brushless_speed" in self.sensor_measurements.keys():
+                    self.attachment_controller.set_motor_speed(
+                        self.sensor_measurements["brushless_speed"]
+                    )
+                if "tilt" in self.sensor_measurements.keys():
+                    self.attachment_controller.set_tilt(
+                        self.sensor_measurements["tilt"]
+                    )
+                if "fire" in self.sensor_measurements.keys():
+                    self.attachment_controller.check_fire(
+                        self.sensor_measurements["fire"]
+                    )
+
         else:
             if self.state == ExecutionState.MANUAL_CONTROL:
                 # resume where we were

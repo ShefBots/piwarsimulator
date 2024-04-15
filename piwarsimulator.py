@@ -202,6 +202,7 @@ elif args.mode.lower() == "control":
     # real control hardware, real sensors
     from controllers.MovementController import MovementController
     from controllers.GripperController import GripperController
+    from controllers.LauncherController import LauncherController
     from sensors.DistanceSensor import DistanceSensor
 elif args.mode.lower() == "control_simulation":
     # TODO fake control hardware, real sensors
@@ -278,8 +279,7 @@ elif args.mode.lower() == "control":
         if args.attachment.lower() == "gripper":
             attachment_controller = GripperController(robot, serial_instances)
         elif args.attachment.lower() == "launcher":
-            # TODO attempt to init real launcher controller
-            attachment_controller = None
+            attachment_controller = LauncherController(serial_instances)
     except Exception as e:
         running = False
         controller = None
