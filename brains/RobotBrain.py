@@ -195,6 +195,7 @@ class RobotBrain:
                 self.state = self.last_state
 
         if self.sensor_measurements["do_quit"]:
+            # this is triggered by the Escape key
             print("Quit requested")
             self.running = False
             return
@@ -360,7 +361,8 @@ class RobotBrain:
         dist = self.distances[self.SENSOR_HEADINGS.index(self.square_up_heading)]
 
         # direction of moment for alignment
-        speed = -self.speed / 4
+        # speed = -0.075  # want this fixed because self.speed could vary
+        speed = 0.075  # could decide based on where there was more space?
         if self.square_up_heading == 0:
             alignment_vector = np.array([speed, 0])
         elif math.fabs(self.square_up_heading) == 90:

@@ -15,10 +15,12 @@ class MazeBrain(RobotBrain):
     def __init__(self, **kwargs):
         super(MazeBrain, self).__init__(**kwargs)
         # start by squaring up (making sure we're aligned with the walls)
-        self.state = ExecutionState.SQUARING_UP
+        # self.state = ExecutionState.SQUARING_UP  # IF WE CAN PLACE THE ROBOT
+        self.state = ExecutionState.FIND_WALL  # IF WE CAN'T PLACE THE ROBOT
         self.square_up_heading = 0  # align to wall in front
         self.last_reading = monotonic()
         self.move_count = 0  # when this hits like... 20 we should definetely be done
+        self.found_gap = False
 
     def process(self):
         """do the basic brain stuff then do specific escape route things"""
@@ -35,6 +37,24 @@ class MazeBrain(RobotBrain):
 
         if self.move_count == 20:
             self.state = ExecutionState.PROGRAM_COMPLETE
+
+        if self.state == ExecutionState.FIND_WALL:
+            # we might not be put down facing the wall correctly
+            if self.found_gap == False:
+                # rotate until we find a big gap
+                self.set_angular_velocity(self.turning_speed / 2)
+                if self.distance_forward() > 0.5:
+                    print("Found the gap")
+                    self.found_gap = True
+                    # we need more space to the wall behind the gap
+                    self.set_plane_velocity([0, 0.05])
+            else:
+                # we've passed the gap, next time we see a wall we're in the correct position
+                if self.distance_forward() < 0.3:
+                    print("Roughly aligned, square up")
+                    self.set_angular_velocity(0)
+                    self.set_plane_velocity([0, 0])
+                    self.state = ExecutionState.SQUARING_UP
 
         # make sure we're parallel to a wall
         if self.state == ExecutionState.PROGRAM_CONTROL:
