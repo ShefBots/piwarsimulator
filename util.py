@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
 import argparse
+import importlib
 import numpy as np
 import shapely
 from glob import glob
-from serial import SerialException
-from comms.serial import SerialComms
-from devices import DEVICE_ID_LIST as SERIAL_DEVICE_ID_LIST
+
+
+def import_serial():
+    # Everything we need to enable our special serial comms
+    print("Importing serial")
+    # I hate altering paths, but without this piwarsengine dies
+    importlib.import_module("sys").path.append("../piwarsengine")
+    from serial import SerialException
+    from comms.serial import SerialComms
+    from devices import DEVICE_ID_LIST as SERIAL_DEVICE_ID_LIST
 
 
 def sqr_magnitude_of(vector):

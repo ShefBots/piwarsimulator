@@ -6,10 +6,6 @@ import traceback
 import numpy as np
 from os import listdir
 from signal import signal, SIGINT
-
-# I hate altering paths, but without this piwarsengine dies
-importlib.import_module("sys").path.append("../piwarsengine")
-
 import util
 from world.ObjectType import ObjectType
 from world.WorldObject import WorldObject
@@ -185,6 +181,7 @@ if args.mode.lower() == "simulation":
         )
 elif args.mode.lower() == "sensor_simulation":
     # real control hardware, fake sensors
+    util.import_serial()
     from controllers.SimulatedMovementController import SimulatedMovementController
     from controllers.SimulatedGripperController import SimulatedGripperController
     from controllers.MovementController import MovementController
@@ -200,12 +197,14 @@ elif args.mode.lower() == "sensor_simulation":
         )
 elif args.mode.lower() == "control":
     # real control hardware, real sensors
+    util.import_serial()
     from controllers.MovementController import MovementController
     from controllers.GripperController import GripperController
     from controllers.LauncherController import LauncherController
     from sensors.DistanceSensor import DistanceSensor
 elif args.mode.lower() == "control_simulation":
     # TODO fake control hardware, real sensors
+    util.import_serial()
     from controllers.SimulatedMovementController import SimulatedMovementController
     from controllers.SimulatedGripperController import SimulatedGripperController
 
