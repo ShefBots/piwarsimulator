@@ -54,6 +54,7 @@ class RobotBrain:
         # keep track of previous states to time out and quit nicely
         self.last_state = ExecutionState.NO_CONTROL
         self.last_state_change_time = time()
+        self.last_velocities = ([0, 0], 0)
 
         # for squaring up
         self.square_up_heading = 0  # direction we're aligning to
@@ -136,9 +137,13 @@ class RobotBrain:
         if self.sensor_measurements["manual_control"]:
             self.last_state_change_time = time()
             if not self.state == ExecutionState.MANUAL_CONTROL:
-                print("Storing execution state")
+                print(f"Storing execution state {self.state} and velocities")
                 self.last_state = self.state
                 self.state = ExecutionState.MANUAL_CONTROL
+                self.last_velocities = (
+                    self._controller.vel,
+                    self._controller.theta_vel,
+                )
             self.set_plane_velocity(
                 [
                     self.sensor_measurements["sideways_vel"],
@@ -191,8 +196,12 @@ class RobotBrain:
         else:
             if self.state == ExecutionState.MANUAL_CONTROL:
                 # resume where we were
-                print("Restoring execution state")
+                print(f"Restoring execution state {self.last_state}")
                 self.state = self.last_state
+                if not self.sensor_measurements["vel_key_pressed"]:
+                    print("Restoring velocities")
+                    self.set_plane_velocity(self.last_velocities[0])
+                    self.set_angular_velocity(self.last_velocities[1])
 
         if self.sensor_measurements["do_quit"]:
             # this is triggered by the Escape key

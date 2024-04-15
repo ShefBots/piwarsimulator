@@ -27,6 +27,8 @@ class Keyboard(Sensor):
         sideways_vel = 0
         angular_vel = 0
 
+        vel_key_pressed = False
+
         if keys[pygame.K_w] or keys[pygame.K_UP]:
             forward_vel = self.speed
         elif keys[pygame.K_s] or keys[pygame.K_DOWN]:
@@ -52,6 +54,14 @@ class Keyboard(Sensor):
             if self.lastspace == True:
                 self.manual_control = not self.manual_control
                 print(f"Manual Control: {self.manual_control}")
+                if self.manual_control == False and (
+                    not forward_vel == 0
+                    or not sideways_vel == 0
+                    or not angular_vel == 0
+                ):
+                    # tell robot brain to keep using the current velocity instead of restoring
+                    print("Keeping velocities")
+                    vel_key_pressed = True
 
         if keys[pygame.K_ESCAPE]:
             do_quit = True
@@ -64,6 +74,7 @@ class Keyboard(Sensor):
             "angular_vel": angular_vel,
             "gripper_toggle": self.gripper_status,
             "manual_control": self.manual_control,
+            "vel_key_pressed": vel_key_pressed,
             "do_quit": do_quit,
         }
 
