@@ -7,10 +7,6 @@ import asyncio
 import numpy as np
 from os import listdir
 from signal import signal, SIGINT
-
-# I hate altering paths, but without this piwarsengine dies
-importlib.import_module("sys").path.append("../piwarsengine")
-
 import util
 from world.ObjectType import ObjectType
 from world.WorldObject import WorldObject
@@ -156,7 +152,6 @@ async def main_loop():
 
     running = True  # state of simulator
     ctrlc_count = 0  # if hitting 3 try and sys.exit
-
 
     def sigint_handler(signal_received, frame):
         """trap/handle ctrl c"""
