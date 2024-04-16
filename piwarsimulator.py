@@ -69,8 +69,7 @@ class OmnicamConnectionMode(Enum):
 
 def sigint_handler(signal_received, frame):
     """trap/handle ctrl c"""
-    global running  # why does this need to be global?
-    global ctrlc_count
+    global running, ctrlc_count  # Because you're changing it. If it wasn't, it'd make a new scoped variable on assign.
     print("SIGINT or CTRL-C detected")
     running = False
     ctrlc_count += 1
