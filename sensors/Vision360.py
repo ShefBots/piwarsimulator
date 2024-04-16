@@ -1,23 +1,57 @@
 #!/usr/bin/env python3
+import asyncio
+import websockets
+import json
 import math
 from sensors.Sensor import Sensor
 from world.ObjectType import *
 from world.WorldObject import *
 
+import sys
+sys.path.insert(1, "omnicam-zero") # Horrible hacky bit to import the omnicam-zero library because it has a dash in it.
+from protocol import Mode, COMMUNICATION_PORT, REMOTE_ADDR
+
 
 class Vision360(Sensor):
     """class for interfacing with the 360 vision system"""
 
-    def __init__(self):
+    async def connect(self, remote):
+        self.websocket = await websockets.connect(f"ws://{REMOTE_ADDR if remote else 'localhost'}:{COMMUNICATION_PORT}")
+        try:
+            while True:
+                data= await self.websocket.recv()
+                print(f"Vision360 data recieved: {data}")
+                
+                # TODO: This is probably janky multithreading
+                # We've got new data, so wait until the data lock is available and then update the data
+                await self.data_lock.wait()
+                self.data = json.loads(data)
+        
+        except websockets.ConnectionClosed:
+            print("Connection closed")
+        except Exception as e:
+            print(f"WEBSOCKET CONNECTION ERROR: {e}")
+
+    def __init__(self, remote_connect=False):
         super().__init__()
         print("Activating connection to the 360 degree vision system")
 
-        ### INTIALISATION CODE HERE ###
+        self.data_lock = asyncio.Event()
+        self.data = {}
+        asyncio.create_task(self.connect(remote_connect))
 
     def do_scan(self):
         """
         return list of barrels, zones, and red mines, and the nearest white line ahead as world objects
         """
+
+        # We're reading the data so it's not available
+        self.data_lock.clear()
+
+        print(self.data)
+
+        # Okay we're done with the data now
+        self.data_lock.set()
 
         ### COMMUNICATE WITH SYSTEM HERE ###
 
