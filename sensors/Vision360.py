@@ -8,9 +8,9 @@ from world.WorldObject import *
 class Vision360(Sensor):
     """class for interfacing with the 360 vision system"""
 
-    def __init__(self):
+    def __init__(self, remote_connect=False):
         super().__init__()
-        print("Activating connection to the 360 degree vision system")
+        print(f"Activating connection to the 360 degree vision system in {'REMOTE' if remote_connect else 'LOCAL'} mode")
 
         ### INTIALISATION CODE HERE ###
 
