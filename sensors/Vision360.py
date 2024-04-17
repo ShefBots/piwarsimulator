@@ -7,6 +7,7 @@ from omnicam.protocol import Mode, COMMUNICATION_PORT, REMOTE_ADDR
 from websockets.sync.client import connect as sync_connect
 import websockets
 import threading
+import json
 
 import time
 
@@ -27,21 +28,26 @@ class Vision360(Sensor):
         print(f"Activating connection to the 360 degree vision system in {'REMOTE' if remote_connect else 'LOCAL'} mode")
 
         # Spin up a thread to contain the websocket
-        self.close_websocket_event = threading.Event()
-        self.websocket_thread = threading.Thread(target=Vision360.handle_websocket_connection,
-                                                 args=(remote_connect, self.close_websocket_event)
-                                                )
-        self.websocket_thread.start()
+        self._close_websocket_event = threading.Event()
+        self._visual_data = {}
+        self._visual_data_lock = threading.Lock()
+        self._websocket_thread = threading.Thread(target=Vision360.handle_websocket_connection,
+                                                  args=(self, remote_connect)
+                                                 )
+        self._websocket_thread.start()
 
-    def handle_websocket_connection(remote_connect, close_event):
+    def handle_websocket_connection(self, remote_connect):
         server_addr = REMOTE_ADDR if remote_connect else "localhost"
         try:
             print("Attempting to connect to the 360 vision system...")
             with sync_connect(f"ws://{server_addr}:{COMMUNICATION_PORT}") as websocket:
                 print(f"\tConnection established to server at {server_addr}.")
-                while not close_event.is_set():
-                    data = websocket.recv()
-                    print(f"Recieved:\n{data}")
+                while not self._close_websocket_event.is_set():
+                    # Process the data
+                    data = json.loads(websocket.recv())
+                    # Acquire lock and update the data
+                    with self._visual_data_lock:
+                        self._visual_data = data
             print("360 vision system connection closed.")
 
         except websockets.exceptions.ConnectionClosed as e:
@@ -60,7 +66,14 @@ class Vision360(Sensor):
         return list of barrels, zones, and red mines, and the nearest white line ahead as world objects
         """
 
-        ### COMMUNICATE WITH SYSTEM HERE ###
+        # Aquire data retrieved from the websocket
+        visual_data = {}
+        with self._visual_data_lock:
+            visual_data = self._visual_data
+
+        # Actually process it
+
+        print(f"Visual data: {visual_data}")
 
         scan_result = []
 
@@ -89,5 +102,5 @@ class Vision360(Sensor):
 
     def disconnect_websocket_server(self):
         # Could've made the thread a daemon, but I'mma try and actually tidy up after myself
-        self.close_websocket_event.set()
-        self.websocket_thread.join()
+        self._close_websocket_event.set()
+        self._websocket_thread.join()
