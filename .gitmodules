@@ -1,0 +1,3 @@
+[submodule "omnicam"]
+	path = omnicam
+	url = git@github.com:ShefBots/omnicam-zero.git
