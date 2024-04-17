@@ -74,7 +74,8 @@ class OmnicamConnectionMode(Enum):
 
 def sigint_handler(signal_received, frame):
     """trap/handle ctrl c"""
-    global running, ctrlc_count  # Because you're changing it. If it wasn't, it'd make a new scoped variable on assign.
+    # global because values are being changed - otherwise it'd make a new scoped variable on assign.
+    global running, ctrlc_count
     print("SIGINT or CTRL-C detected")
     running = False
     ctrlc_count += 1
@@ -255,7 +256,7 @@ match args.mode:
         from sensors.Vision360 import Vision360
 
 # do serial stuff if needed
-if not (args in [OperationMode.SIMULATION, OperationMode.EVERYTHING_SIM_BUT_VISION]):
+if not (args.mode in [OperationMode.SIMULATION, OperationMode.EVERYTHING_SIM_BUT_VISION]):
     print("Preparing serial comms...")
     # we want controller input even if simulating
     # or otherwise it's someting with hardware and we will want serial

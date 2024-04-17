@@ -36,17 +36,16 @@ class Vision360Error(Exception):
         return f"An error occured in the 360 vision system.\n{self.additional_info}"
 
 
-BRAIN_TO_MODE_MAPPING = {
-    "MinesweeperBrain": Mode.TASK_MINESWEEPER,
-    "LineFollowingBrain": Mode.TASK_LAVA_PALAVA,
-    "EcoDisasterBrain": Mode.TASK_ECO_DISASTER,
-    "CheesedEcoDisasterBrain": Mode.TASK_ECO_DISASTER,
-    "RobotBrain": Mode.TASK_MINESWEEPER,
-}
-
-
 class Vision360(Sensor):
     """class for interfacing with the 360 vision system"""
+
+    BRAIN_TO_MODE_MAPPING = {
+        "MinesweeperBrain": Mode.TASK_MINESWEEPER,
+        "LineFollowingBrain": Mode.TASK_LAVA_PALAVA,
+        "EcoDisasterBrain": Mode.TASK_ECO_DISASTER,
+        "CheesedEcoDisasterBrain": Mode.TASK_ECO_DISASTER,
+        "RobotBrain": Mode.TASK_MINESWEEPER,
+    }
 
     def __init__(self, brain_type, remote_connect=False):
         super().__init__()
@@ -54,11 +53,11 @@ class Vision360(Sensor):
             f"Activating connection to the 360 degree vision system in {'REMOTE' if remote_connect else 'LOCAL'} mode"
         )
 
-        if brain_type not in BRAIN_TO_MODE_MAPPING.keys():
+        if brain_type not in self.BRAIN_TO_MODE_MAPPING.keys():
             raise Vision360Error(
-                f"Invalid brain type '{brain_type}'. Must be one of {BRAIN_TO_MODE_MAPPING.keys()}"
+                f"Invalid brain type '{brain_type}'. Must be one of {self.BRAIN_TO_MODE_MAPPING.keys()}"
             )
-        self._brain_type = BRAIN_TO_MODE_MAPPING[brain_type]
+        self._brain_type = self.BRAIN_TO_MODE_MAPPING[brain_type]
 
         # Spin up a thread to contain the websocket
         self._close_websocket_event = threading.Event()

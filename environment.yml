@@ -7,3 +7,4 @@ dependencies:
   - shapely
   - pyserial
   - black
+  - websockets
