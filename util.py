@@ -4,15 +4,7 @@ import importlib
 import numpy as np
 import shapely
 from glob import glob
-from os import listdir
 
-# Lists of available brains and maps
-# On second thoughts, I have no idea why I just put this here.
-# I guess I was thinking it was an Enum despite moving it about
-# purely because it wasn't. Hmmm. Oh well, it's here now.
-# Maybe it'll be useful.
-BRAIN_LIST = sorted([s[:-3] for s in listdir("brains/") if "Brain.py" in s])
-MAP_LIST = sorted([s[:-3] for s in listdir("world/") if "Map.py" in s])
 
 def import_serial():
     # Everything we need to enable our special serial comms
