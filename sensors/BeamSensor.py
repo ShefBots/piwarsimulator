@@ -23,4 +23,4 @@ class BeamSensor(Sensor):
         beam_crossed = False
         # beam_crossed = self.io_controller.read_beam()
 
-        return [], {beam_crossed}
+        return [], {"beam": beam_crossed}
