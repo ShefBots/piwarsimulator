@@ -2,3 +2,4 @@ pygame
 numpy
 shapely
 pyserial
+black

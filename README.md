@@ -66,6 +66,10 @@ Or if you prefer conda:
 conda env create -f environment.yml
 ```
 
+### Coding style
+
+Code style is enforced with the [Black Formatter](https://github.com/psf/black) to ensure code styling. This is available in [PIP](https://pypi.org/project/black/) or alternatively, as a [VS code plugin](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter). There is probably a plugin for your IDE too.
+
 ### Network Setup
 
 If you're running a Pi Zero and would like to connect to it over USB Gadget Ethernet, or if you want one of the sensors to talk to the main over USB Gadget Ethernet, it is fairly straightforward to configure.
