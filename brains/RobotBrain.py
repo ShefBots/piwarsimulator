@@ -118,6 +118,8 @@ class RobotBrain:
         # base the offset on the current velocity & rotation speed to estimate the new object locations
         # store the new estimate in the saved reading for the next time around
 
+        # could call a sensor fusion routine here, e.g., if two objects are < 5 cm apart merge into one ()
+
     def process(self):
         """basic logic is to just not hit anything & respond to control input"""
         self.poll_sensors()
@@ -472,6 +474,13 @@ class RobotBrain:
             and not self.attachment_controller.gripper_state
             == self.attachment_controller.GRIPPER_CLOSED
         ):
+            # CHECK BEAM SENSOR and reduce speed further if beam is hit
+            if (
+                "beam" in self.sensor_measurements.keys()
+                and self.sensor_measurements["beam"]
+            ):
+                # print("Barrel speed limit hit")
+                speed_limit = speed_limit / 2
             clamp = lambda v: min(max(v, -speed_limit / 2), speed_limit / 2)
             vel = [clamp(v) for v in vel]
             self._controller.set_plane_velocity(vel)

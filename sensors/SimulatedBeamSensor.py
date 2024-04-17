@@ -16,7 +16,7 @@ class SimulatedBeamSensor(Sensor):
         super().__init__()
         self.ExteriorTheWorld = ExteriorTheWorld
         assert ExteriorTheWorld[0].object_type == ObjectType.ROBOT
-        print(f"Activating simulated gripper line sensor'")
+        print(f"Activating simulated gripper beam sensor'")
 
         # the line is just in front of the robot and just a little bit in from its width
         # first distance to check edge for (larger than width or height to make sure it goes beyond)
