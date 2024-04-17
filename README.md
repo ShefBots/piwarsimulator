@@ -4,18 +4,23 @@ Manual control on real hardware may be engaged using `--radio true` and then fli
 
 ```
 $ ./piwarsimulator.py -h
-pygame 2.5.2 (SDL 2.28.2, Python 3.11.0)
+pygame 2.5.2 (SDL 2.28.3, Python 3.11.7)
 Hello from the pygame community. https://www.pygame.org/contribute.html
 usage: piwarsimulator.py [-h]
                          [--brain {CheesedEcoDisasterBrain,EcoDisasterBrain,LineFollowingBrain,MazeBrain,MinesweeperBrain,RobotBrain}]
                          [--map {EmptyMap,EscapeRouteMap,LavaPalavaMap,MinesweeperMap,RandomEcoDisasterMap,SimpleEcoDisasterMap}]
-                         [--mode {simulation,sensor_simulation,control}] [--radio {true,false}]
-                         [--rendering {true,false}] [--simplevision {true,false}] [--attachment {none,gripper,launcher}]
-                         [--beam {true,false}] [--robot_speed ROBOT_SPEED] [--turning_speed TURNING_SPEED]
-                         [--tof_position {high,low}]
+                         [--mode {simulation,sensor_simulation,control,control_simulation,everything_sim_but_vision}]
+                         [--radio {true,false}] [--rendering {true,false}]
+                         [--vision_mode {none,omnicam,simple}]
+                         [--omnicam_socket_mode {local,remote}]
+                         [--attachment {none,gripper,launcher}]
+                         [--beam {true,false}] [--robot_speed ROBOT_SPEED]
+                         [--turning_speed TURNING_SPEED]
+                         [--frame_rate FRAME_RATE] [--tof_position {high,low}]
 
-Simulator/controller for the ShefBots robot for PiWars 2024. Press SPACE to engage manual control, WASD/Arrow keys for
-strafe, and QE for rotate. G will activate the gripper if attached.
+Simulator/controller for ShefBots robot for PiWars 2024. Press SPACE to engage
+manual control, WASD/Arrow keys for strafe, and QE for rotate. G will activate
+the gripper if attached.
 
 options:
   -h, --help            show this help message and exit
@@ -23,22 +28,29 @@ options:
                         robot brain/challenge (default RobotBrain)
   --map {EmptyMap,EscapeRouteMap,LavaPalavaMap,MinesweeperMap,RandomEcoDisasterMap,SimpleEcoDisasterMap}
                         map (default EmptyMap)
-  --mode {simulation,sensor_simulation,control}
+  --mode {simulation,sensor_simulation,control,control_simulation,everything_sim_but_vision}
                         operation mode (default simulation)
   --radio {true,false}  use radio receiever for control (default false)
   --rendering {true,false}
                         render world on screen (default true)
-  --simplevision {true,false}
-                        rely on simpler vision system (default false)
+  --vision_mode {none,omnicam,simple}
+                        While in simulation modes, rely on simpler vision
+                        system (default omnicam)
+  --omnicam_socket_mode {local,remote}
+                        When using real sensors, whether the 360 vision system
+                        should contact localhost ('local') or 192.168.22.1
+                        ('remote') (defaultremote)
   --attachment {none,gripper,launcher}
                         choose an attachment (default none)
-  --beam {true,false}   is the gripper equipped with the beam sensor (default false)
+  --beam {true,false}   is the gripper equipped with the beam sensor (default
+                        false)
   --robot_speed ROBOT_SPEED
                         the top robot speed (min=0.1, max=0.6, default 0.3)
   --turning_speed TURNING_SPEED
                         the top robot speed (min=22.5, max=90.0, default 45)
   --frame_rate FRAME_RATE
-                        number of times update (call process()) per second (min=10.0, max=120.0, default 60.0)
+                        number of times update (call process()) per second
+                        (min=10.0, max=120.0, default 60.0)
   --tof_position {high,low}
                         tof sensors are mounted low or high (default high)
 ```

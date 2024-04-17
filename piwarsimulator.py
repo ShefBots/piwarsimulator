@@ -64,6 +64,15 @@ class OperationMode(Enum):
         return self.value
 
 
+class VisionMode(Enum):
+    NONE = "none"
+    OMNICAM = "omnicam"
+    SIMPLE = "simple"
+
+    def __str__(self):
+        return self.value
+
+
 class OmnicamConnectionMode(Enum):
     LOCAL = "local"
     REMOTE = "remote"
@@ -90,8 +99,8 @@ brains = sorted([s[:-3] for s in listdir("brains/") if "Brain.py" in s])
 maps = sorted([s[:-3] for s in listdir("world/") if "Map.py" in s])
 
 parser = argparse.ArgumentParser(
-    description="""Simulator/controller for ShefBots Mark 1b for PiWars 2024.
-    Press SPACE to engage manual control, WASD/Arrow keys for strafe, and QE for rotate.
+    description="""Simulator/controller for ShefBots robot for PiWars 2024. 
+    Press SPACE to engage manual control, WASD/Arrow keys for strafe, and QE for rotate. 
     G will activate the gripper if attached."""
 )
 parser.add_argument(
@@ -118,7 +127,7 @@ parser.add_argument(
 )
 parser.add_argument(
     "--mode",
-    help="operation mode (default simulation)",
+    help=f"operation mode (default {OperationMode.SIMULATION})",
     type=OperationMode,
     default=OperationMode.SIMULATION,  # Simulation
     # default=OperationMode.CONTROL,  # Control
@@ -137,11 +146,12 @@ parser.add_argument(
     choices=["true", "false"],
 )
 parser.add_argument(
-    "--simplevision",
-    help="While in simulation modes, rely on simpler vision system (default false)",
-    default="false",
-    # default="true",
-    choices=["true", "false"],
+    "--vision_mode",
+    help=f"While in simulation modes, rely on simpler vision system (default {VisionMode.OMNICAM})",
+    # default=VisionMode.NONE,
+    default=VisionMode.OMNICAM,
+    # default=VisionMode.SIMPLE,
+    choices=list(VisionMode),
 )
 parser.add_argument(
     "--omnicam_socket_mode",
@@ -149,7 +159,7 @@ parser.add_argument(
     # default=OmnicamConnectionMode.LOCAL,
     default=OmnicamConnectionMode.REMOTE,
     choices=list(OmnicamConnectionMode),
-    help=f"When using real sensors, whether the 360 vision system should contact localhost ('local') or {REMOTE_ADDR} ('remote')",
+    help=f"When using real sensors, whether the 360 vision system should contact localhost ('local') or {REMOTE_ADDR} ('remote') (default{OmnicamConnectionMode.REMOTE})",
 )
 parser.add_argument(
     "--attachment",
@@ -205,9 +215,9 @@ match args.mode:
         from sensors.SimulatedLineOfSight import SimulatedLineOfSight
         from sensors.SimulatedBeamSensor import SimulatedBeamSensor
 
-        if not util.is_true(args.simplevision):
+        if args.vision_mode == VisionMode.OMNICAM:
             from sensors.SimulatedVision360 import SimulatedVision360 as SimulatedVision
-        else:
+        elif args.vision_mode == VisionMode.SIMPLE:
             from sensors.SimulatedReducedVision import (
                 SimulatedReducedVision as SimulatedVision,
             )
@@ -221,9 +231,9 @@ match args.mode:
         from sensors.SimulatedLineOfSight import SimulatedLineOfSight
         from sensors.SimulatedBeamSensor import SimulatedBeamSensor
 
-        if not util.is_true(args.simplevision):
+        if args.vision_mode == VisionMode.OMNICAM:
             from sensors.SimulatedVision360 import SimulatedVision360 as SimulatedVision
-        else:
+        elif args.vision_mode == VisionMode.SIMPLE:
             from sensors.SimulatedReducedVision import (
                 SimulatedReducedVision as SimulatedVision,
             )
@@ -234,28 +244,38 @@ match args.mode:
         from controllers.GripperController import GripperController
         from controllers.LauncherController import LauncherController
         from sensors.DistanceSensor import DistanceSensor
-        from sensors.Vision360 import Vision360
+
+        # TODO: Probably needs beam sensor here
+
+        if args.vision_mode == VisionMode.OMNICAM:
+            from sensors.Vision360 import Vision360
 
     case OperationMode.CONTROL_SIMULATION:
-        # TODO fake control hardware, real sensors
+        # fake control hardware, real sensors
         util.import_serial()
         from controllers.SimulatedMovementController import SimulatedMovementController
         from controllers.SimulatedGripperController import SimulatedGripperController
         from sensors.DistanceSensor import DistanceSensor
 
         # TODO: Probably needs beam sensor here
-        from sensors.Vision360 import Vision360
+
+        if args.vision_mode == VisionMode.OMNICAM:
+            from sensors.Vision360 import Vision360
 
     case OperationMode.EVERYTHING_SIM_BUT_VISION:
-        # Basically "control_simulation, but with everything in sim except the 360 camera
+        # Basically sensor_simulation  with everything in sim except the 360 camera
         from controllers.SimulatedMovementController import SimulatedMovementController
         from controllers.SimulatedGripperController import SimulatedGripperController
         from sensors.SimulatedLineOfSight import SimulatedLineOfSight
         from sensors.SimulatedBeamSensor import SimulatedBeamSensor
-        from sensors.Vision360 import Vision360
+
+        if args.vision_mode == VisionMode.OMNICAM:
+            from sensors.Vision360 import Vision360
 
 # do serial stuff if needed
-if not (args.mode in [OperationMode.SIMULATION, OperationMode.EVERYTHING_SIM_BUT_VISION]):
+if not (
+    args.mode in [OperationMode.SIMULATION, OperationMode.EVERYTHING_SIM_BUT_VISION]
+):
     print("Preparing serial comms...")
     # we want controller input even if simulating
     # or otherwise it's someting with hardware and we will want serial
@@ -339,11 +359,11 @@ match args.mode:
             print(f"Caught error: {e}")
             print(traceback.format_exc())
 
-    case OperationMode.CONTROL_SIMULATION:
-        # TODO
-        pass
-    case OperationMode.EVERYTHING_SIM_BUT_VISION:
+    case OperationMode.CONTROL_SIMULATION | OperationMode.EVERYTHING_SIM_BUT_VISION:
+        # simulated control with real sensors
         controller = SimulatedMovementController(robot)
+        if args.attachment.lower() == "gripper":
+            attachment_controller = SimulatedGripperController(robot)
 
 
 print(f"Loading {args.brain}...")
@@ -355,7 +375,11 @@ robot_brain = brain(
     turning_speed=args.turning_speed,
     attachment_controller=attachment_controller,
 )
-if args.mode in [OperationMode.SIMULATION, OperationMode.SENSOR_SIMULATION]:
+if args.mode in [
+    OperationMode.SIMULATION,
+    OperationMode.CONTROL_SIMULATION,
+    OperationMode.EVERYTHING_SIM_BUT_VISION,
+]:
     # this works because lists are references
     controller.holding = robot_brain.holding
 if not args.attachment.lower() == "none" and not attachment_controller is None:
@@ -366,19 +390,43 @@ print("Attaching sensors...")
 if util.is_true(args.rendering):
     robot_brain.add_sensor(Keyboard(robot_brain.speed, robot_brain.turning_speed))
 match args.mode:
-    case OperationMode.SIMULATION | OperationMode.SENSOR_SIMULATION:
+    case (
+        OperationMode.SIMULATION
+        | OperationMode.SENSOR_SIMULATION
+        | OperationMode.EVERYTHING_SIM_BUT_VISION
+    ):
+        # all sensors simulated
         # add the simulated time of flight sensors
         for _, v in enumerate(TOF_POSITIONS[args.tof_position.lower()]):
             robot_brain.add_sensor(
                 SimulatedLineOfSight(ExteriorTheWorld, robot_brain, v[0])
             )
-        # Add the simulated vision
-        robot_brain.add_sensor(SimulatedVision(ExteriorTheWorld, robot_brain))
+
         # Add the simualted beam sensor
         if args.attachment.lower() == "gripper" and util.is_true(args.beam):
             robot_brain.add_sensor(SimulatedBeamSensor(ExteriorTheWorld))
 
-    case OperationMode.CONTROL:
+        if args.mode == OperationMode.EVERYTHING_SIM_BUT_VISION:
+            # only the vision system is real
+            try:
+                if args.vision_mode == VisionMode.OMNICAM:
+                    # Add the REAL vision link
+                    vision_360 = Vision360(
+                        args.brain,
+                        args.omnicam_socket_mode == OmnicamConnectionMode.REMOTE,
+                    )
+                    robot_brain.add_sensor(vision_360)
+            except Exception as e:
+                running = False
+                print(f"Caught error: {e}")
+                print(traceback.format_exc())
+        else:
+            # the vision system is simulated
+            if not args.vision_mode == VisionMode.NONE:
+                robot_brain.add_sensor(SimulatedVision(ExteriorTheWorld, robot_brain))
+
+    case OperationMode.CONTROL | OperationMode.CONTROL_SIMULATION:
+        # all sensors real
         try:
             # add the time of flight sensors
             for _, v in enumerate(TOF_POSITIONS[args.tof_position.lower()]):
@@ -386,51 +434,16 @@ match args.mode:
                     DistanceSensor(serial_instances, robot, v[0], v[1], offset=v[2])
                 )
 
-            # Add vision link
-            vision_360 = Vision360(
-                args.brain, args.omnicam_socket_mode == OmnicamConnectionMode.REMOTE
-            )
-            robot_brain.add_sensor(vision_360)
-        except Exception as e:
-            running = False
-            print(f"Caught error: {e}")
-            print(traceback.format_exc())
-
-    case OperationMode.CONTROL_SIMULATION:
-        try:
-            # Add TOF sensors
-            for _, v in enumerate(TOF_POSITIONS[args.tof_position.lower()]):
-                robot_brain.add_sensor(
-                    DistanceSensor(serial_instances, robot, v[0], v[1], offset=v[2])
-                )
-
-            # Add vision link
-            vision_360 = Vision360(
-                args.brain, args.omnicam_socket_mode == OmnicamConnectionMode.REMOTE
-            )
-            robot_brain.add_sensor(vision_360)
-        except Exception as e:
-            running = False
-            print(f"Caught error: {e}")
-            print(traceback.format_exc())
-
-    case OperationMode.EVERYTHING_SIM_BUT_VISION:
-        try:
-            # add the simulated time of flight sensors
-            for _, v in enumerate(TOF_POSITIONS[args.tof_position.lower()]):
-                robot_brain.add_sensor(
-                    SimulatedLineOfSight(ExteriorTheWorld, robot_brain, v[0])
-                )
-
-            # Add the simualted beam sensor
+            # TODO Add the real beam sensor
             if args.attachment.lower() == "gripper" and util.is_true(args.beam):
-                robot_brain.add_sensor(SimulatedBeamSensor(ExteriorTheWorld))
+                pass
 
-            # Add the REAL vision link
-            vision_360 = Vision360(
-                args.brain, args.omnicam_socket_mode == OmnicamConnectionMode.REMOTE
-            )
-            robot_brain.add_sensor(vision_360)
+            if args.vision_mode == VisionMode.OMNICAM:
+                # Add vision link
+                vision_360 = Vision360(
+                    args.brain, args.omnicam_socket_mode == OmnicamConnectionMode.REMOTE
+                )
+                robot_brain.add_sensor(vision_360)
         except Exception as e:
             running = False
             print(f"Caught error: {e}")
