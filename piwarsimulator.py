@@ -5,7 +5,6 @@ import time
 import traceback
 import numpy as np
 from enum import Enum
-from os import listdir
 from signal import signal, SIGINT
 import util
 from world.ObjectType import ObjectType
@@ -79,10 +78,6 @@ def sigint_handler(signal_received, frame):
 
 signal(SIGINT, sigint_handler)
 
-# list of available brains for argument list
-brains = sorted([s[:-3] for s in listdir("brains/") if "Brain.py" in s])
-maps = sorted([s[:-3] for s in listdir("world/") if "Map.py" in s])
-
 parser = argparse.ArgumentParser(
     description="""Simulator/controller for ShefBots Mark 1b for PiWars 2024.
     Press SPACE to engage manual control, WASD/Arrow keys for strafe, and QE for rotate.
@@ -97,18 +92,18 @@ parser.add_argument(
     # default="LineFollowingBrain",
     # default="EcoDisasterBrain",
     # default="CheesedEcoDisasterBrain",
-    choices=brains,
+    choices=util.BRAIN_LIST,
 )
 parser.add_argument(
     "--map",
-    help=f"map (default {maps[0]})",
-    default=maps[0],
+    help=f"map (default {util.MAP_LIST[0]})",
+    default=util.MAP_LIST[0],
     # default="MinesweeperMap",
     # default="EscapeRouteMap",
     # default="LavaPalavaMap",
     # default="SimpleEcoDisasterMap",
     # default="RandomEcoDisasterMap",
-    choices=maps,
+    choices=util.MAP_LIST,
 )
 parser.add_argument(
     "--mode",
