@@ -53,6 +53,15 @@ running = True  # state of simulator
 ctrlc_count = 0  # if hitting 3 try and sys.exit
 
 
+class Attachment(Enum):
+    NONE = "none"
+    GRIPPER = "gripper"
+    LAUNCHER = "launcher"
+
+    def __str__(self):
+        return self.value
+
+
 class OperationMode(Enum):
     SIMULATION = "simulation"
     SENSOR_SIMULATION = "sensor_simulation"
@@ -148,6 +157,7 @@ parser.add_argument(
 parser.add_argument(
     "--vision_mode",
     help=f"While in simulation modes, rely on simpler vision system (default {VisionMode.OMNICAM})",
+    type=VisionMode,
     # default=VisionMode.NONE,
     default=VisionMode.OMNICAM,
     # default=VisionMode.SIMPLE,
@@ -155,18 +165,19 @@ parser.add_argument(
 )
 parser.add_argument(
     "--omnicam_socket_mode",
+    help=f"When using real sensors, whether the 360 vision system should contact localhost ('local') or {REMOTE_ADDR} ('remote') (default{OmnicamConnectionMode.REMOTE})",
     type=OmnicamConnectionMode,
     # default=OmnicamConnectionMode.LOCAL,
     default=OmnicamConnectionMode.REMOTE,
     choices=list(OmnicamConnectionMode),
-    help=f"When using real sensors, whether the 360 vision system should contact localhost ('local') or {REMOTE_ADDR} ('remote') (default{OmnicamConnectionMode.REMOTE})",
 )
 parser.add_argument(
     "--attachment",
     help="choose an attachment (default none)",
-    default="none",
-    # default="gripper",
-    choices=["none", "gripper", "launcher"],
+    type=Attachment,
+    # default=Attachment.NONE,
+    # default=Attachment.GRIPPER,
+    choices=list(Attachment),
 )
 parser.add_argument(
     "--beam",
@@ -245,7 +256,7 @@ match args.mode:
         from controllers.LauncherController import LauncherController
         from sensors.DistanceSensor import DistanceSensor
 
-        if args.attachment.lower() == "gripper" and util.is_true(args.beam):
+        if args.attachment == Attachment.GRIPPER and util.is_true(args.beam):
             from sensors.BeamSensor import BeamSensor
 
         if args.vision_mode == VisionMode.OMNICAM:
@@ -258,7 +269,7 @@ match args.mode:
         from controllers.SimulatedGripperController import SimulatedGripperController
         from sensors.DistanceSensor import DistanceSensor
 
-        if args.attachment.lower() == "gripper" and util.is_true(args.beam):
+        if args.attachment == Attachment.GRIPPER and util.is_true(args.beam):
             from sensors.BeamSensor import BeamSensor
 
         if args.vision_mode == VisionMode.OMNICAM:
@@ -327,13 +338,13 @@ vision_360 = None  # Reference to the 360 vision system
 match args.mode:
     case OperationMode.SIMULATION:
         controller = SimulatedMovementController(robot)
-        if args.attachment.lower() == "gripper":
+        if args.attachment == Attachment.GRIPPER:
             attachment_controller = SimulatedGripperController(robot)
 
     case OperationMode.SENSOR_SIMULATION:
         try:
             real_controller = MovementController(serial_instances)
-            if args.attachment.lower() == "gripper":
+            if args.attachment == Attachment.GRIPPER:
                 real_attachment_controller = GripperController(robot, serial_instances)
         except Exception as e:
             print(f"Caught error: {e}")
@@ -343,7 +354,7 @@ match args.mode:
         controller = SimulatedMovementController(
             robot, secondary_controller=real_controller
         )
-        if args.attachment.lower() == "gripper":
+        if args.attachment == Attachment.GRIPPER:
             attachment_controller = SimulatedGripperController(
                 robot, secondary_controller=real_attachment_controller
             )
@@ -351,9 +362,9 @@ match args.mode:
     case OperationMode.CONTROL:
         try:
             controller = MovementController(serial_instances)
-            if args.attachment.lower() == "gripper":
+            if args.attachment == Attachment.GRIPPER:
                 attachment_controller = GripperController(robot, serial_instances)
-            elif args.attachment.lower() == "launcher":
+            elif args.attachment == Attachment.LAUNCHER:
                 attachment_controller = LauncherController(serial_instances)
         except Exception as e:
             running = False
@@ -364,7 +375,7 @@ match args.mode:
     case OperationMode.CONTROL_SIMULATION | OperationMode.EVERYTHING_SIM_BUT_VISION:
         # simulated control with real sensors
         controller = SimulatedMovementController(robot)
-        if args.attachment.lower() == "gripper":
+        if args.attachment == Attachment.GRIPPER:
             attachment_controller = SimulatedGripperController(robot)
 
 
@@ -384,7 +395,7 @@ if args.mode in [
 ]:
     # this works because lists are references
     controller.holding = robot_brain.holding
-if not args.attachment.lower() == "none" and not attachment_controller is None:
+if not args.attachment == Attachment.NONE and not attachment_controller is None:
     print("Attaching brain to attachment")
     attachment_controller.set_brain(robot_brain)
 
@@ -405,7 +416,7 @@ match args.mode:
             )
 
         # Add the simualted beam sensor
-        if args.attachment.lower() == "gripper" and util.is_true(args.beam):
+        if args.attachment == Attachment.GRIPPER and util.is_true(args.beam):
             robot_brain.add_sensor(SimulatedBeamSensor(ExteriorTheWorld))
 
         if args.mode == OperationMode.EVERYTHING_SIM_BUT_VISION:
@@ -437,7 +448,7 @@ match args.mode:
                 )
 
             # Add the real beam sensor
-            if args.attachment.lower() == "gripper" and util.is_true(args.beam):
+            if args.attachment == Attachment.GRIPPER and util.is_true(args.beam):
                 robot_brain.add_sensor(BeamSensor(serial_instances))
 
             if args.vision_mode == VisionMode.OMNICAM:
