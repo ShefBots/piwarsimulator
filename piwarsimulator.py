@@ -495,3 +495,5 @@ if not controller is None:
     controller.stop(exiting=True)
 if not attachment_controller is None:
     attachment_controller.stop(exiting=True)
+if not vision_360 is None:
+    vision_360.disconnect_websocket_server()

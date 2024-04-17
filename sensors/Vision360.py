@@ -3,6 +3,12 @@ import math
 from sensors.Sensor import Sensor
 from world.ObjectType import *
 from world.WorldObject import *
+from omnicam.protocol import Mode, COMMUNICATION_PORT, REMOTE_ADDR
+from websockets.sync.client import connect as sync_connect
+import threading
+import atexit
+
+import time
 
 
 class Vision360(Sensor):
@@ -12,7 +18,22 @@ class Vision360(Sensor):
         super().__init__()
         print(f"Activating connection to the 360 degree vision system in {'REMOTE' if remote_connect else 'LOCAL'} mode")
 
-        ### INTIALISATION CODE HERE ###
+        # Start the websocket connection
+
+        # Spin up a thread to monitor the websocket
+        self.close_websocket_event = threading.Event()
+        self.websocket_thread = threading.Thread(target=Vision360.handle_websocket_connection,
+                                                 args=(None,self.close_websocket_event)
+                                                )
+        self.websocket_thread.start()
+
+    def handle_websocket_connection(websocket, close_event):
+        while True:
+            print("Haha, I'm a forever loop!")
+            time.sleep(1)
+            if close_event.is_set():
+                print("Closing Vision360 websocket connection...")
+                break
 
     def do_scan(self):
         """
@@ -45,3 +66,8 @@ class Vision360(Sensor):
 
         # return the objects found
         return scan_result, {}
+
+    def disconnect_websocket_server(self):
+        # Could've made the thread a daemon, but I'mma try and actually tidy up after myself
+        self.close_websocket_event.set()
+        self.websocket_thread.join()
