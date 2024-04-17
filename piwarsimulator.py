@@ -103,7 +103,7 @@ parser.add_argument(
     # default="LineFollowingBrain",
     # default="EcoDisasterBrain",
     # default="CheesedEcoDisasterBrain",
-    choices=maps,
+    choices=brains,
 )
 parser.add_argument(
     "--map",
@@ -151,7 +151,6 @@ parser.add_argument(
     choices=list(OmnicamConnectionMode),
     help=f"When using real sensors, whether the 360 vision system should contact localhost ('local') or {REMOTE_ADDR} ('remote')",
 )
-
 parser.add_argument(
     "--attachment",
     help="choose an attachment (default none)",
