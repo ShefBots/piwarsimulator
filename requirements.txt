@@ -2,4 +2,5 @@ pygame
 numpy
 shapely
 pyserial
+black
 websockets

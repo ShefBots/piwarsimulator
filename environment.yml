@@ -6,3 +6,4 @@ dependencies:
   - numpy
   - shapely
   - pyserial
+  - black
