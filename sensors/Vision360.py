@@ -5,10 +5,19 @@ from world.ObjectType import *
 from world.WorldObject import *
 from omnicam.protocol import Mode, COMMUNICATION_PORT, REMOTE_ADDR
 from websockets.sync.client import connect as sync_connect
+import websockets
 import threading
 
 import time
 
+class Vision360Error(Exception):
+    def __init__(self, additional_info, e, *args):
+        super().__init__(args)
+        self.e = e
+        self.additional_info = additional_info
+    def __str__(self):
+        return(f"An error occured in the 360 vision socket connection (connection to {REMOTE_ADDR}).\n{self.additional_info}\nFull error:{self.e}")
+        
 
 class Vision360(Sensor):
     """class for interfacing with the 360 vision system"""
@@ -17,22 +26,34 @@ class Vision360(Sensor):
         super().__init__()
         print(f"Activating connection to the 360 degree vision system in {'REMOTE' if remote_connect else 'LOCAL'} mode")
 
-        # Start the websocket connection
-
-        # Spin up a thread to monitor the websocket
+        # Spin up a thread to contain the websocket
         self.close_websocket_event = threading.Event()
         self.websocket_thread = threading.Thread(target=Vision360.handle_websocket_connection,
-                                                 args=(None,self.close_websocket_event)
+                                                 args=(remote_connect, self.close_websocket_event)
                                                 )
         self.websocket_thread.start()
 
-    def handle_websocket_connection(websocket, close_event):
-        while True:
-            print("Haha, I'm a forever loop!")
-            time.sleep(1)
-            if close_event.is_set():
-                print("Closing Vision360 websocket connection...")
-                break
+    def handle_websocket_connection(remote_connect, close_event):
+        server_addr = REMOTE_ADDR if remote_connect else "localhost"
+        try:
+            print("Attempting to connect to the 360 vision system...")
+            with sync_connect(f"ws://{server_addr}:{COMMUNICATION_PORT}") as websocket:
+                print(f"\tConnection established to server at {server_addr}.")
+                while not close_event.is_set():
+                    data = websocket.recv()
+                    print(f"Recieved:\n{data}")
+            print("360 vision system connection closed.")
+
+        except websockets.exceptions.ConnectionClosed as e:
+            raise Vision360Error("Connection closed by server.", e)
+        except ConnectionRefusedError as e:
+            raise Vision360Error("Connection refused by server. Check the server's status (and/or HOST LOCATION) and try again.", e)
+        except TimeoutError as e:
+            raise Vision360Error("Connection timed out. Check the server's status (and/or HOST LOCATION) and try again.", e)
+        except OSError as e:
+            raise Vision360Error(f"Connection failed due to TCP connection failure. Likely a network or system issue.\n{e.strerror}", e)
+        except websockets.exceptions.InvalidHandshake:
+            raise Vision360Error("Connection failed due to an invalid handshake. This shouldn't happen. ...is there a corrupted network path?", e)
 
     def do_scan(self):
         """
