@@ -288,7 +288,8 @@ if (args.mode in [OperationMode.Simulation, OperationMode.SensorSimulation, Oper
 
 # logic for the robot
 print("Loading robot controllers...")
-attachment_controller = None
+attachment_controller = None # Reference to the attachment controller
+vision_360 = None # Reference to the 360 vision system
 match args.mode:
     case OperationMode.Simulation:
         controller = SimulatedMovementController(robot)
@@ -372,8 +373,10 @@ match args.mode:
                 robot_brain.add_sensor(
                     DistanceSensor(serial_instances, robot, v[0], v[1], offset=v[2])
                 )
+
             # Add vision link
-            robot_brain.add_sensor(Vision360(args.omnicam_socket_mode == OmnicamConnectionMode.Remote))
+            vision_360 = Vision360(args.omnicam_socket_mode == OmnicamConnectionMode.Remote)
+            robot_brain.add_sensor(vision_360)
         except Exception as e:
             running = False
             print(f"Caught error: {e}")
@@ -386,24 +389,34 @@ match args.mode:
                 robot_brain.add_sensor(
                     DistanceSensor(serial_instances, robot, v[0], v[1], offset=v[2])
                 )
+
             # Add vision link
-            robot_brain.add_sensor(Vision360(args.omnicam_socket_mode == OmnicamConnectionMode.Remote))
+            vision_360 = Vision360(args.omnicam_socket_mode == OmnicamConnectionMode.Remote)
+            robot_brain.add_sensor(vision_360)
         except Exception as e:
             running = False
             print(f"Caught error: {e}")
             print(traceback.format_exc())
 
     case OperationMode.EverythingSimButVision:
-        # add the simulated time of flight sensors
-        for _, v in enumerate(TOF_POSITIONS[args.tof_position.lower()]):
-            robot_brain.add_sensor(
-                SimulatedLineOfSight(ExteriorTheWorld, robot_brain, v[0])
-            )
-        # Add the simualted beam sensor
-        if args.attachment.lower() == "gripper" and util.is_true(args.beam):
-            robot_brain.add_sensor(SimulatedBeamSensor(ExteriorTheWorld))
-        # Add the REAL vision link
-        robot_brain.add_sensor(Vision360(args.omnicam_socket_mode == OmnicamConnectionMode))
+        try:
+            # add the simulated time of flight sensors
+            for _, v in enumerate(TOF_POSITIONS[args.tof_position.lower()]):
+                robot_brain.add_sensor(
+                    SimulatedLineOfSight(ExteriorTheWorld, robot_brain, v[0])
+                )
+
+            # Add the simualted beam sensor
+            if args.attachment.lower() == "gripper" and util.is_true(args.beam):
+                robot_brain.add_sensor(SimulatedBeamSensor(ExteriorTheWorld))
+
+            # Add the REAL vision link
+            vision_360 = Vision360(args.omnicam_socket_mode == OmnicamConnectionMode.Remote)
+            robot_brain.add_sensor(vision_360)
+        except Exception as e:
+            running = False
+            print(f"Caught error: {e}")
+            print(traceback.format_exc())
 
 if util.is_true(args.radio):
     try:
