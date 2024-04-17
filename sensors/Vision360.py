@@ -6,7 +6,6 @@ from world.WorldObject import *
 from omnicam.protocol import Mode, COMMUNICATION_PORT, REMOTE_ADDR
 from websockets.sync.client import connect as sync_connect
 import threading
-import atexit
 
 import time
 
