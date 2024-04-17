@@ -49,7 +49,7 @@ Note the `CheesedEcoDisasterBrain` applies a simpler (although less robust) algo
 
 The first step is to create a development environment.
 This will first involve setting up a venv of conda environment (described after this).
-The parent folder should contain a copy of [piwarsengine](https://github.com/ShefBots/piwarsengine), obtained via a `git clone https://github.com/ShefBots/piwarsengine.git` command.
+The parent folder should contain a copy of [piwarsengine](https://github.com/ShefBots/piwarsengine), obtained via a `git clone --recurse-submodules https://github.com/ShefBots/piwarsengine.git` command.
 The folder that this copy of piwarsengine is in should be just called "piwarsengine", i.e. alongside the "piwarsimulator" folder there should be a folder called "piwarsengine" that contains the sub-folders "comms", "devices", "examples" etc.
 Finally once everything is installed, run `python3 piwarsimulator.py`.
 
