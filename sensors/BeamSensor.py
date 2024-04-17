@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from sensors.Sensor import Sensor
+
 from devices import IOController
 
 
@@ -19,8 +21,6 @@ class BeamSensor(Sensor):
             raise Exception("Could not find IO controller hardware")
 
     def do_scan(self):
-
-        beam_crossed = False
-        # beam_crossed = self.io_controller.read_beam()
-
+        beam_crossed = self.io_controller.barrel_state()
+        #print(f"Beam Crossed: {beam_crossed}")
         return [], {"beam": beam_crossed}

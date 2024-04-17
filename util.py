@@ -11,6 +11,7 @@ def import_serial():
     print("Importing serial")
     # I hate altering paths, but without this piwarsengine dies
     importlib.import_module("sys").path.append("../piwarsengine")
+    global SerialException, SerialComms, SERIAL_DEVICE_ID_LIST
     from serial import SerialException
     from comms.serial import SerialComms
     from devices import DEVICE_ID_LIST as SERIAL_DEVICE_ID_LIST

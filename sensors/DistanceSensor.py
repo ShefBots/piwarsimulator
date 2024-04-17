@@ -35,7 +35,7 @@ class DistanceSensor(Sensor):
         # this is relative to the robot's center
         assert angle == 0 or angle == 90 or angle == 180 or angle == 270
         self.angle = angle
-        assert index >= 0 and index < 3
+        assert index >= 0 and index < 4
         self.index = index
 
         # how far inside from the edge of the robot is the TOF sensor?
@@ -148,6 +148,8 @@ class DistanceSensor(Sensor):
 
         # construct the wall the scanned object could be
         if closest_distance > 0:
+            # Temporarily removed due to ExteriorTheWorld not being accessible
+            """
             # how long half of the wall segment is
             wall_segment_length = closest_distance * math.tan(
                 math.radians(self.FIELD_OF_VIEW / 2)
@@ -162,6 +164,18 @@ class DistanceSensor(Sensor):
                 x1=self.x0 - wall_segment_length,
                 y1=self.y0 + closest_distance,
                 x2=self.x0 + wall_segment_length,
+                y2=self.y0 + closest_distance,
+                color="lightgray",
+            )
+            """
+
+            scanned_obj = WorldObject(
+                object_type=ObjectType.WALL,
+                x1=self.x0
+                - closest_distance * math.tan(math.radians(self.FIELD_OF_VIEW / 2)),
+                y1=self.y0 + closest_distance,
+                x2=self.x0
+                + closest_distance * math.tan(math.radians(self.FIELD_OF_VIEW / 2)),
                 y2=self.y0 + closest_distance,
                 color="lightgray",
             )
