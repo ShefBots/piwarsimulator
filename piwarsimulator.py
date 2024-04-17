@@ -370,7 +370,7 @@ match args.mode:
                 )
 
             # Add vision link
-            vision_360 = Vision360(args.omnicam_socket_mode == OmnicamConnectionMode.Remote)
+            vision_360 = Vision360(args.brain, args.omnicam_socket_mode == OmnicamConnectionMode.Remote)
             robot_brain.add_sensor(vision_360)
         except Exception as e:
             running = False
@@ -386,7 +386,7 @@ match args.mode:
                 )
 
             # Add vision link
-            vision_360 = Vision360(args.omnicam_socket_mode == OmnicamConnectionMode.Remote)
+            vision_360 = Vision360(args.brain, args.omnicam_socket_mode == OmnicamConnectionMode.Remote)
             robot_brain.add_sensor(vision_360)
         except Exception as e:
             running = False
@@ -406,7 +406,7 @@ match args.mode:
                 robot_brain.add_sensor(SimulatedBeamSensor(ExteriorTheWorld))
 
             # Add the REAL vision link
-            vision_360 = Vision360(args.omnicam_socket_mode == OmnicamConnectionMode.Remote)
+            vision_360 = Vision360(args.brain, args.omnicam_socket_mode == OmnicamConnectionMode.Remote)
             robot_brain.add_sensor(vision_360)
         except Exception as e:
             running = False
