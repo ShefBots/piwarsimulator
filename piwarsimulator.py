@@ -245,7 +245,8 @@ match args.mode:
         from controllers.LauncherController import LauncherController
         from sensors.DistanceSensor import DistanceSensor
 
-        # TODO: Probably needs beam sensor here
+        if args.attachment.lower() == "gripper" and util.is_true(args.beam):
+            from sensors.BeamSensor import BeamSensor
 
         if args.vision_mode == VisionMode.OMNICAM:
             from sensors.Vision360 import Vision360
@@ -257,7 +258,8 @@ match args.mode:
         from controllers.SimulatedGripperController import SimulatedGripperController
         from sensors.DistanceSensor import DistanceSensor
 
-        # TODO: Probably needs beam sensor here
+        if args.attachment.lower() == "gripper" and util.is_true(args.beam):
+            from sensors.BeamSensor import BeamSensor
 
         if args.vision_mode == VisionMode.OMNICAM:
             from sensors.Vision360 import Vision360
@@ -434,9 +436,9 @@ match args.mode:
                     DistanceSensor(serial_instances, robot, v[0], v[1], offset=v[2])
                 )
 
-            # TODO Add the real beam sensor
+            # Add the real beam sensor
             if args.attachment.lower() == "gripper" and util.is_true(args.beam):
-                pass
+                robot_brain.add_sensor(BeamSensor(serial_instances))
 
             if args.vision_mode == VisionMode.OMNICAM:
                 # Add vision link
