@@ -138,7 +138,16 @@ class RobotBrain:
         self.find_distances()
         self.velocity_modify()  # check if we should slow & do so
 
+        if self.sensor_measurements["do_quit"]:
+            # this is triggered by the Escape key
+            print("Quit requested")
+            self.running = False
+            return False
+
         if self.parking_break == True:
+            if time() - self.last_state_change_time > 1:
+                print("Parking break is on!")
+                self.last_state_change_time = time()
             # parking break is released by actioning the gripper or fire switches
             if self.sensor_measurements["gripper_toggle"] or (
                 "fire" in self.sensor_measurements.keys()
@@ -231,12 +240,6 @@ class RobotBrain:
                     print("Restoring velocities")
                     self.set_plane_velocity(self.last_velocities[0])
                     self.set_angular_velocity(self.last_velocities[1])
-
-        if self.sensor_measurements["do_quit"]:
-            # this is triggered by the Escape key
-            print("Quit requested")
-            self.running = False
-            return False
 
         # timer on state to change to self.running = False
         if (
