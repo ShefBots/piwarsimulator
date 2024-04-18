@@ -45,7 +45,15 @@ class CheesedEcoDisasterBrain(RobotBrain):
 
     def __init__(self, **kwargs):
         super(CheesedEcoDisasterBrain, self).__init__(**kwargs)
-        self.state = ExecutionState.PROGRAM_INIT
+
+        if (
+            self.attachment_controller is None
+            or not type(self.attachment_controller).__name__ == "GripperController"
+        ):
+            print("ERROR!!!!!!!!!!! No gripper attached!!!!!!!!!!!")
+            self.state = ExecutionState.PROGRAM_COMPLETE
+        else:
+            self.state = ExecutionState.PROGRAM_INIT
         self.do_collision_detection = False  # plow through barrels
 
         # how close to get to rear wall
@@ -143,14 +151,16 @@ class CheesedEcoDisasterBrain(RobotBrain):
             if goal is not None:
                 self.found_barrel = 1
                 print("Barrel found...")
-                if abs(goal.center[0]) < self.GRIPPER_TOLERANCE / 2:
+                if abs(goal.center[0]) < self.GRIPPER_TOLERANCE:
                     self.set_plane_velocity([0, self.speed])
                 elif (
+                    # we're in a line with the barrel go slower?
                     abs(goal.heading) < self.GRIPPER_ANGLE_TOLERANCE
                     and np.max(np.abs(self._controller.vel)) > self.speed / 4
                 ):
                     print("Slowing down!")
                     self.set_plane_velocity(self._controller.vel / 2)
+                # TODO if the barrel is now further than the gripper tolerance?
 
             if self.found_barrel == 1:
                 print(goal_distance)
