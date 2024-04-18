@@ -46,14 +46,20 @@ class CheesedEcoDisasterBrain(RobotBrain):
     def __init__(self, **kwargs):
         super(CheesedEcoDisasterBrain, self).__init__(**kwargs)
 
-        if (
-            self.attachment_controller is None
-            or not type(self.attachment_controller).__name__ == "GripperController"
+        if self.attachment_controller is None or (
+            not type(self.attachment_controller).__name__
+            == "SimulatedGripperController"
+            and not type(self.attachment_controller).__name__ == "GripperController"
         ):
             print("ERROR!!!!!!!!!!! No gripper attached!!!!!!!!!!!")
             self.state = ExecutionState.PROGRAM_COMPLETE
         else:
-            self.state = ExecutionState.PROGRAM_INIT
+            # self.state = ExecutionState.PROGRAM_CONTROL  # IF WE CAN PLACE THE ROBOT
+            self.state = ExecutionState.FIND_WALL  # IF WE CAN'T PLACE THE ROBOT
+
+        self.square_up_heading = 180  # align to wall behind us
+        self.found_gap = False
+
         self.do_collision_detection = False  # plow through barrels
 
         # how close to get to rear wall
@@ -92,6 +98,23 @@ class CheesedEcoDisasterBrain(RobotBrain):
         tof_right = self.distance_right()
         tof_left = self.distance_left()
 
+        if self.state == ExecutionState.FIND_WALL:
+            # originally from MazeBrain
+            # we might not be put down facing away from the wall correctly
+            if self.found_gap == False:
+                # rotate until we find a big gap
+                self.set_angular_velocity(self.turning_speed / 2)
+                if tof_front > 1:
+                    print("Found the gap")
+                    self.found_gap = True
+            else:
+                # we've passed the gap, next time we see a wall we're in the correct position
+                if tof_rear < 0.3:
+                    print("Roughly aligned, square up")
+                    self.set_angular_velocity(0)
+                    self.set_plane_velocity([0, 0])
+                    self.state = ExecutionState.SQUARING_UP
+
         # use time of flight sensor readings to infer drop of zone locations
         # where are we relative to (0,0) if that was the center of the arena?
         x, y = self.localise(tof_front, tof_rear, tof_right, tof_left)
@@ -102,8 +125,6 @@ class CheesedEcoDisasterBrain(RobotBrain):
 
         if self.state == ExecutionState.PROGRAM_COMPLETE:
             return
-        elif self.state == ExecutionState.PROGRAM_INIT:
-            self.state = ExecutionState.PROGRAM_CONTROL
         elif self.state == ExecutionState.SQUARING_UP:
             # nothing smart to do while squaring up
             return
