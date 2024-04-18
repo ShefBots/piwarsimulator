@@ -160,20 +160,26 @@ class RobotBrain:
                 == "SimulatedGripperController"
                 or type(self.attachment_controller).__name__ == "GripperController"
             ):
+                open = self.sensor_measurements["gripper_toggle"]
+                # let the radio reciever also control the gripper
+                if "fire" in self.sensor_measurements.keys():
+                    # controller overrides keyboard
+                    open = self.sensor_measurements["fire"]
+
                 if (
-                    self.sensor_measurements["gripper_toggle"]  # opening
+                    open
                     and not self.attachment_controller.gripper_state
                     == self.attachment_controller.GRIPPER_OPEN
-                ):
+                ):  # opening
                     self.attachment_controller.open_gripper()
                     if len(self.holding) == 1:
                         # we're holding something, drop it off
                         self.holding.pop(0)
                 elif (
-                    not self.sensor_measurements["gripper_toggle"]  # closing
+                    not open
                     and not self.attachment_controller.gripper_state
                     == self.attachment_controller.GRIPPER_CLOSED
-                ):
+                ):  # closing
                     self.attachment_controller.close_gripper()
                     # TODO grab something if it's in the gripper
                     # find if something is in TheWorld within a certain distance of the gripper and grab?
