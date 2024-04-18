@@ -46,4 +46,5 @@ class ExecutionState(Enum):
             self.MOVE_TO_BARREL: "ES Moving to Barrel",
             self.MOVE_TO_ZONE: "ES Moving to Zone",
             self.DROP_OFF_BARREL: "ES Dropping off Barrel",
+            self.GO_SLOW: "ES Going slow",
         }[self]

@@ -24,7 +24,10 @@ class MinesweeperBrain(RobotBrain):
         """do the basic brain stuff then do specific minesweeper things"""
 
         # check sensors and stop if collision is imminent
-        super().process()
+        if not super().process():
+            # parent suggested something dangerous was up, don't continue
+            return
+
         # don't do anything if the manual override is triggered
         if self.sensor_measurements["manual_control"]:
             return

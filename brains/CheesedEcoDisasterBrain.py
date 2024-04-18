@@ -65,7 +65,9 @@ class CheesedEcoDisasterBrain(RobotBrain):
         """do the basic brain stuff then do specific ecodisaster things"""
 
         # check sensors and stop if collision is imminent
-        super().process()
+        if not super().process():
+            # parent suggested something dangerous was up, don't continue
+            return
 
         # we're done if all barrel holding positions are filled
         if np.sum(self.barrel_positions) == 12:

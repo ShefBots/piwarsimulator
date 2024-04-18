@@ -55,6 +55,9 @@ class RobotBrain:
         self.last_state = ExecutionState.NO_CONTROL
         self.last_state_change_time = time()
         self.last_velocities = ([0, 0], 0)
+        # don't start moving until the parking break is removed
+        self.parking_break = True
+        print("Starting with parking break set")
 
         # for squaring up
         self.square_up_heading = 0  # direction we're aligning to
@@ -121,7 +124,12 @@ class RobotBrain:
         # could call a sensor fusion routine here, e.g., if two objects are < 5 cm apart merge into one ()
 
     def process(self):
-        """basic logic is to just not hit anything & respond to control input"""
+        """
+        basic logic is to just not hit anything & respond to control input
+        also to handle some shared routines (mostly squaring up)
+        also to handle execution timeouts (brain not doing anything smart)
+        Return false if the child brain shouldn't do anything
+        """
         self.poll_sensors()
         controller_ok = self._controller.poke()
         if not controller_ok:
@@ -129,6 +137,19 @@ class RobotBrain:
         self.check_for_collision()
         self.find_distances()
         self.velocity_modify()  # check if we should slow & do so
+
+        if self.parking_break == True:
+            # parking break is released by actioning the gripper or fire switches
+            if self.sensor_measurements["gripper_toggle"] or (
+                "fire" in self.sensor_measurements.keys()
+                and self.sensor_measurements["fire"]
+            ):
+                self.parking_break = False
+                self.last_state_change_time = time()
+                print("Parking break released")
+            else:
+                # don't do anything until the parking break is released
+                return False
 
         # do we always want to try and stop on collisions?
         # sometimes we'll let higher level logic take over
@@ -215,7 +236,7 @@ class RobotBrain:
             # this is triggered by the Escape key
             print("Quit requested")
             self.running = False
-            return
+            return False
 
         # timer on state to change to self.running = False
         if (
@@ -231,10 +252,11 @@ class RobotBrain:
         ):
             print(f"Execution time out {self.EXECUTION_TIMEOUT}")
             self.running = False
-            return
+            return False
 
         if self.state == ExecutionState.SQUARING_UP:
             self.square_up()
+        return True
 
     def find_goal(self):
         """default brain has no goal"""

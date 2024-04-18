@@ -1,6 +1,9 @@
 # piwarsimulator
-Robot simulator to work on PiWars logic. This is a work in progress, revivified for 2024. The software for most of the challenges is complete,. Manual robot control can be engaged by pressing spacebar and then driving with WASD/arrow for strafe and QE for rotate. G will activate the gripper when attached (although objects cannot be picked up manually).
-Manual control on real hardware may be engaged using `--radio true` and then flicking the enable channel switch.
+Robot simulator to work on PiWars logic. This is a work in progress, revivified for 2024. The software for most of the challenges is complete. Manual robot control can be engaged by pressing spacebar and then driving with WASD/arrow for strafe and QE for rotate. G will activate the gripper when attached (although objects cannot be picked up manually).
+Manual control on real hardware may be engaged using `--radio true` and then flicking the enable channel switch. The mirror switch controls the launcher/gripper.
+
+**The robot will not start movement without releasing the parking break.** This is done by using the gripper toggle button.
+
 
 ```
 $ ./piwarsimulator.py -h
@@ -20,7 +23,8 @@ usage: piwarsimulator.py [-h]
 
 Simulator/controller for ShefBots robot for PiWars 2024. Press SPACE to engage
 manual control, WASD/Arrow keys for strafe, and QE for rotate. G will activate
-the gripper if attached.
+the gripper if attached. The robot will not start until the parking break is
+released using the gipper key.
 
 options:
   -h, --help            show this help message and exit
