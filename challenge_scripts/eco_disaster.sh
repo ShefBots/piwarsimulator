@@ -4,7 +4,7 @@
 CHALLENGENAME="Eco-Disaster"
 
 # The basic command for this challenge
-PYARGS="piwarsimulator.py --brain CheesedEcoDisasterBrain --attachment gripper"
+PYARGS="piwarsimulator.py --brain CheesedEcoDisasterBrain --attachment gripper --beam true"
 
 # Get the directory containing the script
 SCRIPT_DIR=$(dirname "$0")
