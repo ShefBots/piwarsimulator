@@ -20,6 +20,7 @@ usage: piwarsimulator.py [-h]
                          [--beam {true,false}] [--robot_speed ROBOT_SPEED]
                          [--turning_speed TURNING_SPEED]
                          [--frame_rate FRAME_RATE] [--tof_position {high,low}]
+                         [--leds {true,false}]
 
 Simulator/controller for ShefBots robot for PiWars 2024. Press SPACE to engage
 manual control, WASD/Arrow keys for strafe, and QE for rotate. G will activate
@@ -57,6 +58,7 @@ options:
                         (min=10.0, max=120.0, default 60.0)
   --tof_position {high,low}
                         tof sensors are mounted low or high (default high)
+  --leds {true,false}   light up LEDs (default true)
 ```
 
 Note the `CheesedEcoDisasterBrain` applies a simpler (although less robust) algorithm to solve the challenge and is to be preferred. The more complex `EcoDisasterBrain` routine is incomplete. 

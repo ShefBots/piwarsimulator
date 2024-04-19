@@ -51,7 +51,10 @@ class WorldRenderer:
         """transform vertical coordiant to pixels (flipping so y = 0 is bottom )"""
         return np.round(-c * scale + self.screen.get_height() - self.y_res / 2)
 
-    def update(self, Worlds=[], Sensors=[], names=[], robot_brain=None):
+    def update(self, Worlds=[], Sensors=[], names=[], robot_brain=None, leds=[]):
+        # Worlds, Sensors, names should be listes of matching length
+        # robot brain for displaying speed info
+        # leds is a list of tuples of LED colors
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 print("Quit requested via Quit!")
@@ -82,6 +85,11 @@ class WorldRenderer:
                 c = "red"
             text = self.font.render(names[k], True, pygame.Color(c))
             self.screen.blit(text, (int(x - text.get_width() / 2), 4))
+
+            for k2, v in enumerate(leds):
+                pygame.draw.rect(
+                    self.screen, v, [x - len(leds) * 6 + k2 * 12, 30, 10, 10]
+                )
 
             # the default scale works out so that about 2 m is shown
             # work out a scale that can see the whold world

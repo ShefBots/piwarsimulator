@@ -28,6 +28,8 @@ class ExecutionState(Enum):
     # line following
     GO_SLOW = 30
 
+    # do not go beyond state 31 as this is the max that can be displayed in 5 bit binary
+
     def __str__(self):
         """Return a string representation of the ExecutionState"""
 

@@ -49,6 +49,18 @@ HIGH_TOFS = [(0, 1, 0.06), (90, 0, 0.05), (180, 3, 0.02), (270, 2, 0.03)]
 LOW_TOFS = [(0, 1, 0.03), (90, 0, 0.01), (270, 2, 0.01)]
 TOF_POSITIONS = {"high": HIGH_TOFS, "low": LOW_TOFS}
 
+# how many LEDs to control
+NUM_LEDS = 6
+LED_MAX_BRIGHTNESS = 64
+led_clamp = lambda v: int(min(v, LED_MAX_BRIGHTNESS))
+led_scale = lambda v: (
+    int(v[0] * 255 / LED_MAX_BRIGHTNESS),
+    int(v[1] * 255 / LED_MAX_BRIGHTNESS),
+    int(v[2] * 255 / LED_MAX_BRIGHTNESS),
+)
+# bit b of int i
+get_bit = lambda i, n: (i >> n) & 1
+
 running = True  # state of simulator
 ctrlc_count = 0  # if hitting 3 try and sys.exit
 
@@ -212,6 +224,13 @@ parser.add_argument(
     # default="low",
     choices=TOF_POSITIONS.keys(),
 )
+parser.add_argument(
+    "--leds",
+    help="light up LEDs (default true)",
+    # default="false",
+    default="true",
+    choices=["true", "false"],
+)
 args = parser.parse_args()
 
 # imports for hardware etc based on settings
@@ -286,6 +305,8 @@ match args.mode:
         if args.vision_mode == VisionMode.OMNICAM:
             from sensors.Vision360 import Vision360
 
+# are there real LEDs attached?
+real_leds = False
 # do serial stuff if needed
 if not (
     args.mode in [OperationMode.SIMULATION, OperationMode.EVERYTHING_SIM_BUT_VISION]
@@ -303,6 +324,9 @@ if not (
     else:
         # Create instances for each serial port
         serial_instances = util.create_serial_instances(port_list)
+
+    # control real leds when not in pure simulation
+    real_leds = True
 
 
 # provides robot geometry
@@ -473,6 +497,11 @@ if util.is_true(args.radio):
         print(f"Caught error: {e}")
         print(traceback.format_exc())
 
+if util.is_true(args.leds) and real_leds:
+    # controller for real leds on the robot
+    io_controller = util.get_io_controller(serial_instances)
+    real_leds = False
+
 if util.is_true(args.rendering) and running == True:
     from world.WorldRenderer import *
 
@@ -496,6 +525,61 @@ while running:
 
     robot_brain.process()
 
+    if util.is_true(args.leds):
+        leds = []
+
+        # first LED is combination of the first three TOFs
+        leds.append(
+            (
+                led_clamp(
+                    robot_brain.distance_forward() * LED_MAX_BRIGHTNESS,
+                ),
+                led_clamp(
+                    robot_brain.distance_left() * LED_MAX_BRIGHTNESS,
+                ),
+                led_clamp(
+                    robot_brain.distance_right() * LED_MAX_BRIGHTNESS,
+                ),
+            )
+        )
+
+        # print out the execution state in binary
+        for n in range(5):
+            v = get_bit(robot_brain.state.value, n) * LED_MAX_BRIGHTNESS / 2
+            leds.append((v, v, v))
+
+        # encode the velocity
+        leds.append(
+            (
+                led_clamp(
+                    abs(robot_brain._controller.vel[0])
+                    * LED_MAX_BRIGHTNESS
+                    / robot_brain.speed
+                ),
+                led_clamp(
+                    abs(robot_brain._controller.vel[1])
+                    * LED_MAX_BRIGHTNESS
+                    / robot_brain.speed
+                ),
+                led_clamp(
+                    abs(robot_brain._controller.theta_vel)
+                    * LED_MAX_BRIGHTNESS
+                    / robot_brain.turning_speed
+                ),
+            )
+        )
+
+        if real_leds:
+            # send out leds list to real leds
+            for k, v in enumerate(leds):
+                io_controller.set_led(k, v[0], v[1], v[2])
+
+        # convert color max for rendering
+        for k, v in enumerate(leds):
+            leds[k] = led_scale(v)
+    else:
+        leds = []
+
     if util.is_true(args.rendering):
         try:
             if args.mode == OperationMode.CONTROL:
@@ -505,6 +589,7 @@ while running:
                     Sensors=[[s.outline for s in robot_brain.sensors]],
                     names=["Robot Perception"],
                     robot_brain=robot_brain,
+                    leds=leds,
                 )  # see the world as the robot sees it
             else:
                 renderer.update(
@@ -515,6 +600,7 @@ while running:
                     ],
                     names=["Simulation Environment", "Robot Perception"],
                     robot_brain=robot_brain,
+                    leds=leds,
                 )  # see the world as it is and as the robot sees it
 
             if renderer.running == False:
