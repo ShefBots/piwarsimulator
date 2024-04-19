@@ -121,7 +121,7 @@ class RobotBrain:
             objects, readings = s.do_scan()
 
             # we had a good reading from this sensor
-            if len(objects) > 0:
+            if len(objects) > 0 and not objects[0] is None:
 
                 # remove old objects from this sensor
                 self.remove_by_sensor_id(id)
@@ -135,7 +135,7 @@ class RobotBrain:
 
                 # update the last reading time of this sensor
                 self.sensor_last_reading[id] = time()
-            elif s.safe_to_guess:
+            elif s.safe_to_guess and len(objects) == 1 and objects[0] is None:
                 # otherwise we reuse the objects from this sensor and move them according to our last velocity
                 # print("REUSING PREVIOUS READINGS!!! EXPECT DRIFT!!!")
 

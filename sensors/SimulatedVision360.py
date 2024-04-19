@@ -97,7 +97,8 @@ class SimulatedVision360(Sensor):
         )
 
         if time() - self.last_update < self.UPDATE_RATE:
-            return [], {}
+            # return None when there's nothing read
+            return [None], {}
         self.last_update = time()
 
         scan_result = []
