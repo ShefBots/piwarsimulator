@@ -4,11 +4,10 @@ import math
 from shapely.geometry import LineString, Polygon
 from shapely.affinity import rotate
 from sensors.Sensor import Sensor
+from util import fast_translate
+from util import get_io_controller as get_io_controller
 from world.ObjectType import *
 from world.WorldObject import *
-from util import fast_translate
-
-from devices import IOController
 
 
 class DistanceSensor(Sensor):
@@ -41,14 +40,7 @@ class DistanceSensor(Sensor):
         # how far inside from the edge of the robot is the TOF sensor?
         self.offset = offset
 
-        self.io_controller = None
-
-        if IOController.EXPECTED_ID in serial_instances.keys():
-            self.io_controller = IOController(
-                serial_instances[IOController.EXPECTED_ID]
-            )
-        else:
-            raise Exception("Could not find IO controller hardware")
+        self.io_controller = get_io_controller(serial_instances)
 
         # need to get mounting position on the chassis
         # first distance to check edge for (larger than width or height to make sure it goes beyond)

@@ -17,6 +17,15 @@ def import_serial():
     from devices import DEVICE_ID_LIST as SERIAL_DEVICE_ID_LIST
 
 
+def get_io_controller(serial_instances):
+    from devices import IOController
+
+    if IOController.EXPECTED_ID in serial_instances.keys():
+        return IOController(serial_instances[IOController.EXPECTED_ID])
+    else:
+        raise Exception("Could not find IO controller hardware")
+
+
 def sqr_magnitude_of(vector):
     return np.sum(np.power(vector, 2))
 

@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 from controllers.Controller import Controller
+from util import get_io_controller as get_io_controller
 from world.ObjectType import *
-
-from devices import IOController
 
 
 class LauncherController(Controller):
@@ -12,14 +11,7 @@ class LauncherController(Controller):
         print("Initialising LauncherController...")
         super(LauncherController, self).__init__()
 
-        self.io_controller = None
-
-        if IOController.EXPECTED_ID in serial_instances.keys():
-            self.io_controller = IOController(
-                serial_instances[IOController.EXPECTED_ID]
-            )
-        else:
-            raise Exception("Could not find IO controller hardware")
+        self.io_controller = get_io_controller(serial_instances)
 
         self.last_speed = None
         self.last_angle = None

@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 from time import monotonic as time
 from controllers.SimulatedGripperController import SimulatedGripperController
+from util import get_io_controller as get_io_controller
 from world.ObjectType import *
-
-from devices import IOController
 
 
 # base off SimulatedGripperController but just don't use any of the simulation bits of it
@@ -17,14 +16,7 @@ class GripperController(SimulatedGripperController):
         assert robot.object_type == ObjectType.ROBOT
         self.robot = robot
 
-        self.io_controller = None
-
-        if IOController.EXPECTED_ID in serial_instances.keys():
-            self.io_controller = IOController(
-                serial_instances[IOController.EXPECTED_ID]
-            )
-        else:
-            raise Exception("Could not find IO controller hardware")
+        self.io_controller = get_io_controller(serial_instances)
 
         # assume starting with the gripper closed
         self.gripper_angle = 0
