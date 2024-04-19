@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from time import monotonic as time
 from controllers.Controller import Controller
 from util import get_io_controller as get_io_controller
 from world.ObjectType import *
@@ -17,18 +18,51 @@ class LauncherController(Controller):
         self.last_angle = None
         # toggle to compare to to do firing
         self.last_fire = False
+        self.last_fire_time = time()
+
+        # turn on launcher power
+        self.io_controller.power_turret(1)
+
+    def __del__(self):
+        # turn off launcher power
+        self.io_controller.power_turret(0)
+        # (this should end up being called when the software powers off
+        # anyway from comm disconnection)
 
     def set_motor_speed(self, speed):
         """set the speed of the brushless motor, 0 to 1 of range"""
+
+        # clamp range
+        if speed < 0:
+            speed = 0
+        elif speed > 1:
+            speed = 1
+
         if not speed == self.last_speed:
+            if speed == 0 and not self.last_speed == 0:
+                # power down ?
+                pass
+            elif speed > 0 and self.last_speed == 0:
+                # power up ?
+                pass
+
             self.last_speed = speed
-            # self.io_controller.something(speed)
+            # speed io_controller is expeting should be in the range of 0-10,000
+            self.io_controller.turret_speed(int(speed * 10000))
 
     def set_tilt(self, angle):
         """set the tilt angle, 0 to 1 of range"""
+
+        # clamp range
+        if angle < 0:
+            angle = 0
+        elif angle > 1:
+            angle = 1
+
         if not angle == self.last_angle:
             self.last_angle = angle
-            # self.io_controller.something(angle)
+            # angle io_controller is expeting should be in the range of 0-10,000
+            self.io_controller.turret_tilt(int(angle * 10000))
 
     def check_fire(self, fire):
         """handle the toggling of the fire switch"""
@@ -40,11 +74,14 @@ class LauncherController(Controller):
                 self.advance()
 
     def fire(self):
-        """"""
-        # self.io_controller.something()
-        pass
+        """fire the missles (even if you're le tired)"""
+        if time() - self.last_fire_time < 10:
+            # don't fire more than once every 10 seconds
+            return
+        self.io_controller.fire()
+        self.last_fire_time = time()
 
     def advance(self):
         """"""
-        # self.io_controller.something()
+        # handled by io_controller state machine
         pass
