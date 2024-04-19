@@ -7,6 +7,7 @@ class Sensor:
     def __init__(self):
         self.outline = None  # area covered by the sensor relative to robot
         self.fov = None  # area covered by the sensor in global ExteriorTheWorld coordinate system
+        self.safe_to_guess = False  # safe to extrapolate based on previous readings
 
     def do_scan(self):
         """

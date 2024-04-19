@@ -135,14 +135,13 @@ class RobotBrain:
 
                 # update the last reading time of this sensor
                 self.sensor_last_reading[id] = time()
-            else:
+            elif s.safe_to_guess:
                 # otherwise we reuse the objects from this sensor and move them according to our last velocity
-                print("REUSING PREVIOUS READINGS!!! EXPECT DRIFT!!!")
+                # print("REUSING PREVIOUS READINGS!!! EXPECT DRIFT!!!")
 
                 # work out how much we've moved since the last san
                 now = time()
                 dt = now - self.sensor_last_reading[id]
-                print(dt)
                 # -ve becaues the objects move in the opposite direction of the robot?
                 distance = -self._controller.vel * dt
                 rotation = self._controller.theta_vel * dt
@@ -159,6 +158,9 @@ class RobotBrain:
 
                 # update time
                 self.sensor_last_reading[id] = now
+            else:
+                # no reading and can't guess, lose the readings
+                self.remove_by_sensor_id(id)
 
             for k, v in readings.items():
                 self.sensor_measurements[k] = v

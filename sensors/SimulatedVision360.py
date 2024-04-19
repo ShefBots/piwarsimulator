@@ -24,6 +24,9 @@ class SimulatedVision360(Sensor):
         assert ExteriorTheWorld[0].object_type == ObjectType.ROBOT
         print("Activating simulated 360 degree vision sensor")
 
+        # guess using previous readings when no new update
+        self.safe_to_guess = True
+
         # detect lines pretty similar to how simulated line of sight works
         # construct a box ahead of the robot where a line may be detected
         # find the closest line in the box, and then return that
