@@ -6,17 +6,6 @@ import shapely
 from glob import glob
 
 
-def import_serial():
-    # Everything we need to enable our special serial comms
-    print("Importing serial")
-    # I hate altering paths, but without this piwarsengine dies
-    importlib.import_module("sys").path.append("../piwarsengine")
-    global SerialException, SerialComms, SERIAL_DEVICE_ID_LIST
-    from serial import SerialException
-    from comms.serial import SerialComms
-    from devices import DEVICE_ID_LIST as SERIAL_DEVICE_ID_LIST
-
-
 def get_io_controller(serial_instances):
     from devices import IOController
 
@@ -74,6 +63,11 @@ def find_serial_ports(pattern="/dev/ttyACM*"):
 
 
 def create_serial_instances(port_list):
+    # only need these imports here
+    from serial import SerialException
+    from comms.serial import SerialComms
+    from devices import DEVICE_ID_LIST as SERIAL_DEVICE_ID_LIST
+
     serial_instances = {}
     for port in port_list:
         try:

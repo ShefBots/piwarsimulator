@@ -12,6 +12,9 @@ from world.ObjectType import ObjectType
 from world.WorldObject import WorldObject
 from omnicam.protocol import REMOTE_ADDR
 
+# I hate altering paths, but without this piwarsengine dies
+# need this for serial and remote reciever and stuff
+importlib.import_module("sys").path.append("../piwarsengine")
 
 # TODO classes for real hardware
 # TODO      launcher control?
@@ -254,7 +257,6 @@ match args.mode:
             )
     case OperationMode.SENSOR_SIMULATION:
         # real control hardware, fake sensors
-        util.import_serial()
         from controllers.SimulatedMovementController import SimulatedMovementController
         from controllers.SimulatedGripperController import SimulatedGripperController
         from controllers.MovementController import MovementController
@@ -270,7 +272,6 @@ match args.mode:
             )
     case OperationMode.CONTROL:
         # real control hardware, real sensors
-        util.import_serial()
         from controllers.MovementController import MovementController
         from controllers.GripperController import GripperController
         from controllers.LauncherController import LauncherController
@@ -284,7 +285,6 @@ match args.mode:
 
     case OperationMode.CONTROL_SIMULATION:
         # fake control hardware, real sensors
-        util.import_serial()
         from controllers.SimulatedMovementController import SimulatedMovementController
         from controllers.SimulatedGripperController import SimulatedGripperController
         from sensors.DistanceSensor import DistanceSensor
@@ -529,6 +529,7 @@ while running:
         leds = []
 
         # first LED is combination of the first three TOFs
+        # this should be OK - no distance should be 9e99, not None
         leds.append(
             (
                 led_clamp(
