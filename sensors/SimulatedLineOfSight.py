@@ -25,6 +25,9 @@ class SimulatedLineOfSight(Sensor):
         assert ExteriorTheWorld[0].object_type == ObjectType.ROBOT
         print(f"Activating simulated time of flight sensor, pointing at {angle}'")
 
+        # guess using previous readings when no new update
+        # self.safe_to_guess = True
+
         # construct a triangle reprsenting the sensor field of view
         # this is relative to the robot's center
         assert angle == 0 or angle == 90 or angle == 180 or angle == 270
@@ -88,8 +91,6 @@ class SimulatedLineOfSight(Sensor):
     def do_scan(self):
         """return the nearest barrel or wall from TheExteriorWorld within the field of view"""
 
-        scan_result = []
-
         # need to move the field of view outline to the robots locations and rotation
         # rotate first to take advantage of center (-ve because coordiante system)
         self.fov = rotate(self.outline, -self.ExteriorTheWorld[0].angle, origin=(0, 0))
@@ -127,6 +128,7 @@ class SimulatedLineOfSight(Sensor):
                     closest_distance = dist
 
         # construct the wall the scanned object could be
+        scanned_obj = None
         if closest != None:
             # how long half of the wall segment is
             wall_segment_length = closest_distance * math.tan(
@@ -162,6 +164,5 @@ class SimulatedLineOfSight(Sensor):
             scanned_obj.heading = self.angle
 
             scanned_obj.exterior = closest
-            scan_result.append(scanned_obj)
 
-        return scan_result, {"tof_" + str(self.angle): closest_distance}
+        return [scanned_obj], {"tof_" + str(self.angle): closest_distance}

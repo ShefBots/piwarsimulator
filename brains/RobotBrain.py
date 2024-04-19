@@ -156,6 +156,14 @@ class RobotBrain:
                         self.TheWorld[idx_to_update[k]].angle - rotation
                     )
 
+                # update held item coordinates as well...
+                if len(self.holding) == 1 and self.holding[0].sensor_id == id:
+                    pos = self.holding[0].center
+                    pos = pos + distance
+                    pos = rotate_by(pos, rotation)
+                    self.holding[0].center = pos
+                    self.holding[0].angle = self.holding[0].angle - rotation
+
                 # update time
                 self.sensor_last_reading[id] = now
             else:

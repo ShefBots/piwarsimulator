@@ -30,6 +30,9 @@ class DistanceSensor(Sensor):
             f"Activating time of flight sensor, pointing at {angle} with offset {offset}'"
         )
 
+        # guess using previous readings when no new update
+        # self.safe_to_guess = True
+
         # construct a triangle reprsenting the sensor field of view
         # this is relative to the robot's center
         assert angle == 0 or angle == 90 or angle == 180 or angle == 270
@@ -105,8 +108,6 @@ class DistanceSensor(Sensor):
     def do_scan(self):
         """return the nearest barrel or wall from TheExteriorWorld within the field of view"""
 
-        scan_result = []
-
         # need to move the field of view outline to the robots locations and rotation
         # rotate first to take advantage of center (-ve because coordiante system)
         self.fov = rotate(self.outline, -self.robot.angle, origin=(0, 0))
@@ -124,7 +125,7 @@ class DistanceSensor(Sensor):
         closest_distance = self.io_controller.read_tof(self.index)
         if closest_distance < 0:
             # error, skip reading
-            return scan_result, {}
+            return [None], {}
 
         # it's /100 to convert cm to m
         closest_distance = closest_distance / 100
@@ -139,6 +140,7 @@ class DistanceSensor(Sensor):
             closest_distance = np.median(self.readings)
 
         # construct the wall the scanned object could be
+        scanned_obj = None
         if closest_distance > 0:
             # Temporarily removed due to ExteriorTheWorld not being accessible
             # how long half of the wall segment is
@@ -174,6 +176,4 @@ class DistanceSensor(Sensor):
             # because the sensor is always pointing one direction we know it's always has that heading
             scanned_obj.heading = self.angle
 
-            scan_result.append(scanned_obj)
-
-        return scan_result, {"tof_" + str(self.angle): closest_distance}
+        return [scanned_obj], {"tof_" + str(self.angle): closest_distance}
