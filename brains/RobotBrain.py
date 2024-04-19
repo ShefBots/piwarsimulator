@@ -5,6 +5,7 @@ from time import monotonic as time
 from shapely.geometry import Polygon
 from time import monotonic
 from brains.ExecutionState import ExecutionState
+from util import rotate_by
 from world.WorldObject import *
 from world.ObjectType import *
 
@@ -136,17 +137,41 @@ class RobotBrain:
                 self.sensor_last_reading[id] = time()
             else:
                 # otherwise we reuse the objects from this sensor and move them according to our last velocity
-                pass
+                print("REUSING PREVIOUS READINGS!!! EXPECT DRIFT!!!")
+
+                # work out how much we've moved since the last san
+                now = time()
+                dt = now - self.sensor_last_reading[id]
+                print(dt)
+                # -ve becaues the objects move in the opposite direction of the robot?
+                distance = -self._controller.vel * dt
+                rotation = self._controller.theta_vel * dt
+
+                idx_to_update = self.find_obj_by_sensor_id(id)
+                for k in range(len(idx_to_update)):
+                    pos = self.TheWorld[idx_to_update[k]].center
+                    pos = pos + distance
+                    pos = rotate_by(pos, rotation)
+                    self.TheWorld[idx_to_update[k]].center = pos
+                    self.TheWorld[idx_to_update[k]].angle = (
+                        self.TheWorld[idx_to_update[k]].angle - rotation
+                    )
+
+                # update time
+                self.sensor_last_reading[id] = now
 
             for k, v in readings.items():
                 self.sensor_measurements[k] = v
 
-        # could call a sensor fusion routine here, e.g., if two objects are < 5 cm apart merge into one ()
+        # could call a sensor fusion routine here, e.g., if two objects are < 5 cm apart merge into one
+
+    def find_obj_by_sensor_id(self, id):
+        obj_ids = [obj.sensor_id for obj in self.TheWorld]
+        return [k for k, v in enumerate(obj_ids) if v == id]
 
     def remove_by_sensor_id(self, id):
         """remove all scanned objects in TheWorld matching the given id"""
-        obj_ids = [obj.sensor_id for obj in self.TheWorld]
-        idx_to_remove = [k for k, v in enumerate(obj_ids) if v == id]
+        idx_to_remove = self.find_obj_by_sensor_id(id)
         for k in sorted(idx_to_remove, reverse=True):
             del self.TheWorld[k]
 
