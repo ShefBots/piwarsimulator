@@ -39,10 +39,7 @@ class LineFollowingBrain(RobotBrain):
         if goal is None:
             # keep moving for a little bit in hopes of reacquiring line/passing goal
             # otherwise just stop
-            if (
-                monotonic() - self.last_goal_time > (0.4 / self.speed)
-                and self._controller.moving
-            ):
+            if monotonic() - self.last_goal_time > (0.4 / self.speed):
                 self.controller_stop()
                 self.state = ExecutionState.PROGRAM_CONTROL
             return
