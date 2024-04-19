@@ -19,6 +19,9 @@ class WorldObject:
         self.object_type = kwargs.get("object_type", 0)
         self.color = Color(kwargs.get("color", "white"))
 
+        # what sensor detected this item
+        self.sensor_id = kwargs.get("sensor_id", -1)
+
         if (
             self.object_type == ObjectType.UNKNOWN
             or self.object_type == ObjectType.BARREL

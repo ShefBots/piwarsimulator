@@ -356,6 +356,7 @@ class CheesedEcoDisasterBrain(RobotBrain):
             self.x = x
 
         # put in estimated target zone locations based on sensor readings
+        self.remove_by_sensor_id(99)  # remove added zones
         for xoff, color in self.DROP_ZONES:
             self.TheWorld.append(
                 WorldObject(
@@ -365,6 +366,7 @@ class CheesedEcoDisasterBrain(RobotBrain):
                     w=self.ZONE_WIDTH,
                     h=self.ZONE_HEIGHT,
                     color=color,
+                    sensor_id=99,
                 )
             )
 

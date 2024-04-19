@@ -68,7 +68,8 @@ class RobotBrain:
 
         # for sensor output
         self.sensors = []  # any sensors
-        self.TheWorld = []  # any objects returned by sensors
+        self.sensor_last_reading = []  # the last time that sensor was read/updated
+        self.TheWorld = [None]  # any objects returned by sensors
         self.sensor_measurements = {
             "manual_control": False
         }  # direct sensor measurements
@@ -89,39 +90,65 @@ class RobotBrain:
 
     def add_sensor(self, sensor):
         self.sensors.append(sensor)
-        self.sensor_objects.append([])
+        self.sensor_last_reading.append(time())
 
     def poll_sensors(self):
         """poll all sensors attached to the robot and check for collisions"""
         # add in ourself to start with
-        self.TheWorld = [
-            # scanned coordinates should be relative to robot north
-            WorldObject(
-                object_type=ObjectType.ROBOT,
-                x=0,
-                y=0,
-                w=self.robot.width,
-                h=self.robot.height,
-                angle=0,
-            )
-        ]
-        # self.TheWorld[-1].brain = self
-        self.TheWorld[-1].outline = self.TheWorld[-1].outline.union(
+        # scanned coordinates should be relative to robot north
+        self.TheWorld[0] = WorldObject(
+            object_type=ObjectType.ROBOT,
+            x=0,
+            y=0,
+            w=self.robot.width,
+            h=self.robot.height,
+            angle=0,
+        )
+        self.TheWorld[0].outline = self.TheWorld[0].outline.union(
             self.attachment_outline
         )
-        # this has to be hear otherwise a missing sensor not returning it = bad time
+
+        # this has to be here otherwise a missing sensor not returning it = bad time
         self.sensor_measurements["manual_control"] = False
-        for s in self.sensors:
-            objects, readings = s.do_scan()
-            self.TheWorld += objects
-            for k, v in readings.items():
-                self.sensor_measurements[k] = v
-        # TODO for each sensor store its objects
+
         # if objects on the curret scan is empty, reuse the previous objets with an offset applied
         # base the offset on the current velocity & rotation speed to estimate the new object locations
-        # store the new estimate in the saved reading for the next time around
+        # store the new estimated location in the saved reading for the next time around
+        for id, s in enumerate(self.sensors):
+
+            # read the sensor
+            objects, readings = s.do_scan()
+
+            # we had a good reading from this sensor
+            if len(objects) > 0:
+
+                # remove old objects from this sensor
+                self.remove_by_sensor_id(id)
+
+                # set the sensor id of the objects
+                for k in range(len(objects)):
+                    objects[k].sensor_id = id
+
+                # record the objects in the world
+                self.TheWorld += objects
+
+                # update the last reading time of this sensor
+                self.sensor_last_reading[id] = time()
+            else:
+                # otherwise we reuse the objects from this sensor and move them according to our last velocity
+                pass
+
+            for k, v in readings.items():
+                self.sensor_measurements[k] = v
 
         # could call a sensor fusion routine here, e.g., if two objects are < 5 cm apart merge into one ()
+
+    def remove_by_sensor_id(self, id):
+        """remove all scanned objects in TheWorld matching the given id"""
+        obj_ids = [obj.sensor_id for obj in self.TheWorld]
+        idx_to_remove = [k for k, v in enumerate(obj_ids) if v == id]
+        for k in sorted(idx_to_remove, reverse=True):
+            del self.TheWorld[k]
 
     def process(self):
         """
