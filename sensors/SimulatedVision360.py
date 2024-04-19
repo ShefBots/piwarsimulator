@@ -4,10 +4,11 @@ import math
 from pygame import Color
 from shapely.geometry import Polygon
 from shapely.affinity import rotate
+from time import monotonic as time
 from sensors.Sensor import Sensor
 from world.ObjectType import *
 from world.WorldObject import *
-from util import rotate_by,fast_translate
+from util import rotate_by, fast_translate
 
 
 class SimulatedVision360(Sensor):
@@ -16,6 +17,10 @@ class SimulatedVision360(Sensor):
     # how far around the robot to scan for lines
     # this excludes the robot dimension, so make sure it's big enough
     LINE_DECTION_DISTANCE = 0.2
+
+    # how frequently to returna new result
+    # UPDATE_RATE = 1.0 / 60.0
+    UPDATE_RATE = 1.0 / 12.0  # the real vision system is estimated to be slow
 
     def __init__(self, ExteriorTheWorld, brain):
         super().__init__()
@@ -26,6 +31,8 @@ class SimulatedVision360(Sensor):
 
         # guess using previous readings when no new update
         self.safe_to_guess = True
+        # the last time we reported a scan result
+        self.last_update = time()
 
         # detect lines pretty similar to how simulated line of sight works
         # construct a box ahead of the robot where a line may be detected
@@ -88,6 +95,10 @@ class SimulatedVision360(Sensor):
             self.ExteriorTheWorld[0].center[0],
             self.ExteriorTheWorld[0].center[1],
         )
+
+        if time() - self.last_update < self.UPDATE_RATE:
+            return [], {}
+        self.last_update = time()
 
         scan_result = []
 
