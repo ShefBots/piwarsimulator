@@ -4,7 +4,7 @@
 CHALLENGENAME="Minesweeper"
 
 # The basic command for this challenge
-PYARGS="piwarsimulator.py --brain MinesweeperBrain"
+PYARGS="piwarsimulator.py --brain MinesweeperBrain --tof_position high --attachment none --beam false"
 
 # Get the directory containing the script
 SCRIPT_DIR=$(dirname "$0")

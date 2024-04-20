@@ -4,7 +4,7 @@
 CHALLENGENAME="Pi Noon"
 
 # The basic command for this challenge
-PYARGS="piwarsimulator.py --brain RobotBrain --robot_speed 0.8 --turning_speed 180 --enable_safeties false"
+PYARGS="piwarsimulator.py --brain RobotBrain --attachment none --beam false --vision_mode none --robot_speed 0.8 --turning_speed 180 --enable_safeties false"
 
 # Get the directory containing the script
 SCRIPT_DIR=$(dirname "$0")
