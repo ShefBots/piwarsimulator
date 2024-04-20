@@ -54,13 +54,8 @@ TOF_POSITIONS = {"high": HIGH_TOFS, "low": LOW_TOFS}
 
 # how many LEDs to control
 NUM_LEDS = 6
-LED_MAX_BRIGHTNESS = 64
-led_clamp = lambda v: int(min(v, LED_MAX_BRIGHTNESS))
-led_scale = lambda v: (
-    int(v[0] * 255 / LED_MAX_BRIGHTNESS),
-    int(v[1] * 255 / LED_MAX_BRIGHTNESS),
-    int(v[2] * 255 / LED_MAX_BRIGHTNESS),
-)
+RGB_MAX = 255  # pixels and the pi expect 0-255
+led_clamp = lambda v: int(min(v, RGB_MAX))
 # bit b of int i
 get_bit = lambda i, n: (i >> n) & 1
 
@@ -543,38 +538,34 @@ while running:
         leds.append(
             (
                 led_clamp(
-                    robot_brain.distance_forward() * LED_MAX_BRIGHTNESS,
+                    robot_brain.distance_forward() * RGB_MAX,
                 ),
                 led_clamp(
-                    robot_brain.distance_left() * LED_MAX_BRIGHTNESS,
+                    robot_brain.distance_left() * RGB_MAX,
                 ),
                 led_clamp(
-                    robot_brain.distance_right() * LED_MAX_BRIGHTNESS,
+                    robot_brain.distance_right() * RGB_MAX,
                 ),
             )
         )
 
         # print out the execution state in binary
         for n in range(5):
-            v = get_bit(robot_brain.state.value, n) * LED_MAX_BRIGHTNESS / 2
+            v = get_bit(robot_brain.state.value, n) * RGB_MAX / 2
             leds.append((v, v, v))
 
         # encode the velocity
         leds.append(
             (
                 led_clamp(
-                    abs(robot_brain._controller.vel[0])
-                    * LED_MAX_BRIGHTNESS
-                    / robot_brain.speed
+                    abs(robot_brain._controller.vel[0]) * RGB_MAX / robot_brain.speed
                 ),
                 led_clamp(
-                    abs(robot_brain._controller.vel[1])
-                    * LED_MAX_BRIGHTNESS
-                    / robot_brain.speed
+                    abs(robot_brain._controller.vel[1]) * RGB_MAX / robot_brain.speed
                 ),
                 led_clamp(
                     abs(robot_brain._controller.theta_vel)
-                    * LED_MAX_BRIGHTNESS
+                    * RGB_MAX
                     / robot_brain.turning_speed
                 ),
             )
@@ -584,10 +575,6 @@ while running:
             # send out leds list to real leds
             for k, v in enumerate(leds):
                 io_controller.set_led(k, v[0], v[1], v[2])
-
-        # convert color max for rendering
-        for k, v in enumerate(leds):
-            leds[k] = led_scale(v)
     else:
         leds = []
 
