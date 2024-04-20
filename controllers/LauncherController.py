@@ -8,6 +8,9 @@ from world.ObjectType import *
 class LauncherController(Controller):
     """move the real launcher"""
 
+    # don't fire more than once every X seconds
+    FIRE_LOCKOUT_TIME = 5
+
     def __init__(self, serial_instances):
         print("Initialising LauncherController...")
         super(LauncherController, self).__init__()
@@ -82,8 +85,7 @@ class LauncherController(Controller):
 
     def fire(self):
         """fire the missles (even if you're le tired)"""
-        if time() - self.last_fire_time < 10:
-            # don't fire more than once every 10 seconds
+        if time() - self.last_fire_time < self.FIRE_LOCKOUT_TIME:
             return
         self.power_on()  # turn power on if it's not already
         self.io_controller.fire()
