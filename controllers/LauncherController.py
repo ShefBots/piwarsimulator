@@ -23,11 +23,11 @@ class LauncherController(Controller):
         # turn on launcher power
         self.io_controller.power_turret(1)
 
-    def __del__(self):
-        # turn off launcher power
-        self.io_controller.power_turret(0)
-        # (this should end up being called when the software powers off
-        # anyway from comm disconnection)
+    # def __del__(self):
+    #     # turn off launcher power
+    #     self.io_controller.power_turret(0)
+    #     # (this should end up being called when the software powers off
+    #     # anyway from comm disconnection)
 
     def set_motor_speed(self, speed):
         """set the speed of the brushless motor, 0 to 1 of range"""
