@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import time
 import numpy as np
+from random import random as rand
 from shapely.affinity import rotate
 from threading import Thread
 import util
@@ -15,6 +16,12 @@ class SimulatedMovementController(Controller, Thread):
     TRANSLATION_THRESHOLD = 0.0001  # m
     ROTATION_THRESHOLD = 0.001  # degrees
 
+    # imperfect movement to simulate reality real units
+    DRIFT_X_MAX = 0.01
+    DRIFT_Y_MAX = 0.01
+    DRIFT_THETA_MAX = 0.5
+    DRIFT_CHANGE_FREQ = 2.5
+
     def __init__(self, robot, secondary_controller=None):
         print("Initialising SimulatedMovementController...")
         # https://stackoverflow.com/questions/13380819/multiple-inheritance-along-with-threading-in-python
@@ -26,6 +33,11 @@ class SimulatedMovementController(Controller, Thread):
         self.holding = []  # items to move along with robot
         self.mirror = secondary_controller  # for sensor_simulation mode
         self.running = False
+
+        self.current_drift_vel = np.array([0, 0])
+        self.current_drift_theta = 0
+        self.last_drift_time = time.monotonic()
+
         self.start()
 
     def set_angular_velocity(self, theta):
@@ -33,12 +45,14 @@ class SimulatedMovementController(Controller, Thread):
         super().set_angular_velocity(theta)
         if not self.mirror is None:
             self.mirror.set_angular_velocity(theta)
+        self.update_drift()
 
     def set_plane_velocity(self, vel):
         """velocity aligned to the robot (sideways, forwards)"""
         super().set_plane_velocity(vel)
         if not self.mirror is None:
             self.mirror.set_plane_velocity(vel)
+        self.update_drift()
 
     def poke(self):
         """tell the hardware we're still using it and check if it's still there"""
@@ -53,9 +67,13 @@ class SimulatedMovementController(Controller, Thread):
         while self.running == True:
             now = time.monotonic()
 
-            if self.moving:
-                rotation = self.theta_vel * self.UPDATE_RATE
-                translation = self.vel * self.UPDATE_RATE
+            # no math if we're not moving
+            if self.moving and not (self.theta_vel == 0 and np.all(self.vel == 0)):
+
+                rotation = (
+                    self.theta_vel + self.current_drift_theta
+                ) * self.UPDATE_RATE
+                translation = (self.vel + self.current_drift_vel) * self.UPDATE_RATE
 
                 # Need to account for when translating and rotating the x,y coordinate is no longer the centre of rotation
                 # Code from @ZodiusInfuser
@@ -145,6 +163,19 @@ class SimulatedMovementController(Controller, Thread):
                 time.sleep(to_sleep)
 
         print("Simulated movement thread end")
+
+    def update_drift(self):
+        now = time.monotonic()
+        if now - self.last_drift_time > self.DRIFT_CHANGE_FREQ:
+            print("Updating random drift")
+            self.current_drift_vel = np.array(
+                [
+                    (2 * rand() - 1) * self.DRIFT_X_MAX,
+                    (2 * rand() - 1) * self.DRIFT_Y_MAX,
+                ]
+            )
+            self.current_drift_theta = (2 * rand() - 1) * self.DRIFT_THETA_MAX
+            self.last_drift_time = now
 
     def stop(self, exiting=False):
         """stop moving"""

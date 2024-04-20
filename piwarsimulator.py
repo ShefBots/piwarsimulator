@@ -500,7 +500,6 @@ if util.is_true(args.radio):
 if util.is_true(args.leds) and real_leds:
     # controller for real leds on the robot
     io_controller = util.get_io_controller(serial_instances)
-    real_leds = False
 
 if util.is_true(args.rendering) and running == True:
     from world.WorldRenderer import *
