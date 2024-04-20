@@ -17,6 +17,8 @@ class SimulatedMovementController(Controller, Thread):
     ROTATION_THRESHOLD = 0.001  # degrees
 
     # imperfect movement to simulate reality real units
+    DO_DRIFT = 0
+    # DO_DRIFT = 1
     DRIFT_X_MAX = 0.01
     DRIFT_Y_MAX = 0.01
     DRIFT_THETA_MAX = 0.5
@@ -165,6 +167,8 @@ class SimulatedMovementController(Controller, Thread):
         print("Simulated movement thread end")
 
     def update_drift(self):
+        if self.DO_DRIFT == 0:
+            return
         now = time.monotonic()
         if now - self.last_drift_time > self.DRIFT_CHANGE_FREQ:
             print("Updating random drift")
