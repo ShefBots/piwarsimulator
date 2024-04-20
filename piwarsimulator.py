@@ -427,8 +427,12 @@ if args.mode in [
 ]:
     # this works because lists are references
     controller.holding = robot_brain.holding
-if not args.attachment == Attachment.NONE and not attachment_controller is None:
-    print("Attaching brain to attachment")
+if (
+    args.attachment == Attachment.GRIPPER
+    and not attachment_controller is None
+    and type(attachment_controller).__name__ == "SimulatedGripperController"
+):
+    print("Attaching brain to simulated gripper")
     attachment_controller.set_brain(robot_brain)
 
 print("Attaching sensors...")
