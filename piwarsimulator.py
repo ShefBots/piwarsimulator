@@ -191,7 +191,7 @@ parser.add_argument(
     "--attachment",
     help="choose an attachment (default none)",
     type=Attachment,
-    # default=Attachment.NONE,
+    default=Attachment.NONE,
     # default=Attachment.GRIPPER,
     choices=list(Attachment),
 )
