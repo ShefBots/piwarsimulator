@@ -13,6 +13,7 @@ class LauncherController(Controller):
         super(LauncherController, self).__init__()
 
         self.io_controller = get_io_controller(serial_instances)
+        self.turret_power = False
 
         self.last_speed = None
         self.last_angle = None
@@ -20,14 +21,17 @@ class LauncherController(Controller):
         self.last_fire = False
         self.last_fire_time = time()
 
-        # turn on launcher power
-        self.io_controller.power_turret(1)
-
     # def __del__(self):
     #     # turn off launcher power
     #     self.io_controller.power_turret(0)
     #     # (this should end up being called when the software powers off
     #     # anyway from comm disconnection)
+
+    def power_on(self):
+        # turn on launcher power
+        if not self.turret_power:
+            self.io_controller.power_turret(1)
+            self.turret_power = True
 
     def set_motor_speed(self, speed):
         """set the speed of the brushless motor, 0 to 1 of range"""
@@ -39,6 +43,7 @@ class LauncherController(Controller):
             speed = 1
 
         if not speed == self.last_speed:
+            self.power_on()  # turn power on if it's not already
             if speed == 0 and not self.last_speed == 0:
                 # power down ?
                 pass
@@ -60,6 +65,7 @@ class LauncherController(Controller):
             angle = 1
 
         if not angle == self.last_angle:
+            self.power_on()  # turn power on if it's not already
             self.last_angle = angle
             # angle io_controller is expeting should be in the range of 0-10,000
             self.io_controller.turret_tilt(int(angle * 10000))
@@ -67,6 +73,7 @@ class LauncherController(Controller):
     def check_fire(self, fire):
         """handle the toggling of the fire switch"""
         if not fire == self.last_fire:
+            self.power_on()  # turn power on if it's not already
             self.last_fire = fire
             if fire == True:
                 self.fire()
@@ -78,6 +85,7 @@ class LauncherController(Controller):
         if time() - self.last_fire_time < 10:
             # don't fire more than once every 10 seconds
             return
+        self.power_on()  # turn power on if it's not already
         self.io_controller.fire()
         self.last_fire_time = time()
 

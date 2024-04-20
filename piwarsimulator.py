@@ -520,7 +520,11 @@ if util.is_true(args.rendering) and running == True:
     renderer.update()
 
 print("Waiting...")
-time.sleep(1)  # wait for things to settle
+time.sleep(0.5)  # wait for things to settle
+if util.is_true(args.leds) and real_leds:
+    # poke the io controller to keep it alive
+    io_controller.poke()
+time.sleep(0.5)
 
 target_frame_time = 1.0 / args.frame_rate
 start_time = time.monotonic()
