@@ -202,7 +202,7 @@ class CheesedEcoDisasterBrain(RobotBrain):
                     self.state = (
                         ExecutionState.PROGRAM_CONTROL
                     )  # home, then we move to zone
-                elif goal_distance < 0.2:
+                elif goal_distance < 0.25:
                     # barrel is close to in front of us
                     self.attachment_controller.open_gripper()
 
