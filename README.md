@@ -10,26 +10,21 @@ $ ./piwarsimulator.py -h
 pygame 2.5.2 (SDL 2.28.3, Python 3.11.7)
 Hello from the pygame community. https://www.pygame.org/contribute.html
 usage: piwarsimulator.py [-h]
-                         [--brain {CheesedEcoDisasterBrain,EcoDisasterBrain,LineFollowingBrain,MazeBrain,MinesweeperBrain,RobotBrain}]
+                         [--brain {CheesedEcoDisasterBrain,EcoDisasterBrain,LineFollowingBrain,MazeBrain,MinesweeperBrain,RobotBrain,TOFollowingBrain}]
                          [--map {EmptyMap,EscapeRouteMap,LavaPalavaMap,MinesweeperMap,RandomEcoDisasterMap,SimpleEcoDisasterMap}]
                          [--mode {simulation,sensor_simulation,control,control_simulation,everything_sim_but_vision}]
-                         [--radio {true,false}] [--rendering {true,false}]
-                         [--vision_mode {none,omnicam,simple}]
-                         [--omnicam_socket_mode {local,remote}]
-                         [--attachment {none,gripper,launcher}]
-                         [--beam {true,false}] [--robot_speed ROBOT_SPEED]
-                         [--turning_speed TURNING_SPEED]
-                         [--frame_rate FRAME_RATE] [--tof_position {high,low}]
-                         [--leds {true,false}]
+                         [--radio {true,false}] [--rendering {true,false}] [--vision_mode {none,omnicam,simple}]
+                         [--omnicam_socket_mode {local,remote}] [--attachment {none,gripper,launcher}] [--beam {true,false}]
+                         [--robot_speed ROBOT_SPEED] [--turning_speed TURNING_SPEED] [--frame_rate FRAME_RATE]
+                         [--tof_position {high,low}] [--leds {true,false}] [--enable_safeties {true,false}]
 
-Simulator/controller for ShefBots robot for PiWars 2024. Press SPACE to engage
-manual control, WASD/Arrow keys for strafe, and QE for rotate. G will activate
-the gripper if attached. The robot will not start until the parking break is
-released using the gipper key.
+Simulator/controller for ShefBots robot for PiWars 2024. Press SPACE to engage manual control, WASD/Arrow keys for strafe, and QE
+for rotate. G will activate the gripper if attached. The robot will not start until the parking break is released using the
+gipper key.
 
 options:
   -h, --help            show this help message and exit
-  --brain {CheesedEcoDisasterBrain,EcoDisasterBrain,LineFollowingBrain,MazeBrain,MinesweeperBrain,RobotBrain}
+  --brain {CheesedEcoDisasterBrain,EcoDisasterBrain,LineFollowingBrain,MazeBrain,MinesweeperBrain,RobotBrain,TOFollowingBrain}
                         robot brain/challenge (default RobotBrain)
   --map {EmptyMap,EscapeRouteMap,LavaPalavaMap,MinesweeperMap,RandomEcoDisasterMap,SimpleEcoDisasterMap}
                         map (default EmptyMap)
@@ -39,26 +34,24 @@ options:
   --rendering {true,false}
                         render world on screen (default true)
   --vision_mode {none,omnicam,simple}
-                        While in simulation modes, rely on simpler vision
-                        system (default omnicam)
+                        While in simulation modes, rely on simpler vision system (default omnicam)
   --omnicam_socket_mode {local,remote}
-                        When using real sensors, whether the 360 vision system
-                        should contact localhost ('local') or 192.168.22.1
+                        When using real sensors, whether the 360 vision system should contact localhost ('local') or 192.168.22.1
                         ('remote') (defaultremote)
   --attachment {none,gripper,launcher}
                         choose an attachment (default none)
-  --beam {true,false}   is the gripper equipped with the beam sensor (default
-                        false)
+  --beam {true,false}   is the gripper equipped with the beam sensor (default false)
   --robot_speed ROBOT_SPEED
-                        the top robot speed (min=0.1, max=0.6, default 0.3)
+                        the top robot speed (min=0.2, max=0.9, default 0.3)
   --turning_speed TURNING_SPEED
-                        the top robot speed (min=22.5, max=90.0, default 45)
+                        the top robot speed (min=45, max=180.0, default 45)
   --frame_rate FRAME_RATE
-                        number of times update (call process()) per second
-                        (min=10.0, max=120.0, default 60.0)
+                        number of times update (call process()) per second (min=10.0, max=120.0, default 60.0)
   --tof_position {high,low}
                         tof sensors are mounted low or high (default high)
   --leds {true,false}   light up LEDs (default true)
+  --enable_safeties {true,false}
+                        enforce safe robot behaivour - slowdown and don't collide (default true)
 ```
 
 Note the `CheesedEcoDisasterBrain` applies a simpler (although less robust) algorithm to solve the challenge and is to be preferred. The more complex `EcoDisasterBrain` routine is incomplete. 

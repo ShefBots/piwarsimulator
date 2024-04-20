@@ -234,6 +234,12 @@ parser.add_argument(
     default="true",
     choices=["true", "false"],
 )
+parser.add_argument(
+    "--enable_safeties",
+    help="enforce safe robot behaivour - slowdown and don't collide (default true)",
+    default="true",
+    choices=["true", "false"],
+)
 args = parser.parse_args()
 
 # imports for hardware etc based on settings
@@ -412,6 +418,7 @@ robot_brain = brain(
     speed=args.robot_speed,
     turning_speed=args.turning_speed,
     attachment_controller=attachment_controller,
+    enable_safeties=util.is_true(args.enable_safeties),
 )
 if args.mode in [
     OperationMode.SIMULATION,

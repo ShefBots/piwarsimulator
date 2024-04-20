@@ -82,6 +82,9 @@ class RobotBrain:
         self.collision = None
         self.do_collision_detection = True
 
+        # do collision detection and slowing down near things
+        self.enable_safeties = kwargs.get("enable_safeties", True)
+
         # distances to the nearest wall in dirction of TOF sensors
         self.distances = [None] * len(self.SENSOR_HEADINGS)
 
@@ -198,7 +201,8 @@ class RobotBrain:
             print("UH OH! Lost connection with controller!!!")
         self.check_for_collision()
         self.find_distances()
-        self.velocity_modify()  # check if we should slow & do so
+        if self.enable_safeties:
+            self.velocity_modify()  # check if we should slow & do so
 
         if self.sensor_measurements["do_quit"]:
             # this is triggered by the Escape key
@@ -231,7 +235,11 @@ class RobotBrain:
 
         # do we always want to try and stop on collisions?
         # sometimes we'll let higher level logic take over
-        if self.do_collision_detection == True and not self.collision is None:
+        if (
+            self.enable_safeties
+            and self.do_collision_detection == True
+            and not self.collision is None
+        ):
             self.controller_stop()
 
         # print(self.sensor_measurements)
@@ -335,6 +343,8 @@ class RobotBrain:
         return (None, 9e99)
 
     def check_for_collision(self):
+        if not self.enable_safeties:
+            return
         for obj in self.TheWorld[1:]:  # ignore the robot in 0
             if (
                 self.TheWorld[0].get_distance(obj) < self.COLLISION_TOLERANCE
@@ -619,7 +629,8 @@ class RobotBrain:
         """velocity aligned to the robot (sideways, forwards)"""
         assert len(vel) == 2, "plane velocity is always 2 components"
         self._controller.set_plane_velocity(vel)
-        self.velocity_modify()
+        if self.enable_safeties:
+            self.velocity_modify()
 
     def controller_stop(self, exiting=False):
         """stop moving"""
