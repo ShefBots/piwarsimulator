@@ -98,7 +98,6 @@ def check_in_range(value, mi, mx):
         ivalue = float(value)
     except:
         raise e
-    print(ivalue)
     if ivalue >= mi and ivalue <= mx:
         return ivalue
     raise e

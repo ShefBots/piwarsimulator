@@ -70,7 +70,7 @@ class RadioControl(Sensor):
 
         brushless_speed = None
         tilt = None
-        fire = None
+        fire = False
 
         if self.remote.is_connected() and self.remote.check_receive():
             manual_control = self.remote.read_channel(self.EN_CHANNEL)
@@ -89,13 +89,16 @@ class RadioControl(Sensor):
                 # brushless and tilt will be 0 to 1
                 brushless_speed = self.remote.read_channel(self.BRUSHLESS_CHANNEL)
                 tilt = self.remote.read_channel(self.TILT_CHANNEL)
-                fire = self.remote.read_channel(self.FIRE_CHANNEL)  # 1 for fire
+
+            # fire doubles for parking break so it must always be read
+            fire = self.remote.read_channel(self.FIRE_CHANNEL)  # 1 for fire
 
         inputs = {
             "forward_vel": forward_vel,
             "sideways_vel": sideways_vel,
             "angular_vel": angular_vel,
             "manual_control": manual_control,
+            "fire": fire,
         }
 
         if not brushless_speed is None:
@@ -103,8 +106,5 @@ class RadioControl(Sensor):
 
         if not tilt is None:
             inputs["tilt"] = tilt
-
-        if not fire is None:
-            inputs["fire"] = fire
 
         return [], inputs
