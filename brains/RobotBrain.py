@@ -530,12 +530,12 @@ class RobotBrain:
                 return
 
             self.square_rotate_time = math.fabs(
-                angle_to_wall / (self.turning_speed / 4)
+                angle_to_wall / (self.turning_speed / 3)
             )
             if angle_to_wall < 0:
-                self.set_angular_velocity(-self.turning_speed / 4)
+                self.set_angular_velocity(-self.turning_speed / 3)
             else:
-                self.set_angular_velocity(self.turning_speed / 4)
+                self.set_angular_velocity(self.turning_speed / 3)
 
         elif (
             time_at >= self.SQUARE_UP_DURATION + self.square_rotate_time
