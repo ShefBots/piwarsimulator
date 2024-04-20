@@ -27,6 +27,7 @@ class ExecutionState(Enum):
 
     # line following
     GO_SLOW = 30
+    SCUTTLE = 29
 
     # do not go beyond state 31 as this is the max that can be displayed in 5 bit binary
 
@@ -49,4 +50,5 @@ class ExecutionState(Enum):
             self.MOVE_TO_ZONE: "ES Moving to Zone",
             self.DROP_OFF_BARREL: "ES Dropping off Barrel",
             self.GO_SLOW: "ES Going slow",
+            self.SCUTTLE: "ES Scuttling sideways",
         }[self]

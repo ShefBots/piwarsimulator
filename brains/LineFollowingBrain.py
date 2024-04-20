@@ -49,7 +49,7 @@ class LineFollowingBrain(RobotBrain):
         if self.distance_forward() is None or self.distance_forward() > 0.4:
             speed_modifier = 1
             # mostly needed to avoid execution timeout
-            self.state = ExecutionState.GO_SLOW
+            self.state = ExecutionState.PROGRAM_CONTROL
         elif self.distance_forward() < 0.3:
             speed_modifier = 0.2
             self.state = ExecutionState.GO_SLOW

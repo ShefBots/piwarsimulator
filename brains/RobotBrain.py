@@ -66,6 +66,7 @@ class RobotBrain:
         self.square_distance = 0  # distance away at start of alignment
         self.square_rotate_time = 0  # how much time to rotate for to get into alignment
         self.square_up_pass = 0  # do it twice for best results
+        self.square_up_invert = 1  # change to -1 to change direction
 
         # for sensor output
         self.sensors = []  # any sensors
@@ -483,16 +484,17 @@ class RobotBrain:
 
         # direction of moment for alignment
         # speed = -0.075  # want this fixed because self.speed could vary
-        speed = 0.075  # could decide based on where there was more space?
+        # could decide based on where there was more space?
+        speed = self.square_up_invert * 0.075
         positive = 1
         if self.square_up_heading == 0:
             alignment_vector = np.array([speed, 0])
         elif self.square_up_heading == 90:
             # note, not super tested aligning to side walls
+            positive = -1
             alignment_vector = np.array([0, speed])
         elif self.square_up_heading == 270:
             # note, not super tested aligning to side walls
-            positive = -1
             speed = -speed
             alignment_vector = np.array([0, speed])
         elif self.square_up_heading == 180:
