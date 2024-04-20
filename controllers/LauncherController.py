@@ -68,7 +68,7 @@ class LauncherController(Controller):
             self.power_on()  # turn power on if it's not already
             self.last_angle = angle
             # angle io_controller is expeting should be in the range of 0-10,000
-            self.io_controller.turret_tilt(int(angle * 10000))
+            self.io_controller.turret_tilt(int(angle * 30000))
 
     def check_fire(self, fire):
         """handle the toggling of the fire switch"""
