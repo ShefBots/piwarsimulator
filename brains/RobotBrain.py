@@ -208,7 +208,7 @@ class RobotBrain:
 
         if self.parking_break == True:
             if time() - self.last_state_change_time > 1:
-                print("Parking break is on!")
+                print("Parking brake is on!")
                 self.last_state_change_time = time()
             # parking break is released by actioning the gripper or fire switches
             if self.sensor_measurements["gripper_toggle"] or (
@@ -218,6 +218,13 @@ class RobotBrain:
                 self.parking_break = False
                 self.last_state_change_time = time()
                 print("Parking break released")
+                # special case: parking break is a toggle inside of the keyboard class
+                # we need to reach in and unset the toogle to keep the gripper from opening
+                # as soon as manu control is engaged
+                for s in enumerate(self.sensors):
+                    if type(s[1]).__name__ == "Keyboard":
+                        s[1].gripper_status = not s[1].gripper_status
+                        break
             else:
                 # don't do anything until the parking break is released
                 return False
