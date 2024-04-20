@@ -4,7 +4,7 @@
 CHALLENGENAME="Lava Palava"
 
 # The basic command for this challenge
-PYARGS="piwarsimulator.py --brain LineFollowingBrain --tof_position low --attachment none --beam false"
+PYARGS="piwarsimulator.py --brain TOFollowingBrain --tof_position low --attachment none --beam false"
 
 # Get the directory containing the script
 SCRIPT_DIR=$(dirname "$0")
