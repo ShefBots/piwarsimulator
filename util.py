@@ -92,7 +92,7 @@ def create_serial_instances(port_list):
 
 def check_in_range(value, mi, mx):
     e = argparse.ArgumentTypeError(
-        f"{value} is invalid (must be between float 0 and {mx})"
+        f"{value} is invalid (must be between float {mi} and {mx})"
     )
     try:
         ivalue = float(value)

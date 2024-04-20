@@ -17,6 +17,7 @@ usage: piwarsimulator.py [-h]
                          [--omnicam_socket_mode {local,remote}] [--attachment {none,gripper,launcher}] [--beam {true,false}]
                          [--robot_speed ROBOT_SPEED] [--turning_speed TURNING_SPEED] [--frame_rate FRAME_RATE]
                          [--tof_position {high,low}] [--leds {true,false}] [--enable_safeties {true,false}]
+                         [--resolution RESOLUTION]
 
 Simulator/controller for ShefBots robot for PiWars 2024. Press SPACE to engage manual control, WASD/Arrow keys for strafe, and QE
 for rotate. G will activate the gripper if attached. The robot will not start until the parking break is released using the
@@ -52,6 +53,8 @@ options:
   --leds {true,false}   light up LEDs (default true)
   --enable_safeties {true,false}
                         enforce safe robot behaivour - slowdown and don't collide (default true)
+  --resolution RESOLUTION
+                        window resolution (min 300, max 1200, default 900)
 ```
 
 Note the `CheesedEcoDisasterBrain` applies a simpler (although less robust) algorithm to solve the challenge and is to be preferred. The more complex `EcoDisasterBrain` routine is incomplete. 

@@ -9,6 +9,7 @@ ctrl_shared() {
     PYARGS+=" --radio true"
     PYARGS+=" --frame_rate 30"
     PYARGS+=" --leds true"
+    PYARGS+=" --resolution 400"
 }
 
 # Shared for all simulation calls

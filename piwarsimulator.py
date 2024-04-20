@@ -235,6 +235,12 @@ parser.add_argument(
     default="true",
     choices=["true", "false"],
 )
+parser.add_argument(
+    "--resolution",
+    help=f"window resolution (min 300, max 1200, default 900)",
+    type=lambda s: util.check_in_range(s, 300, 1200),
+    default=900,
+)
 args = parser.parse_args()
 
 # imports for hardware etc based on settings
@@ -512,8 +518,8 @@ if util.is_true(args.rendering) and running == True:
 
     # default 0,0 is centre of screen
     renderer = WorldRenderer(
-        x_res=900,
-        y_res=900,
+        x_res=args.resolution,
+        y_res=args.resolution,
         num_worlds=1 if args.mode == OperationMode.CONTROL else 2,
         target_fps=args.frame_rate,
     )
