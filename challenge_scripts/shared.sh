@@ -10,6 +10,7 @@ ctrl_shared() {
     PYARGS+=" --frame_rate 30"
     PYARGS+=" --leds true"
     PYARGS+=" --resolution 400"
+    PYARGS+=" --enable_safeties false"
 }
 
 # Shared for all simulation calls

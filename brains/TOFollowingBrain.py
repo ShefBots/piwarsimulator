@@ -9,7 +9,7 @@ from world.ObjectType import *
 class TOFollowingBrain(RobotBrain):
     """logic for the line following challenge using TOFs only"""
 
-    NEAR_WALL = 0.23  # turn
+    NEAR_WALL = 0.20  # turn
     SLOW_WALL = 0.35  # slow down to approach
 
     NEAR_SPEED = 0.07  # used for scuttling

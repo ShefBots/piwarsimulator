@@ -28,7 +28,7 @@ class RobotBrain:
     EXECUTION_TIMEOUT = 60
 
     # seconds to move when doing square up procedure
-    SQUARE_UP_DURATION = 1
+    SQUARE_UP_DURATION = 1.2
 
     def __init__(self, **kwargs):
         self.robot = kwargs.get("robot", None)
@@ -535,19 +535,19 @@ class RobotBrain:
 
             print(f"Square across {base} rise {height} angle {angle_to_wall}")
 
-            if math.fabs(angle_to_wall) < 2 or math.fabs(height) < 0.003:
+            if math.fabs(angle_to_wall) < 2 or math.fabs(height) < 0.005:
                 # already pretty aligned
                 print("Already aligned, canceling squaring")
                 self.square_up_cancel()
                 return
 
             self.square_rotate_time = math.fabs(
-                angle_to_wall / (self.turning_speed / 3)
+                angle_to_wall / (self.turning_speed / 2)
             )
             if angle_to_wall < 0:
-                self.set_angular_velocity(-self.turning_speed / 3)
+                self.set_angular_velocity(-self.turning_speed / 2)
             else:
-                self.set_angular_velocity(self.turning_speed / 3)
+                self.set_angular_velocity(self.turning_speed / 2)
 
         elif (
             time_at >= self.SQUARE_UP_DURATION + self.square_rotate_time
