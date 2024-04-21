@@ -9,8 +9,11 @@ from world.ObjectType import *
 class TOFollowingBrain(RobotBrain):
     """logic for the line following challenge using TOFs only"""
 
-    NEAR_WALL = 0.22  # turn
-    SLOW_WALL = 0.3  # slow down to approach
+    NEAR_WALL = 0.23  # turn
+    SLOW_WALL = 0.35  # slow down to approach
+
+    NEAR_SPEED = 0.07  # used for scuttling
+    SLOW_SPEED = 0.15  # used for approaching a wall
 
     CENTER_TOLERANCE = 0.05  # try to be in the center-ish
 
@@ -30,10 +33,6 @@ class TOFollowingBrain(RobotBrain):
         if not super().process():
             # parent suggested something dangerous was up, don't continue
             return
-
-        print(
-            f"forward {self.distance_forward()} left {self.distance_left()} right {self.distance_right()}"
-        )
 
         # don't do anything if the manual override is triggered
         if self.sensor_measurements["manual_control"]:
@@ -59,9 +58,11 @@ class TOFollowingBrain(RobotBrain):
                 self.state = ExecutionState.MOVE_FORWARD
             else:
                 if self.distance_right() < self.distance_left():
-                    self.set_plane_velocity([self.speed / 6, 0])
+                    print("Scuttling left!")
+                    self.set_plane_velocity([-self.NEAR_SPEED, 0])
                 elif self.distance_right() > self.distance_left():
-                    self.set_plane_velocity([-self.speed / 6, 0])
+                    print("Scuttling right!")
+                    self.set_plane_velocity([self.NEAR_SPEED, 0])
 
         if self.state == ExecutionState.MOVE_FORWARD:
             if self.distance_forward() < self.NEAR_WALL:
@@ -76,4 +77,4 @@ class TOFollowingBrain(RobotBrain):
                 self.state = ExecutionState.SQUARING_UP
             elif self.distance_forward() < self.SLOW_WALL:
                 # if a wall is ahead do everything more slowly
-                self.set_plane_velocity([0, self.speed / 2])
+                self.set_plane_velocity([0, self.SLOW_SPEED])
