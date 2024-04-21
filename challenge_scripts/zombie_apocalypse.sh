@@ -4,7 +4,7 @@
 CHALLENGENAME="Zombie Apocalypse"
 
 # The basic command for this challenge
-PYARGS="piwarsimulator.py --brain RobotBrain --attachment launcher --beam false --vision_mode none --robot_speed 0.2 --turning_speed 45 --enable_safeties false"
+PYARGS="piwarsimulator.py --brain RobotBrain --attachment launcher --beam false --vision_mode none --robot_speed 0.2 --turning_speed 60 --enable_safeties false"
 
 # Get the directory containing the script
 SCRIPT_DIR=$(dirname "$0")

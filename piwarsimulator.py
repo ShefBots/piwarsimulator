@@ -16,10 +16,7 @@ from omnicam.protocol import REMOTE_ADDR
 # need this for serial and remote reciever and stuff
 importlib.import_module("sys").path.append("../piwarsengine")
 
-# TODO classes for real hardware
-# TODO      launcher control?
 # TODO nice program end points
-# TODO stop button
 
 # note this runs about 6 times slower on the Pi under Python 3.7?
 # FPS to TPS for thoughts per second ? :)
@@ -42,7 +39,7 @@ MIN_TURNING_SPEED = 45
 MAX_TURNING_SPEED = 180.0
 
 DEFAULT_ROBOT_SPEED = 0.3
-DEFAULT_TURNING_SPEED = 45
+DEFAULT_TURNING_SPEED = 60
 
 SERIAL_PATTERN = "/dev/ttyACM*"  # serial ports to scan for hardware
 
