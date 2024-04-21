@@ -15,9 +15,12 @@ class MinesweeperBrain(RobotBrain):
     OVERLAP_TARGET = 0.5  # fraction to overlap mine by before stopping
     WALL_TOLERANCE = 0.2  # m how close to walls to get
 
+    MINE_TIMEOUT = 1
+
     def __init__(self, **kwargs):
         super(MinesweeperBrain, self).__init__(**kwargs)
-        self.state = ExecutionState.PROGRAM_INIT
+        # self.state = ExecutionState.PROGRAM_INIT  # we don't get to place it
+        self.state = ExecutionState.PROGRAM_CONTROL  # we do
         self.last_mine_found = time()
 
     def process(self):
@@ -30,6 +33,11 @@ class MinesweeperBrain(RobotBrain):
 
         # don't do anything if the manual override is triggered
         if self.sensor_measurements["manual_control"]:
+            return
+
+        if self.state == ExecutionState.PROGRAM_WAIT:
+            if time() - self.last_state_change_time > self.MINE_TIMEOUT:
+                self.state = ExecutionState.PROGRAM_CONTROL
             return
 
         if self.state == ExecutionState.PROGRAM_COMPLETE:
@@ -50,11 +58,11 @@ class MinesweeperBrain(RobotBrain):
             # nothing smart to do while squaring up
             return
 
-        if time() - self.last_mine_found > 30:
-            print("No mines found for 30 seconds, we're done here")
-            # self.running = False
-            self.state = ExecutionState.PROGRAM_COMPLETE
-            return
+        # if time() - self.last_mine_found > 30:
+        #     print("No mines found for 30 seconds, we're done here")
+        #     # self.running = False
+        #     self.state = ExecutionState.PROGRAM_COMPLETE
+        #     return
 
         # find something to move towards
         (goal, goal_distance) = self.find_goal()
@@ -74,6 +82,8 @@ class MinesweeperBrain(RobotBrain):
         if overlap > self.OVERLAP_TARGET and self._controller.moving:
             self.controller_stop()
             # self.set_plane_velocity([0, 0])
+            self.state = ExecutionState.PROGRAM_WAIT
+            return
         elif overlap < self.OVERLAP_TARGET:
             if self.FUN_MODE:
                 # turn towards target

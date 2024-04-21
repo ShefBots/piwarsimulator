@@ -12,6 +12,7 @@ class ExecutionState(Enum):
     PROGRAM_CONTROL = 4  # do something smart
     PROGRAM_COMPLETE = 5  # done
     MANUAL_CONTROL = 6
+    PROGRAM_WAIT = 7
 
     # states for other brains
     # maze
@@ -42,6 +43,7 @@ class ExecutionState(Enum):
             self.PROGRAM_CONTROL: "ES Program Control",
             self.PROGRAM_COMPLETE: "ES Program Complete",
             self.MANUAL_CONTROL: "ES Manual Control",
+            self.PROGRAM_WAIT: "ES Program Wait",
             self.MOVE_LEFT: "ES Moving Left",
             self.MOVE_FORWARD: "ES Moving Forward",
             self.MOVE_RIGHT: "ES Moving Right",
