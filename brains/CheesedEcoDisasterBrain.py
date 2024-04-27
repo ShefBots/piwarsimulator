@@ -43,6 +43,10 @@ class CheesedEcoDisasterBrain(RobotBrain):
     ZONE_WIDTH = 0.6
     ZONE_HEIGHT = 0.2
 
+    # go up the right side wall (True) or left side wall (False)
+    # UP_RIGHT = True
+    UP_RIGHT = False
+
     def __init__(self, **kwargs):
         super(CheesedEcoDisasterBrain, self).__init__(**kwargs)
 
@@ -54,11 +58,12 @@ class CheesedEcoDisasterBrain(RobotBrain):
             print("ERROR!!!!!!!!!!! No gripper attached!!!!!!!!!!!")
             self.state = ExecutionState.PROGRAM_COMPLETE
         else:
-            # self.state = ExecutionState.PROGRAM_CONTROL  # IF WE CAN PLACE THE ROBOT
-            self.state = ExecutionState.FIND_WALL  # IF WE CAN'T PLACE THE ROBOT
+            self.state = ExecutionState.PROGRAM_CONTROL  # IF WE CAN PLACE THE ROBOT
+            # self.state = ExecutionState.FIND_WALL  # IF WE CAN'T PLACE THE ROBOT
 
         self.square_up_heading = 180  # align to wall behind us
         self.found_gap = False
+        self.square_up_invert = -1  # square up going right
 
         self.do_collision_detection = False  # plow through barrels
 
@@ -139,10 +144,16 @@ class CheesedEcoDisasterBrain(RobotBrain):
             elif tof_rear > self.rear_wall_target:
                 # and not tof_rear > self.rear_wall_target + self.WALL_MARGIN: # for margin?
                 self.set_plane_velocity([0, -self.speed])
-            elif tof_left > self.LEFT_WALL_TARGET and self.found_barrel == 0:
+            elif tof_left > self.LEFT_WALL_TARGET and (
+                self.found_barrel == 0 or not self.UP_RIGHT
+            ):
                 # go to bottom left when not holding a barrel
                 self.set_plane_velocity([-self.speed, 0])
-            elif tof_right > self.RIGHT_WALL_TARGET and self.found_barrel == 1:
+            elif (
+                tof_right > self.RIGHT_WALL_TARGET
+                and self.found_barrel == 1
+                and self.UP_RIGHT
+            ):
                 # and bottom right when holding a barrel
                 # (so that when dropping off barrels barrels could get pushed left and detected earlier)
                 self.set_plane_velocity([self.speed, 0])
@@ -237,8 +248,10 @@ class CheesedEcoDisasterBrain(RobotBrain):
                     self.attachment_controller.close_gripper()
                 else:
                     # 6) return to the right
-                    if tof_right > self.RIGHT_WALL_TARGET:
+                    if tof_right > self.RIGHT_WALL_TARGET and self.UP_RIGHT:
                         self.set_plane_velocity([self.speed, 0])
+                    elif tof_left > self.LEFT_WALL_TARGET and not self.UP_RIGHT:
+                        self.set_plane_velocity([-self.speed, 0])
                     else:
                         # 7) done, we should now be able to go back to homing and restart the process
                         self.set_plane_velocity([0, -self.speed])
@@ -253,9 +266,14 @@ class CheesedEcoDisasterBrain(RobotBrain):
 
         elif self.state == ExecutionState.DROP_OFF_BARREL:
             self.find_next_free_barrel_slot(self.get_barrel_color(self.holding[0]))
-            if x > self.drop_off_x:
+            if (x > self.drop_off_x and self.UP_RIGHT) or (
+                x < self.drop_off_x and not self.UP_RIGHT
+            ):
                 # 2) scuttle left to the drop off location
-                self.set_plane_velocity([-self.speed, 0])
+                if self.UP_RIGHT:
+                    self.set_plane_velocity([-self.speed, 0])
+                else:
+                    self.set_plane_velocity([self.speed, 0])
             elif y < self.drop_off_y:
                 # 3) at location go forwards
                 self.set_plane_velocity([0, self.speed / 4])
