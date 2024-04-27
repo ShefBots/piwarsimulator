@@ -1,8 +1,8 @@
 # piwarsimulator
-Robot simulator to work on PiWars logic. This is a work in progress, revivified for 2024. The software for most of the challenges is complete. Manual robot control can be engaged by pressing spacebar and then driving with WASD/arrow for strafe and QE for rotate. G will activate the gripper when attached (although objects cannot be picked up manually).
-Manual control on real hardware may be engaged using `--radio true` and then flicking the enable channel switch. The mirror switch controls the launcher/gripper.
+Robot simulator to work on PiWars logic. This is a work in progress, revivified for 2024. The software for most of the challenges is complete (at least in simulation). Manual robot control can be engaged by pressing spacebar and then driving with WASD/arrow for strafe and QE for rotate. G will activate the gripper when attached (although objects cannot be picked up manually).
+Manual control on real hardware may be engaged using `--radio true` and then flicking the right-most switch. The left-most switch controls the launcher/gripper.
 
-**The robot will not start movement without releasing the parking break.** This is done by using the gripper toggle button.
+**The robot will not start movement without releasing the parking break.** This is done by using the gripper button (or switch with radio receiver connected).
 
 
 ```
@@ -11,23 +11,26 @@ pygame 2.5.2 (SDL 2.28.3, Python 3.11.7)
 Hello from the pygame community. https://www.pygame.org/contribute.html
 usage: piwarsimulator.py [-h]
                          [--brain {CheesedEcoDisasterBrain,EcoDisasterBrain,LineFollowingBrain,MazeBrain,MinesweeperBrain,RobotBrain,TOFollowingBrain}]
-                         [--map {EmptyMap,EscapeRouteMap,LavaPalavaMap,MinesweeperMap,RandomEcoDisasterMap,SimpleEcoDisasterMap}]
+                         [--map {EmptyMap,EscapeRouteMap,LavaPalavaMap,MinesweeperMap,RandomEcoDisasterMap,RealEcoDisasterMap,SimpleEcoDisasterMap}]
                          [--mode {simulation,sensor_simulation,control,control_simulation,everything_sim_but_vision}]
-                         [--radio {true,false}] [--rendering {true,false}] [--vision_mode {none,omnicam,simple}]
-                         [--omnicam_socket_mode {local,remote}] [--attachment {none,gripper,launcher}] [--beam {true,false}]
-                         [--robot_speed ROBOT_SPEED] [--turning_speed TURNING_SPEED] [--frame_rate FRAME_RATE]
-                         [--tof_position {high,low}] [--leds {true,false}] [--enable_safeties {true,false}]
+                         [--radio {true,false}] [--rendering {true,false}]
+                         [--vision_mode {none,omnicam,simple}]
+                         [--omnicam_socket_mode {local,remote}]
+                         [--attachment {none,gripper,launcher}]
+                         [--beam {true,false}] [--robot_speed ROBOT_SPEED]
+                         [--turning_speed TURNING_SPEED]
+                         [--frame_rate FRAME_RATE] [--tof_position {high,low}]
+                         [--leds {true,false}]
+                         [--enable_safeties {true,false}]
                          [--resolution RESOLUTION]
 
-Simulator/controller for ShefBots robot for PiWars 2024. Press SPACE to engage manual control, WASD/Arrow keys for strafe, and QE
-for rotate. G will activate the gripper if attached. The robot will not start until the parking break is released using the
-gipper key.
+Simulator/controller for ShefBots robot for PiWars 2024. Press SPACE to engage manual control, WASD/Arrow keys for strafe, and QE for rotate. G will activate the gripper if attached or fire the launcher if attached. The robot will not start until the parking break is released using the gipper key.
 
 options:
   -h, --help            show this help message and exit
   --brain {CheesedEcoDisasterBrain,EcoDisasterBrain,LineFollowingBrain,MazeBrain,MinesweeperBrain,RobotBrain,TOFollowingBrain}
                         robot brain/challenge (default RobotBrain)
-  --map {EmptyMap,EscapeRouteMap,LavaPalavaMap,MinesweeperMap,RandomEcoDisasterMap,SimpleEcoDisasterMap}
+  --map {EmptyMap,EscapeRouteMap,LavaPalavaMap,MinesweeperMap,RandomEcoDisasterMap,RealEcoDisasterMap,SimpleEcoDisasterMap}
                         map (default EmptyMap)
   --mode {simulation,sensor_simulation,control,control_simulation,everything_sim_but_vision}
                         operation mode (default simulation)
@@ -45,9 +48,9 @@ options:
   --robot_speed ROBOT_SPEED
                         the top robot speed (min=0.2, max=0.9, default 0.3)
   --turning_speed TURNING_SPEED
-                        the top robot speed (min=45, max=180.0, default 45)
+                        the top robot speed (min=45, max=180.0, default 60)
   --frame_rate FRAME_RATE
-                        number of times update (call process()) per second (min=10.0, max=120.0, default 60.0)
+                        number of times update (call process()) per second (min=10.0, max=120.0, default 30.0)
   --tof_position {high,low}
                         tof sensors are mounted low or high (default high)
   --leds {true,false}   light up LEDs (default true)
@@ -129,10 +132,10 @@ afterwhich the USB gadget Ethernet device will always be usb0.
 
 This section might now be a bit out of date, but in general this code once finished can either be run in simulation or control mode. It consists of these main components:
 
-* TheWorld – list of everything in the world (either detected or when simulation synthetic), comprised of WorldObjects that contain coordinates and type information
-* RobotBrain – provides basic logic for scanning and simulation (super classes provide dedicated logic)
-* Sensor – Provides sensor information (vision system, time of flight, optical flow, radio receiver) 
-* Controller – Acts on the robot (wheels or launcher or ExteriorTheWorld in simulation)
+* TheWorld – list of everything in the world that the robot sees, comprised of WorldObjects that contain coordinates and type information
+* RobotBrain – provides basic logic for scanning and simulation (super classes provide shared more generic logic)
+* Sensor – Provides input to the brain (vision system, time of flight, optical flow, radio receiver)
+* Controller – Acts on the physical world, or ExteriorTheWorld in simulation, via the robot wheels, gripper, etc.
 * WorldRender – displays the world
 
 Operating in control mode the robot:
@@ -147,7 +150,7 @@ Operating in simulation, virtual sensors use an ExteriorTheWorld list consisting
 
 Operating in simulation:
 
-* Sensors return output based on ExteriorTheWorld 
+* Sensors return output based on ExteriorTheWorld
 * The RobotBrain builds TheWorld
 * The RobotBrain makes decisions
 * Acts through changing its location in ExteriorTheWorld via SimulationController

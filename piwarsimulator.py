@@ -114,7 +114,7 @@ maps = sorted([s[:-3] for s in listdir("world/") if "Map.py" in s])
 parser = argparse.ArgumentParser(
     description="""Simulator/controller for ShefBots robot for PiWars 2024. 
     Press SPACE to engage manual control, WASD/Arrow keys for strafe, and QE for rotate. 
-    G will activate the gripper if attached. 
+    G will activate the gripper if attached or fire the launcher if attached. 
     The robot will not start until the parking break is released using the gipper key."""
 )
 parser.add_argument(
