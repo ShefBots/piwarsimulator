@@ -29,7 +29,6 @@ def find_goal(brain, use_front=False):
     gripper_center = (0, brain.robot.height / 2 + 0.025)
 
     if brain.state == ExecutionState.MOVE_TO_ZONE:
-        # TODO need to ignore barrels in/near zones
         # need to have find_closest return ranked list? or another function to sort TheWorld?
         return brain.find_closest(ObjectType.ZONE, color=goal_color)
 
@@ -37,10 +36,26 @@ def find_goal(brain, use_front=False):
         # treat the middle of the gripper as the center, so find barrel closest
         # to the front of the robot, 0.025 = barrel radius
         # finds the closest barrel that's in a straight line
+
+        # need to ignore barrels in/near zones
+        exclude = []
+        for _, i in enumerate(brain.GOAL_MAPPING):
+            zone, _ = brain.find_closest(
+                ObjectType.ZONE, color=Color(brain.GOAL_MAPPING[i])
+            )
+            if not zone is None:
+                for obj in brain.TheWorld[1:]:
+                    if obj.object_type == ObjectType.BARREL and obj.outline.intersects(
+                        zone.outline
+                    ):
+                        exclude.append(obj)
+
         if use_front == True:
             return brain.find_in_front(ObjectType.BARREL, relative_to=gripper_center)
         else:
-            return brain.find_closest(ObjectType.BARREL, relative_to=gripper_center)
+            return brain.find_closest(
+                ObjectType.BARREL, relative_to=gripper_center, exclude=exclude
+            )
         # TODO fall back to closest if there's nothing in front?
 
     elif brain.state == ExecutionState.DROP_OFF_BARREL:
