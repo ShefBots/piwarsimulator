@@ -18,9 +18,9 @@ class SimulatedVision360(Sensor):
     # this excludes the robot dimension, so make sure it's big enough
     LINE_DECTION_DISTANCE = 0.2
 
-    # how frequently to returna new result
-    # UPDATE_RATE = 1.0 / 60.0
-    UPDATE_RATE = 1.0 / 12.0  # the real vision system is estimated to be slow
+    # how frequently to return a new result
+    UPDATE_RATE = 0  # always return an update
+    # UPDATE_RATE = 1.0 / 12.0  # the real vision system is estimated to be slow
 
     def __init__(self, ExteriorTheWorld, brain):
         super().__init__()
