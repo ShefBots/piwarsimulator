@@ -108,6 +108,7 @@ def find_goal(brain, use_front=False):
             y=drop_point[1],
             radius=barrel.radius,
             color="gray",
+            sensor_id=brain.TEMP_SENSOR_ID,
         )
         # work out the heading
         # possibly more useful to use the heading between the barrel and

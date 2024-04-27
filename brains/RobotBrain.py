@@ -30,6 +30,9 @@ class RobotBrain:
     # seconds to move when doing square up procedure
     SQUARE_UP_DURATION = 1.2
 
+    # always forget things with this sensor id
+    TEMP_SENSOR_ID = 99
+
     def __init__(self, **kwargs):
         self.robot = kwargs.get("robot", None)
         self.attachment_controller = kwargs.get("attachment_controller", None)
@@ -119,6 +122,7 @@ class RobotBrain:
         # if objects on the curret scan is empty, reuse the previous objets with an offset applied
         # base the offset on the current velocity & rotation speed to estimate the new object locations
         # store the new estimated location in the saved reading for the next time around
+        self.remove_by_sensor_id(self.TEMP_SENSOR_ID)  # remove temporary world objects
         for id, s in enumerate(self.sensors):
 
             # read the sensor
