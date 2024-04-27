@@ -18,9 +18,6 @@ importlib.import_module("sys").path.append("../piwarsengine")
 
 # TODO nice program end points
 
-# note this runs about 6 times slower on the Pi under Python 3.7?
-# FPS to TPS for thoughts per second ? :)
-
 # to profile:
 # pip install line-profiler[all] snakeviz
 # python -m cProfile -o out.prof piwarsimulator.py
@@ -31,7 +28,7 @@ importlib.import_module("sys").path.append("../piwarsengine")
 
 MIN_FRAME_RATE = 10.0
 MAX_FRAME_RATE = 120.0
-DEFAULT_FRAME_RATE = 60.0  # aim for 60 fps simulation/processing by default
+DEFAULT_FRAME_RATE = 30.0  # aim for 60 fps simulation/processing by default
 
 MIN_ROBOT_SPEED = 0.2
 MAX_ROBOT_SPEED = 0.9
@@ -127,6 +124,7 @@ parser.add_argument(
     # default="MinesweeperBrain",
     # default="MazeBrain",
     # default="LineFollowingBrain",
+    # default="TOFollowingBrain",
     # default="EcoDisasterBrain",
     # default="CheesedEcoDisasterBrain",
     choices=brains,
@@ -140,6 +138,7 @@ parser.add_argument(
     # default="LavaPalavaMap",
     # default="SimpleEcoDisasterMap",
     # default="RandomEcoDisasterMap",
+    # default="RealEcoDisasterMap",
     choices=maps,
 )
 parser.add_argument(
@@ -230,6 +229,7 @@ parser.add_argument(
     "--enable_safeties",
     help="enforce safe robot behaivour - slowdown and don't collide (default true)",
     default="true",
+    # default="false",
     choices=["true", "false"],
 )
 parser.add_argument(
@@ -420,7 +420,7 @@ robot_brain = brain(
 )
 if args.mode in [
     OperationMode.SIMULATION,
-    OperationMode.CONTROL_SIMULATION,
+    OperationMode.SENSOR_SIMULATION,
     OperationMode.EVERYTHING_SIM_BUT_VISION,
 ]:
     # this works because lists are references

@@ -18,9 +18,18 @@ cd ..
 
 # Check the first argument
 if [ "$1" = "ctrl" ]; then
-    ctrl_shared
+#    ctrl_shared
+    PYARGS+=" --map RealEcoDisasterMap"
+    PYARGS+=" --mode sensor_simulation"
+    PYARGS+=" --radio true"
+    PYARGS+=" --frame_rate 30"
+    PYARGS+=" --leds true"
+    PYARGS+=" --resolution 300"
+    # need safeties for speed limit
+#    PYARGS+=" --enable_safeties false"
 elif [ "$1" = "sim" ] || [ $# -eq 0 ]; then
-    PYARGS+=" --map RandomEcoDisasterMap"
+#    PYARGS+=" --map RandomEcoDisasterMap"
+    PYARGS+=" --map RealEcoDisasterMap"
     sim_shared
 elif [ "$1" = "-h" ]; then
     # Display usage information
