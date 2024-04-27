@@ -589,8 +589,22 @@ class RobotBrain:
 
         vel = self._controller.vel
 
-        # is the gripper not closed?
+        # is the gripper opening?
         if (
+            not self.attachment_controller == None
+            and (
+                type(self.attachment_controller).__name__
+                == "SimulatedGripperController"
+                or type(self.attachment_controller).__name__ == "GripperController"
+            )
+            and self.attachment_controller.gripper_state
+            == self.attachment_controller.GRIPPER_OPENING
+        ):
+            # halt the robot while opening
+            self._controller.set_plane_velocity([0, 0])
+            return
+        # is the gripper not closed?
+        elif (
             not self.attachment_controller == None
             and (
                 type(self.attachment_controller).__name__
@@ -607,9 +621,11 @@ class RobotBrain:
             ):
                 # print("Barrel speed limit hit")
                 speed_limit = speed_limit / 2
+            # enforce going slow while gripper things
             clamp = lambda v: min(max(v, -speed_limit / 2), speed_limit / 2)
             vel = [clamp(v) for v in vel]
             self._controller.set_plane_velocity(vel)
+            return
 
         # force the robot to slow down if the gripper is open or if it is approaching a wall
         if self.distance_forward() < 0.2 and vel[1] > speed_limit:
