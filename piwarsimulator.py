@@ -28,7 +28,7 @@ importlib.import_module("sys").path.append("../piwarsengine")
 
 MIN_FRAME_RATE = 10.0
 MAX_FRAME_RATE = 120.0
-DEFAULT_FRAME_RATE = 30.0  # aim for 60 fps simulation/processing by default
+DEFAULT_FRAME_RATE = 60.0  # aim for 60 fps simulation/processing by default
 
 MIN_ROBOT_SPEED = 0.2
 MAX_ROBOT_SPEED = 0.9
