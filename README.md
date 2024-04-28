@@ -1,5 +1,13 @@
 # piwarsimulator
-Robot simulator to work on PiWars logic. This is a work in progress, revivified for 2024. The software for most of the challenges is complete (at least in simulation). Manual robot control can be engaged by pressing spacebar and then driving with WASD/arrow for strafe and QE for rotate. G will activate the gripper when attached (although objects cannot be picked up manually).
+Robot simulator to work on PiWars logic for the 2024 PiWars Disaster Zone competition.
+
+A little introduction to the software:
+[![I wrote some software to control a robot
+](youtube-thumb.jpg)](https://www.youtube.com/watch?v=OmGr_GlXisk)
+
+## Usage
+
+Manual robot control can be engaged by pressing spacebar and then driving with WASD/arrow for strafe and QE for rotate. G will activate the gripper when attached (although objects cannot be picked up manually).
 Manual control on real hardware may be engaged using `--radio true` and then flicking the right-most switch. The left-most switch controls the launcher/gripper.
 
 **The robot will not start movement without releasing the parking break.** This is done by using the gripper button (or switch with radio receiver connected).
